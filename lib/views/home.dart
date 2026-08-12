@@ -92,7 +92,6 @@ class _HomeState extends State<Home> {
     final namaController = TextEditingController(text: user.nama);
     final emailController = TextEditingController(text: user.email);
     final noHpController = TextEditingController(text: user.noHp);
-    final asalKotaController = TextEditingController(text: user.asalKota);
     final passController = TextEditingController(text: user.password);
 
     showModalBottomSheet(
@@ -152,7 +151,6 @@ class _HomeState extends State<Home> {
                           nama: namaController.text.trim(),
                           email: emailController.text.trim(),
                           noHp: noHpController.text.trim(),
-                          asalKota: asalKotaController.text.trim(),
                           password: passController.text,
                         ); // UserModelSQL
 

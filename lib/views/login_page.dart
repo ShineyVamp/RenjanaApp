@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renjana/database/db_helper.dart';
 import 'package:renjana/extensions/navigation.dart';
+import 'package:renjana/views/home.dart';
 import 'package:renjana/views/oboarding/onboarding1.dart';
 import 'package:renjana/views/register_page.dart';
 
@@ -17,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailC = TextEditingController();
   final TextEditingController passC = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool lihatPass = false;
+  bool lihatPass = true;
 
   void login() async {
     final email = emailC.text.trim();
@@ -28,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (pengguna != null) {
-      context.pushAndRemoveAll(Onboarding1());
+      context.pushAndRemoveAll(Home());
     } else {
       ScaffoldMessenger.of(
         context,

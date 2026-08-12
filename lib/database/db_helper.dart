@@ -19,7 +19,7 @@ class DbHelper {
 
   Future<Database> _initDB() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'tugas12.db');
+    final path = join(dbPath, 'renjana.db');
 
     return await openDatabase(
       path,

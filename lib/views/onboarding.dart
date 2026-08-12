@@ -17,7 +17,6 @@ class Onboarding extends StatefulWidget {
 class _OnboardingState extends State<Onboarding> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  final bool _isnavigating = false;
 
   @override
   void dispose() {
@@ -25,28 +24,26 @@ class _OnboardingState extends State<Onboarding> {
     super.dispose();
   }
 
-  void _previous() async {
-    // if (_isnavigating) return;
+  void _previous() {
+    if (_pageController.hasClients && _pageController.page != null) {
+      if (_pageController.page! % 1 != 0) return;
+    }
 
     if (_currentPage < _pages.length) {
-      // setState(() {
-      //   _isnavigating = true;
-      // });
-      await _pageController.previousPage(
+      _pageController.previousPage(
         duration: Duration(milliseconds: 550),
         curve: Curves.easeInOut,
       );
     }
   }
 
-  void _next() async {
-    // if (_isnavigating) return;
+  void _next() {
+    if (_pageController.hasClients && _pageController.page != null) {
+      if (_pageController.page! % 1 != 0) return;
+    }
 
     if (_currentPage < _pages.length - 1) {
-      // setState(() {
-      //   _isnavigating = true;
-      // });
-      await _pageController.nextPage(
+      _pageController.nextPage(
         duration: Duration(milliseconds: 550),
         curve: Curves.easeInOut,
       );
@@ -165,33 +162,27 @@ class _OnboardingState extends State<Onboarding> {
           // if (_currentPage > 0)
           //   Positioned(
           //     top: 50,
-          //     left: 20,
+          //     right: 20,
           //     child: Stack(
           //       alignment: AlignmentGeometry.center,
           //       children: [
-          //         Container(
-          //           width: 45,
-          //           height: 45,
-          //           decoration: BoxDecoration(
-          //             boxShadow: [
-          //               BoxShadow(
-          //                 color: Colors.black,
-          //                 blurRadius: 1,
-          //                 spreadRadius: 0.4,
-          //               ),
-          //             ],
-          //             shape: BoxShape.circle,
-          //             color: Color(0xffC9362B).withValues(alpha: 1),
+          //         GestureDetector(
+          //           onTap: () {
+          //             context.pushAndRemoveAll(LoginPage());
+          //           },
+          //           child: AnimatedContainer(
+          //             duration: Duration(microseconds: 1),
+          //             width: 85,
+          //             height: 45,
+          //             decoration: BoxDecoration(
+          //               border: Border.fromBorderSide(BorderSide(color: Color(0xffC9362B).withValues(alpha: 0.5), width: 1.5,strokeAlign: BorderSide.strokeAlignOutside)),
+          //               borderRadius: BorderRadius.circular(15),
+          //               color: Color(0xffF4F0E7),
+          //             ),
+                    
           //           ),
           //         ),
-          //         IconButton(
-          //           onPressed: () {},
-          //           icon: Icon(
-          //             Icons.arrow_back_outlined,
-          //             size: 30,
-          //             color: Colors.white,
-          //           ),
-          //         ),
+          //         Text("Lewati", style: GoogleFonts.plusJakartaSans(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),)
           //       ],
           //     ),
           //   ),

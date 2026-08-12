@@ -17,7 +17,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController namaC = TextEditingController();
   final TextEditingController emailC = TextEditingController();
   final TextEditingController noHpC = TextEditingController();
-  final TextEditingController asalKotaC = TextEditingController();
   final TextEditingController passC = TextEditingController();
   final TextEditingController konpassC = TextEditingController();
   final _formkey = GlobalKey<FormState>();
@@ -30,7 +29,6 @@ class _RegisterPageState extends State<RegisterPage> {
     final nama = namaC.text.trim();
     final email = emailC.text.trim();
     final noHp = noHpC.text.trim();
-    final asalKota = asalKotaC.text.trim();
     final pass = passC.text.trim();
 
     final pengguna = UserSQLModel(
@@ -38,7 +36,6 @@ class _RegisterPageState extends State<RegisterPage> {
       email: email,
       noHp: noHp,
       password: pass,
-      asalKota: asalKota,
     );
 
     bool success = await DbHelper().userRegister(pengguna);
@@ -172,26 +169,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        " Asal Kota",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      MasukkanPengguna(
-                        namaC: asalKotaC,
-                        validator: (p0) {
-                          if (p0 == null || p0.isEmpty) {
-                            return "Asal Kota Wajib Diisi";
-                          }
-                          return null;
-                        },
-                        teksHint: 'Masukkan Asal Kota Anda',
-                        bintang: false,
-                      ),
-                      SizedBox(height: 10),
-                      Text(
                         " Password",
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
@@ -291,7 +268,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         namaC: konpassC,
                         validator: (p0) {
                           if (p0 == null || p0.isEmpty) {
-                            return "Nama Wajib Diisi";
+                            return "Harap isi password anda kembali disini";
                           } else if (!p0.contains(passC.text)) {
                             return "Password Tidak Sama";
                           }
@@ -313,8 +290,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           backgroundColor: Color(0xffC9362B),
                         ),
                         onPressed: () {
-                          if (_formkey.currentState!.validate()) {}
-                          register();
+                          if (_formkey.currentState!.validate()) {
+                            register();
+                          }
                         },
                         child: Text(
                           'Register',
