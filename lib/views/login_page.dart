@@ -128,14 +128,20 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 SizedBox(height: 20),
-                buttonLoginRegister(
-                  context,
-                  onPressed: () {
-                    FocusScope.of(context).unfocus();
-                    if (_formKey.currentState!.validate()) {}
-                    login();
-                  },
-                  teks: "Login",
+                Row(
+                  children: [
+                    Expanded(
+                      child: buttonLoginRegister(
+                        context,
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          if (_formKey.currentState!.validate()) {}
+                          login();
+                        },
+                        teks: "Login",
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 10),
                 Row(

@@ -16,12 +16,12 @@ class _Onboarding1State extends State<Onboarding1> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset('assets/images/onboardin1.jpg', fit: BoxFit.fitHeight),
+            Image.asset('assets/images/onboardin1.jpg', fit: BoxFit.cover),
             Positioned(
               top: 700,
               child: Container(
                 height: 200,
-                width: 400,
+                width: 600,
                 foregroundDecoration: BoxDecoration(
                   shape: BoxShape.rectangle,
                   boxShadow: [

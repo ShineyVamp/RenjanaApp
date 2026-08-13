@@ -278,30 +278,36 @@ class _RegisterPageState extends State<RegisterPage> {
                         bintang: lihatPass,
                       ),
                       SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size(400, 55),
-                          elevation: 1,
-                          shape: DecoratedOutlinedBorder(
-                            child: RoundedRectangleBorder(
-                              borderRadius: BorderRadiusGeometry.circular(15),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                fixedSize: Size(400, 55),
+                                elevation: 1,
+                                shape: DecoratedOutlinedBorder(
+                                  child: RoundedRectangleBorder(
+                                    borderRadius: BorderRadiusGeometry.circular(15),
+                                  ),
+                                ),
+                                backgroundColor: Color(0xffC9362B),
+                              ),
+                              onPressed: () {
+                                if (_formkey.currentState!.validate()) {
+                                  register();
+                                }
+                              },
+                              child: Text(
+                                'Register',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                          backgroundColor: Color(0xffC9362B),
-                        ),
-                        onPressed: () {
-                          if (_formkey.currentState!.validate()) {
-                            register();
-                          }
-                        },
-                        child: Text(
-                          'Register',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),

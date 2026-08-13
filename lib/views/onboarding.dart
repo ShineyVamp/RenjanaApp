@@ -59,6 +59,7 @@ class _OnboardingState extends State<Onboarding> {
     return Scaffold(
       backgroundColor: Color(0xffF4F0E7),
       body: Stack(
+        alignment: AlignmentGeometry.bottomCenter,
         children: [
           Container(
             color: Colors.transparent,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:renjana/database/db_helper.dart';
-import 'package:renjana/models/user_model.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'dart:math' as math;
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -10,194 +11,128 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  void _refreshList() {
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Daftar Profil Pengguna")),
-      body: Column(
-        children: [
-          Expanded(
-            child: FutureBuilder<List<UserSQLModel>>(
-              future: DbHelper().getAllUser(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Terjadi kesalahan: ${snapshot.error}'),
-                  ); // Center
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('Tidak ada data pengguna.'),
-                  ); // Center
-                }
-
-                final daftarPengguna = snapshot.data!;
-
-                return ListView.builder(
-                  itemCount: daftarPengguna.length,
-                  itemBuilder: (context, index) {
-                    final user = daftarPengguna[index];
-                    return Card(
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.person),
-                        ), // CircleAvatar
-                        title: Text(user.email),
-                        subtitle: Text('Password: ${user.password}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                _showBottomSheet(
-                                  context,
-                                  daftarPengguna[index],
-                                );
-                              },
-                              icon: Icon(Icons.edit),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                _showBottomSheet(
-                                  context,
-                                  daftarPengguna[index],
-                                );
-                              },
-                              icon: Icon(Icons.delete),
-                            ),
-                          ],
-                        ),
-                      ), // ListTile
-                    ); // Card
-                  },
-                ); // ListView.builder
-              },
-            ), // FutureBuilder
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBottomSheet(BuildContext context, UserSQLModel user) {
-    final namaController = TextEditingController(text: user.nama);
-    final emailController = TextEditingController(text: user.email);
-    final noHpController = TextEditingController(text: user.noHp);
-    final passController = TextEditingController(text: user.password);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ), // RoundedRectangleBorder
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
-          ), // EdgeInsets.only
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 700),
+      child: Scaffold(
+        backgroundColor: Color(0xffF4F0E7),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Row(
             children: [
-              const Text(
-                'Kelola Pengguna',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ), // Text
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ), // InputDecoration
-              ), // TextField
-              const SizedBox(height: 10),
-              TextField(
-                controller: passController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ), // InputDecoration
-              ), // TextField
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    label: const Text(
-                      'Update',
-                      style: TextStyle(color: Colors.white),
-                    ), // Text
-                    onPressed: () async {
-                      if (user.id != null) {
-                        final updatedUser = UserSQLModel(
-                          id: user.id,
-                          nama: namaController.text.trim(),
-                          email: emailController.text.trim(),
-                          noHp: noHpController.text.trim(),
-                          password: passController.text,
-                        ); // UserModelSQL
-
-                        bool success = await DbHelper().updateUser(updatedUser);
-                        if (success && context.mounted) {
-                          Navigator.pop(context);
-                          _refreshList();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Data berhasil diperbarui'),
-                            ), // SnackBar
-                          );
-                        }
-                      }
-                    },
-                  ), // ElevatedButton.icon
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    icon: const Icon(Icons.delete, color: Colors.white),
-                    label: const Text(
-                      'Delete',
-                      style: TextStyle(color: Colors.white),
-                    ), // Text
-                    onPressed: () async {
-                      if (user.id != null) {
-                        await DbHelper().deleteUser(user.id!);
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          _refreshList();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Data berhasil dihapus'),
-                            ), // SnackBar
-                          );
-                        }
-                      }
-                    },
-                  ), // ElevatedButton.icon
-                ],
-              ), // Row
-              const SizedBox(height: 20),
+              Image.asset("assets/images/Rlogos.png", width: 35),
+              Text("RENJANA", style: GoogleFonts.dmSerifDisplay(fontSize: 28)),
             ],
-          ), // Column
-        ); // Padding
-      },
+          ),
+          actions: [
+            Padding(
+              padding: EdgeInsets.only(right: 20),
+              child: Row(
+                spacing: 10,
+                children: [
+                  Icon(Icons.bookmark_border),
+                  Icon(Icons.search, color: Color(0xffC9362B)),
+                ],
+              ),
+            ),
+          ],
+          shape: Border(bottom: BorderSide(color: Color(0xffC9362B))),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  DateFormat(
+                    "EEEE, dd MMMM yyyy",
+                    'id_ID',
+                  ).format(DateTime.now()),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 18),
+                ),
+                Text(
+                  "Selamat pagi, Agus",
+                  style: GoogleFonts.dmSerifDisplay(fontSize: 30),
+                ),
+                SizedBox(height: 10),
+                Divider(color: Color(0x50C9362B)),
+                SizedBox(height: 15),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Color(0x50F9F2EF),
+                    // border: BoxBorder.all(color: Color(0x50C9362B)),
+                  ),
+                  child: Column(
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            width: 250,
+                            color: Color(0xffC9362B),
+                            child: Text(
+                              "Sejarah Hari Ini",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 23,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white
+                              ),textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 25),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: Transform.rotate(
+                                  angle: -1 * (math.pi / 180),
+                                  child: Container(
+                                    height: 10,
+                                    width: 100,
+                                    decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black,
+                                          blurRadius: 5,
+                                          spreadRadius: 4,
+                                        ),
+                                      ],
+                                      border: Border.all(
+                                        color: Color(0xff32302E),
+                                        strokeAlign:
+                                            BorderSide.strokeAlignOutside,
+                                        width: 5,
+                                      ),
+                                    ),
+                                    child: Image.asset(
+                                      alignment: Alignment.center,
+                                      'assets/images/1308history.png',
+                                      fit: BoxFit.cover,
+                                      // width: 100,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Container(
+
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
