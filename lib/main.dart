@@ -1,15 +1,13 @@
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:renjana/views/home.dart';
-import 'package:device_preview/presets.dart';
 
-void main() async{
+void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
-  DevicePreview.enable();
-  final c = DevicePreview.controller; 
-  await c.applyPreset(DevicePresets.pixel9); 
-  await c.setOrientation(Orientation.portrait); 
+  // DevicePreview.enable();
+  // final c = DevicePreview.controller;
+  // await c.applyPreset(DevicePresets.pixel9);
+  // await c.setOrientation(Orientation.portrait);
   await initializeDateFormatting("id_ID", null);
   runApp(const MyApp());
 }
