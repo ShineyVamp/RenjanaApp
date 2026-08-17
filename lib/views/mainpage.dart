@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:renjana/views/home.dart';
 
 class Mainpage extends StatefulWidget {
@@ -14,12 +15,12 @@ class _MainpageState extends State<Mainpage> {
 
   final List<String> _labels = ["Beranda", "Eksplor", "Peta", "Kuis", "Profil"];
 
-  final List<IconData> _activeIcons = [
-    Icons.home,
-    Icons.explore_sharp,
-    Icons.map,
-    Icons.quiz,
-    Icons.person,
+  final List<String> _activeIcons = [
+    'assets/animations/home.json',
+    'assets/animations/compass.json',
+    'assets/animations/map.json',
+    'assets/animations/quiz.json',
+    'assets/animations/person.json',
   ];
 
   final List<IconData> _nonActIcons = [
@@ -39,8 +40,8 @@ class _MainpageState extends State<Mainpage> {
       bottomNavigationBar: Container(
         height: 80,
         decoration: const BoxDecoration(
-          color: Color(0xffC9362B),
-          border: Border(top: BorderSide(color: Colors.black12, width: 0.8)),
+          color: Color(0xffF4F0E7),
+          border: Border(top: BorderSide(color: Color(0xffC9362B), width: 0.8)),
         ),
         child: SafeArea(
           child: Row(
@@ -58,36 +59,39 @@ class _MainpageState extends State<Mainpage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        height: 4,
-                        width: isSelected ? 32 : 0,
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.white : Colors.transparent,
-                          borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(3),
+                      Transform.translate(
+                        offset: Offset(0, -1),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                          height: 5,
+                          width: isSelected ? 40 : 0,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Color(0xffC9362B)
+                                : Colors.transparent,
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(3),
+                            ),
                           ),
                         ),
                       ),
-
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 150),
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        child: Icon(
-                          isSelected
-                              ? _activeIcons[index]
-                              : _nonActIcons[index],
-                          key: ValueKey<bool>(isSelected),
-                          size: 26,
-                          color: isSelected ? Colors.white : Colors.white60,
-                        ),
-                      ),
+                      SizedBox(height: 8),
+                      isSelected
+                          ? Lottie.asset(
+                              _activeIcons[index],
+                              height: 26,
+                              repeat: false,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
+                            )
+                          : Icon(
+                              _nonActIcons[index],
+                              size: 26,
+                              color: isSelected
+                                  ? Color(0xffC9362B)
+                                  : Color(0x80C9362B),
+                            ),
                       Text(
                         _labels[index],
                         style: GoogleFonts.plusJakartaSans(
@@ -95,7 +99,9 @@ class _MainpageState extends State<Mainpage> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.w500,
-                          color: isSelected ? Colors.white : Colors.white60,
+                          color: isSelected
+                              ? Color(0xffC9362B)
+                              : Color(0x80C9362B),
                         ),
                       ),
                     ],

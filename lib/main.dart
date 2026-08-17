@@ -2,9 +2,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:device_preview/presets.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:renjana/views/home.dart';
 import 'package:renjana/views/mainpage.dart';
-import 'package:renjana/views/onboarding/onboarding.dart';
 
 void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
