@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renjana/extensions/navigation.dart';
 import 'package:renjana/views/login_page.dart';
-import 'package:renjana/views/oboarding/onboarding1.dart';
-import 'package:renjana/views/oboarding/onboarding2.dart';
-import 'package:renjana/views/oboarding/onboarding3.dart';
+import 'package:renjana/views/onboarding/onboarding1.dart';
+import 'package:renjana/views/onboarding/onboarding2.dart';
+import 'package:renjana/views/onboarding/onboarding3.dart';
 
 class Onboarding extends StatefulWidget {
   const Onboarding({super.key});
@@ -180,7 +180,7 @@ class _OnboardingState extends State<Onboarding> {
           //               borderRadius: BorderRadius.circular(15),
           //               color: Color(0xffF4F0E7),
           //             ),
-                    
+
           //           ),
           //         ),
           //         Text("Lewati", style: GoogleFonts.plusJakartaSans(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),)
