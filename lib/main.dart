@@ -6,10 +6,10 @@ import 'package:renjana/views/mainpage.dart';
 
 void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
-  DevicePreview.enable();
-  final c = DevicePreview.controller;
-  await c.applyPreset(DevicePresets.pixel10);
-  await c.setOrientation(Orientation.portrait);
+  // DevicePreview.enable();
+  // final c = DevicePreview.controller;
+  // await c.applyPreset(DevicePresets.iPhone16e);
+  // await c.setOrientation(Orientation.portrait);
   await initializeDateFormatting("id_ID", null);
   runApp(const MyApp());
 }

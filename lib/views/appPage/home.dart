@@ -15,6 +15,13 @@ class _HomeState extends State<Home> {
   final ScrollController _scrollDestinasi = ScrollController();
   final ScrollController _scrollBudaya = ScrollController();
   @override
+  void dispose() {
+    _scrollDestinasi.dispose();
+    _scrollBudaya.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 700),
@@ -433,8 +440,8 @@ class _HomeState extends State<Home> {
                                     scrollDirection: Axis.horizontal,
                                     padding: EdgeInsets.symmetric(
                                       horizontal:
-                                          screenWidth <= 700 && sidePadding > 0
-                                          ? sidePadding - 20
+                                          screenWidth <= 700 && sidePadding > 20
+                                          ? math.max(0.0, sidePadding - 20)
                                           : 0,
                                     ),
                                     child: Row(
@@ -584,6 +591,7 @@ class _HomeState extends State<Home> {
                     ],
                   ),
                   // PILIHAN DESTINASI
+                  SizedBox(height: 20),
                   Column(
                     children: [
                       Text(
@@ -642,8 +650,8 @@ class _HomeState extends State<Home> {
                                     scrollDirection: Axis.horizontal,
                                     padding: EdgeInsets.symmetric(
                                       horizontal:
-                                          screenWidth <= 700 && sidePadding > 0
-                                          ? sidePadding - 20
+                                          screenWidth <= 700 && sidePadding > 20
+                                          ? math.max(0.0, sidePadding - 20)
                                           : 0,
                                     ),
                                     child: Row(
@@ -804,6 +812,7 @@ class _HomeState extends State<Home> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Center(
