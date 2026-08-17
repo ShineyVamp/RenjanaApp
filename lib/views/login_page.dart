@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renjana/database/db_helper.dart';
 import 'package:renjana/extensions/navigation.dart';
-import 'package:renjana/views/home.dart';
+import 'package:renjana/views/appPage/home.dart';
 import 'package:renjana/views/register_page.dart';
 
 class LoginPage extends StatefulWidget {

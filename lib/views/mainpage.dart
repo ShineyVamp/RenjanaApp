@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:renjana/views/home.dart';
+import 'package:renjana/views/appPage/home.dart';
+import 'package:renjana/views/onboarding/onboarding.dart';
+import 'package:renjana/views/test_day_20.dart';
 
 class Mainpage extends StatefulWidget {
   const Mainpage({super.key});
@@ -31,7 +33,13 @@ class _MainpageState extends State<Mainpage> {
     Icons.person_outline,
   ];
 
-  final List<Widget> _pages = const [Home(), Home(), Home(), Home(), Home()];
+  final List<Widget> _pages = const [
+    Home(),
+    TestDay20(),
+    Home(),
+    Home(),
+    Home(),
+  ];
 
   @override
   Widget build(BuildContext context) {

@@ -419,7 +419,7 @@ class _HomeState extends State<Home> {
                             scrollbarOrientation: ScrollbarOrientation.bottom,
                             thickness: 5,
                             child: Padding(
-                              padding: const EdgeInsets.only(bottom: 40),
+                              padding: const EdgeInsets.only(bottom: 20),
                               child: Builder(
                                 builder: (context) {
                                   const double itemWidth = 372;
@@ -628,7 +628,7 @@ class _HomeState extends State<Home> {
                             scrollbarOrientation: ScrollbarOrientation.bottom,
                             thickness: 5,
                             child: Padding(
-                              padding: const EdgeInsets.only(bottom: 40),
+                              padding: const EdgeInsets.only(bottom: 20),
                               child: Builder(
                                 builder: (context) {
                                   const double itemWidth = 372;
