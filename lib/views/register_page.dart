@@ -287,7 +287,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 elevation: 1,
                                 shape: DecoratedOutlinedBorder(
                                   child: RoundedRectangleBorder(
-                                    borderRadius: BorderRadiusGeometry.circular(15),
+                                    borderRadius: BorderRadiusGeometry.circular(
+                                      15,
+                                    ),
                                   ),
                                 ),
                                 backgroundColor: Color(0xffC9362B),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:renjana/extensions/navigation.dart';
-import 'package:renjana/views/onboarding/onboarding.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void goToLogin() async {
     await Future.delayed(Duration(seconds: 5));
     if (!mounted) return null;
-    context.pushAndRemoveAll(Onboarding());
+    // context.pushAndRemoveAll(Onboarding());
   }
 
   @override

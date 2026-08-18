@@ -89,7 +89,11 @@ class _HomeState extends State<Home> {
                             "EEEE, dd MMMM yyyy",
                             'id_ID',
                           ).format(DateTime.now()),
-                          style: GoogleFonts.plusJakartaSans(fontSize: 18),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 18,
+                            color: Color(0xffC9362B),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Text(
                           "Selamat pagi, Agus",
