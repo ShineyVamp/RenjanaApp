@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:renjana/extensions/navigation.dart';
+import 'package:renjana/views/subPage/detail_sejarah.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -240,6 +242,9 @@ class _HomeState extends State<Home> {
                                   SizedBox(height: 20),
                                   // TOMBOL MASUKI KISAH
                                   GestureDetector(
+                                    onTap: () {
+                                      context.push(DetailSejarah());
+                                    },
                                     child: Container(
                                       width: double.infinity,
                                       decoration: BoxDecoration(
