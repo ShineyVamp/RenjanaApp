@@ -63,7 +63,9 @@ class _HomeState extends State<Home> {
                   padding: EdgeInsets.only(right: 20),
                   child: Row(
                     spacing: 10,
-                    children: [Icon(Icons.bookmark_border)],
+                    children: [
+                      Icon(Icons.bookmark_border, color: Color(0xffC9362B)),
+                    ],
                   ),
                 ),
               ],

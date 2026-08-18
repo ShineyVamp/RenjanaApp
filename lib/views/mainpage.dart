@@ -14,7 +14,7 @@ class Mainpage extends StatefulWidget {
 class _MainpageState extends State<Mainpage> {
   int _selectedPage = 0;
 
-  final List<String> _labels = ["Beranda", "Eksplor", "Peta", "Kuis", "Profil"];
+  final List<String> _labels = ["Beranda", "Jelajah", "Peta", "Kuis", "Profil"];
 
   final List<String> _activeIcons = [
     'assets/animations/home.json',
@@ -96,6 +96,7 @@ class _MainpageState extends State<Mainpage> {
                                 child: isSelected
                                     ? Lottie.asset(
                                         _activeIcons[index],
+                                        frameRate: FrameRate(120),
                                         repeat: false,
                                         fit: BoxFit.contain,
                                       )
