@@ -59,7 +59,7 @@ class _MainpageState extends State<Mainpage> {
           child: Center(
             heightFactor: 1,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 700),
+              constraints: const BoxConstraints(maxWidth: 800),
               child: Padding(
                 padding: const EdgeInsets.only(top: 0, bottom: 8),
                 child: Row(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:renjana/extensions/navigation.dart';
+import 'package:renjana/views/subPage/detail_budaya.dart';
 import 'package:renjana/views/subPage/detail_sejarah.dart';
 
 class Home extends StatefulWidget {
@@ -241,7 +242,7 @@ class _HomeState extends State<Home> {
                                   ),
                                   SizedBox(height: 20),
                                   // TOMBOL MASUKI KISAH
-                                  GestureDetector(
+                                  InkWell(
                                     onTap: () {
                                       context.push(DetailSejarah());
                                     },
@@ -367,7 +368,10 @@ class _HomeState extends State<Home> {
                                     ),
                                     SizedBox(height: 10),
                                     GestureDetector(
-                                      onTap: () {},
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        context.push(DetailBudaya());
+                                      },
                                       child: Row(
                                         mainAxisAlignment: .end,
                                         children: [
