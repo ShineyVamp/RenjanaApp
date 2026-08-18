@@ -390,7 +390,7 @@ class _DetailSejarahState extends State<DetailSejarah> {
                     ),
                   ),
 
-                  // ================= QUIZ BOX =================
+                  // kotak quiz
                   Padding(
                     padding: const EdgeInsets.fromLTRB(22, 8, 22, 36),
                     child: Container(
@@ -471,7 +471,6 @@ class _DetailSejarahState extends State<DetailSejarah> {
                           color: const Color(0xFFA9312E),
                         ),
                         const SizedBox(height: 16),
-                        // ================= SEJARAH TERKAIT =================
                         ScrollbarTheme(
                           data: const ScrollbarThemeData(
                             thumbColor: WidgetStatePropertyAll(
@@ -498,76 +497,77 @@ class _DetailSejarahState extends State<DetailSejarah> {
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: List.generate(_relatedHistory.length, (
-                                      index,
-                                    ) {
-                                      final item = _relatedHistory[index];
-                                      return Padding(
-                                        padding: EdgeInsets.only(
-                                          right:
-                                              index < _relatedHistory.length - 1
-                                              ? 14
-                                              : 0,
-                                        ),
-                                        child: SizedBox(
-                                          width:
-                                              155, // Lebar proporsional tiap card
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                                child: AspectRatio(
-                                                  aspectRatio: 1,
-                                                  child: Container(
-                                                    color: const Color(
-                                                      0xFFCFC8B8,
-                                                    ),
-                                                    child: const Center(
-                                                      child: Icon(
-                                                        Icons.image_outlined,
-                                                        size: 28,
-                                                        color: Colors.white70,
+                                    children: List.generate(
+                                      _relatedHistory.length,
+                                      (index) {
+                                        final item = _relatedHistory[index];
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                            right:
+                                                index <
+                                                    _relatedHistory.length - 1
+                                                ? 14
+                                                : 0,
+                                          ),
+                                          child: SizedBox(
+                                            width: 155,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                  child: AspectRatio(
+                                                    aspectRatio: 1,
+                                                    child: Container(
+                                                      color: const Color(
+                                                        0xFFCFC8B8,
+                                                      ),
+                                                      child: const Center(
+                                                        child: Icon(
+                                                          Icons.image_outlined,
+                                                          size: 28,
+                                                          color: Colors.white70,
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                item['inv']!,
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      letterSpacing: 0.6,
-                                                      color: const Color(
-                                                        0xFFA9312E,
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  item['inv']!,
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        letterSpacing: 0.6,
+                                                        color: const Color(
+                                                          0xFFA9312E,
+                                                        ),
                                                       ),
-                                                    ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                item['title']!,
-                                                style:
-                                                    GoogleFonts.playfairDisplay(
-                                                      fontSize: 13.5,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: const Color(
-                                                        0xFF1C1815,
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  item['title']!,
+                                                  style:
+                                                      GoogleFonts.playfairDisplay(
+                                                        fontSize: 13.5,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: const Color(
+                                                          0xFF1C1815,
+                                                        ),
+                                                        height: 1.25,
                                                       ),
-                                                      height: 1.25,
-                                                    ),
-                                              ),
-                                            ],
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    }),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
