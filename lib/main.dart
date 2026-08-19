@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:renjana/presentation/main/main_page.dart';
+import 'package:renjana/presentation/splash/splash_page.dart';
 
 import 'core/constants/app_theme.dart';
 
@@ -25,7 +26,7 @@ class RenjanaApp extends StatelessWidget {
       title: 'Renjana',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const MainPage(),
+      home: const SplashPage(),
     );
   }
 }

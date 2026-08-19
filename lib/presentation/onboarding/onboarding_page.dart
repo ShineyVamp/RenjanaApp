@@ -4,7 +4,6 @@ import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_button.dart';
 import '../auth/login_page.dart';
-import 'models/onboarding_item.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -17,28 +16,28 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingItem> _items = const [
-    OnboardingItem(
-      stepNumber: '01/03',
-      title: 'Indonesia,\ndilihat lebih dekat.',
-      description:
+  final List<Map<String, dynamic>> _items = const [
+    {
+      'stepNumber': '01/03',
+      'title': 'Indonesia,\ndilihat lebih dekat.',
+      'description':
           'Temukan keajaiban wastra, arsitektur, dan kearifan lokal dalam kurasi digital yang mendalam.',
-      imagePath: 'assets/images/onboardin1.jpg',
-    ),
-    OnboardingItem(
-      stepNumber: '02/03',
-      title: 'Setiap Tempat\nmenyimpan kisah.',
-      description:
+      'imagePath': 'assets/images/onboardin1.jpg',
+    },
+    {
+      'stepNumber': '02/03',
+      'title': 'Setiap Tempat\nmenyimpan kisah.',
+      'description':
           'Telusuri Sejarah, Budaya, dan berbagi sumber terpercaya. Uji pengetahuanmu melalui kuis interaktif.',
-      imagePath: 'assets/images/onboardin2.jpg',
-    ),
-    OnboardingItem(
-      stepNumber: '03/03',
-      title: 'Kisah dari\ndaerahmu juga berarti.',
-      description:
+      'imagePath': 'assets/images/onboardin2.jpg',
+    },
+    {
+      'stepNumber': '03/03',
+      'title': 'Kisah dari\ndaerahmu juga berarti.',
+      'description':
           'Telusuri Sejarah, Budaya, dan berbagai sumber terpercaya. Uji pengetahuanmu melalui kuis interaktif.',
-      imagePath: 'assets/images/onboardin3.jpg',
-    ),
+      'imagePath': 'assets/images/onboardin3.jpg',
+    },
   ];
 
   @override
@@ -108,7 +107,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ],
                     Expanded(
                       child: AppButton(
-                        text: _currentPage == _items.length - 1 ? 'Mulai' : 'Lanjut',
+                        text: _currentPage == _items.length - 1
+                            ? 'Mulai'
+                            : 'Lanjut',
                         onPressed: _next,
                       ),
                     ),
@@ -130,12 +131,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  Widget _buildOnboardingSlide(OnboardingItem item) {
+  Widget _buildOnboardingSlide(Map<String, dynamic> item) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(item.imagePath, fit: BoxFit.cover),
-        // Gradient overlay for readability
+        Image.asset(item['imagePath'], fit: BoxFit.cover),
         Positioned.fill(
           child: Container(
             decoration: const BoxDecoration(
@@ -161,14 +161,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 48,
-                      height: 2,
-                      color: AppColors.primary,
-                    ),
+                    Container(width: 48, height: 2, color: AppColors.primary),
                     const SizedBox(width: 10),
                     Text(
-                      item.stepNumber,
+                      item['stepNumber'],
                       style: AppTypography.labelBold(
                         color: AppColors.primary,
                         fontSize: 14,
@@ -177,17 +173,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  item.title,
-                  style: AppTypography.headingLarge(),
-                ),
+                Text(item['title'], style: AppTypography.headingLarge()),
                 const SizedBox(height: 12),
                 Text(
-                  item.description,
+                  item['description'],
                   style: AppTypography.bodyLarge(),
                   textAlign: TextAlign.start,
                 ),
-                const SizedBox(height: 140), // Space for bottom buttons
+                const SizedBox(height: 140),
               ],
             ),
           ),
