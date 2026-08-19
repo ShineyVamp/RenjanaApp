@@ -1,7 +1,7 @@
 import 'package:control_style/control_style.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:renjana/database/db_helper.dart';
+import 'package:renjana/database/user_repository.dart';
 import 'package:renjana/extensions/navigation.dart';
 import 'package:renjana/views/appPage/home.dart';
 import 'package:renjana/views/register_page.dart';
@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
     final email = emailC.text.trim();
     final password = passC.text.trim();
 
-    final pengguna = await DbHelper().loginUser(email, password);
+    final pengguna = await UserRepository().loginUser(email, password);
 
     if (!mounted) return;
 

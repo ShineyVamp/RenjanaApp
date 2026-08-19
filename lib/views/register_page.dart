@@ -1,7 +1,7 @@
 import 'package:control_style/control_style.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:renjana/database/db_helper.dart';
+import 'package:renjana/database/user_repository.dart';
 import 'package:renjana/extensions/navigation.dart';
 import 'package:renjana/models/user_model.dart';
 import 'package:renjana/views/login_page.dart';
@@ -38,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
       password: pass,
     );
 
-    bool success = await DbHelper().userRegister(pengguna);
+    bool success = await UserRepository().userRegister(pengguna);
 
     if (!mounted) return;
 
