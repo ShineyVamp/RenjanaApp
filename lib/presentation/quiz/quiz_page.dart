@@ -7,12 +7,7 @@ import '../../data/models/quiz_model.dart';
 class QuizPage extends StatelessWidget {
   const QuizPage({super.key});
 
-  // Kategori data
-  static const List<String> _categories = [
-    'Sejarah',
-    'Budaya',
-    'Kedaerahan',
-  ];
+  static const List<String> _categories = ['Sejarah', 'Budaya', 'Kedaerahan'];
 
   static const List<String> _categoryImages = [
     'assets/images/170845history.png',
@@ -20,7 +15,6 @@ class QuizPage extends StatelessWidget {
     'assets/images/onboardin1.jpg',
   ];
 
-  // Rekomendasi kuis menggunakan QuizSQLModel
   static final List<QuizSQLModel> _recommendations = [
     QuizSQLModel(
       kategori: 'SEJARAH',
@@ -48,146 +42,126 @@ class QuizPage extends StatelessWidget {
     ),
   ];
 
-  static const List<String> _totalQuestions = [
-    '15 SOAL',
-    '10 SOAL',
-    '10 SOAL',
-  ];
+  static const List<String> _totalQuestions = ['15 SOAL', '10 SOAL', '10 SOAL'];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 800),
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-          },
-        ),
-        centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset('assets/images/Rlogos.png', width: 28, height: 28),
-            const SizedBox(width: 8),
-            Text(
-              'RENJANA',
-              style: AppTypography.brandTitle(color: AppColors.textPrimary),
-            ),
-          ],
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header: Kuis
-            Text(
-              'Kuis',
-              style: GoogleFonts.dmSerifDisplay(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          surfaceTintColor: AppColors.background,
+          elevation: 0,
+          centerTitle: true,
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/images/Rlogos.png', width: 28, height: 28),
+              const SizedBox(width: 8),
+              Text(
+                'RENJANA',
+                style: AppTypography.brandTitle(color: AppColors.textPrimary),
               ),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              height: 2.5,
-              width: 90,
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: 24),
-
-            // Kategori
-            Text(
-              'Kategori',
-              style: GoogleFonts.dmSerifDisplay(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+            ],
+          ),
+          shape: const Border(
+            bottom: BorderSide(color: AppColors.primary, width: 0.8),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Kuis',
+                style: GoogleFonts.dmSerifDisplay(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
+              const SizedBox(height: 6),
+              Container(height: 2.5, width: 90, color: AppColors.primary),
+              const SizedBox(height: 24),
 
-            // Card Kategori menggunakan List.generate
-            Column(
-              children: List.generate(_categories.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _QuizCategoryCard(
-                    title: _categories[index],
-                    imagePath: _categoryImages[index],
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Kategori: ${_categories[index]}'),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Rekomendasi Kuis
-            Text(
-              'Rekomendasi Kuis',
-              style: GoogleFonts.dmSerifDisplay(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+              Text(
+                'Kategori',
+                style: GoogleFonts.dmSerifDisplay(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-            // Rekomendasi Kuis menggunakan List.generate & QuizSQLModel
-            Column(
-              children: List.generate(_recommendations.length, (index) {
-                final quiz = _recommendations[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _QuizRecommendationCard(
-                    quiz: quiz,
-                    imagePath: quiz.gambar,
-                    totalQuestions: _totalQuestions[index],
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Mulai kuis: ${quiz.tema.replaceAll('\n', ' ')}',
+              // kategori card
+              Column(
+                children: List.generate(_categories.length, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _QuizCategoryCard(
+                      title: _categories[index],
+                      imagePath: _categoryImages[index],
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Kategori: ${_categories[index]}'),
+                            duration: const Duration(seconds: 1),
                           ),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 24),
-          ],
+                        );
+                      },
+                    ),
+                  );
+                }),
+              ),
+
+              const SizedBox(height: 20),
+
+              // rekomendasi kuis
+              Text(
+                'Rekomendasi Kuis',
+                style: GoogleFonts.dmSerifDisplay(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Column(
+                children: List.generate(_recommendations.length, (index) {
+                  final quiz = _recommendations[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _QuizRecommendationCard(
+                      quiz: quiz,
+                      imagePath: quiz.gambar,
+                      totalQuestions: _totalQuestions[index],
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Mulai kuis: ${quiz.tema.replaceAll('\n', ' ')}',
+                            ),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Card Widgets (Diletakkan dalam 1 file)
-// ---------------------------------------------------------------------------
 
 class _QuizCategoryCard extends StatelessWidget {
   final String title;
@@ -213,13 +187,7 @@ class _QuizCategoryCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Background Image
-              Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-              ),
-
-              // Gradient Overlay
+              Image.asset(imagePath, fit: BoxFit.cover),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -232,8 +200,6 @@ class _QuizCategoryCard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Title Text
               Positioned(
                 left: 18,
                 bottom: 14,
@@ -270,7 +236,8 @@ class _QuizRecommendationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayImage = imagePath ?? quiz.gambar ?? 'assets/images/rengasdengklok.jpg';
+    final displayImage =
+        imagePath ?? quiz.gambar ?? 'assets/images/rengasdengklok.jpg';
 
     return Container(
       decoration: BoxDecoration(
@@ -290,76 +257,74 @@ class _QuizRecommendationCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          child: SizedBox(
-            height: 165,
+          child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Left Image
+                // gambar
                 ClipRRect(
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(12),
                   ),
                   child: SizedBox(
-                    width: 125,
-                    child: Image.asset(
-                      displayImage,
-                      fit: BoxFit.cover,
-                    ),
+                    width: 115,
+                    child: Image.asset(displayImage, fit: BoxFit.cover),
                   ),
                 ),
 
-                // Right Content
+                // deskripsi card
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
+                      horizontal: 14,
+                      vertical: 12,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Category Tag
-                        Text(
-                          quiz.kategori.toUpperCase(),
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                            letterSpacing: 0.8,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              quiz.kategori.toUpperCase(),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+
+                            Text(
+                              quiz.tema,
+                              style: GoogleFonts.dmSerifDisplay(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                                height: 1.15,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+
+                            Text(
+                              quiz.soal,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
 
-                        // Title / Tema
-                        Text(
-                          quiz.tema,
-                          style: GoogleFonts.dmSerifDisplay(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                            height: 1.15,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-
-                        // Description / Soal
-                        Text(
-                          quiz.soal,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppColors.textSecondary,
-                            height: 1.35,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                        const Spacer(),
-
-                        // Footer (Total Questions)
                         Text(
                           totalQuestions,
                           style: GoogleFonts.plusJakartaSans(
