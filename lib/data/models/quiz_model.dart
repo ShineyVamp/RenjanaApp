@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 class QuizSQLModel {
   int? id;
@@ -7,6 +7,7 @@ class QuizSQLModel {
   final String soal;
   final List<String> daftarJawaban;
   final int jawabanBenar;
+  final String? gambar;
 
   QuizSQLModel({
     this.id,
@@ -15,6 +16,7 @@ class QuizSQLModel {
     required this.soal,
     required this.daftarJawaban,
     required this.jawabanBenar,
+    this.gambar,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +27,7 @@ class QuizSQLModel {
       'soal': soal,
       'daftarJawaban': jsonEncode(daftarJawaban),
       'jawabanBenar': jawabanBenar,
+      'gambar': gambar,
     };
   }
 
@@ -32,7 +35,9 @@ class QuizSQLModel {
     List<String> parsedJawaban = [];
     if (map['daftarJawaban'] is String) {
       try {
-        parsedJawaban = List<String>.from(jsonDecode(map['daftarJawaban'] as String));
+        parsedJawaban = List<String>.from(
+          jsonDecode(map['daftarJawaban'] as String),
+        );
       } catch (_) {
         parsedJawaban = [];
       }
@@ -47,6 +52,7 @@ class QuizSQLModel {
       soal: map['soal'] as String? ?? '',
       daftarJawaban: parsedJawaban,
       jawabanBenar: map['jawabanBenar'] as int? ?? 0,
+      gambar: map['gambar'] as String?,
     );
   }
 

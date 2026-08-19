@@ -26,7 +26,7 @@ class RenjanaApp extends StatelessWidget {
       title: 'Renjana',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const SplashPage(),
+      home: const MainPage(),
     );
   }
 }

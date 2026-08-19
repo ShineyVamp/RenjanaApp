@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import '../../core/constants/app_colors.dart';
 import '../home/home_page.dart';
+import '../quiz/quiz_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -42,7 +43,7 @@ class _MainPageState extends State<MainPage> {
     HomePage(),
     HomePage(),
     HomePage(),
-    HomePage(),
+    QuizPage(),
     HomePage(),
   ];
 

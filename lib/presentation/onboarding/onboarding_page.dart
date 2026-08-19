@@ -47,22 +47,30 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void _previous() {
-    if (_currentPage > 0) {
+    if (_pageController.hasClients && _pageController.page != null) {
+      if (_pageController.page! % 1 != 0) return;
+    }
+
+    if (_currentPage < _items.length) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 400),
+        duration: Duration(milliseconds: 550),
         curve: Curves.easeInOut,
       );
     }
   }
 
   void _next() {
+    if (_pageController.hasClients && _pageController.page != null) {
+      if (_pageController.page! % 1 != 0) return;
+    }
+
     if (_currentPage < _items.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
+        duration: Duration(milliseconds: 550),
         curve: Curves.easeInOut,
       );
     } else {
-      context.pushReplacement(const LoginPage());
+      context.pushReplacement(LoginPage());
     }
   }
 

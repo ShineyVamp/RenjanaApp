@@ -1,4 +1,4 @@
-﻿import 'package:path/path.dart';
+import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DbHelper {
@@ -38,7 +38,8 @@ class DbHelper {
           tema TEXT,
           soal TEXT UNIQUE,
           daftarJawaban TEXT,
-          jawabanBenar INTEGER
+          jawabanBenar INTEGER,
+          gambar TEXT
         )''');
       },
     );
