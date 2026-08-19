@@ -1,4 +1,4 @@
-﻿import '../local/db_helper.dart';
+import '../local/db_helper.dart';
 import '../models/quiz_model.dart';
 
 class QuizRepository {
@@ -16,12 +16,22 @@ class QuizRepository {
     }
   }
 
+  Future<List<QuizSQLModel>> getAllQuizzes() async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> results = await db.query(
+      'quiz',
+      orderBy: 'id DESC',
+    );
+    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+  }
+
   Future<List<QuizSQLModel>> getQuizByKategori(String kategori) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> results = await db.query(
       'quiz',
       where: 'kategori = ?',
       whereArgs: [kategori],
+      orderBy: 'id DESC',
     );
     return results.map((map) => QuizSQLModel.fromMap(map)).toList();
   }
@@ -32,6 +42,7 @@ class QuizRepository {
       'quiz',
       where: 'tema = ?',
       whereArgs: [tema],
+      orderBy: 'id DESC',
     );
     return results.map((map) => QuizSQLModel.fromMap(map)).toList();
   }

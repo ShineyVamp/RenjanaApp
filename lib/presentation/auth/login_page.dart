@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (user != null) {
-      context.pushAndRemoveAll(const MainPage());
+      context.pushAndRemoveAll(MainPage(currentUser: user));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
