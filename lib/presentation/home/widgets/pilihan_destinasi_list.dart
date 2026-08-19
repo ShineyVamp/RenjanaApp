@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/section_header.dart';
@@ -87,25 +88,30 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
             ),
             child: AspectRatio(
               aspectRatio: 4 / 3,
-              child: Image.asset(
-                'assets/images/borobudurB.jpg',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withAlpha(50),
-                    Colors.black.withAlpha(200),
-                  ],
-                  stops: const [0.4, 0.7, 1.0],
-                ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/images/borobudurB.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withAlpha(50),
+                            Colors.black.withAlpha(200),
+                          ],
+                          stops: const [0.4, 0.7, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
