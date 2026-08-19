@@ -1,17 +1,24 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/extensions/navigation.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_image.dart';
 import '../../../../core/widgets/section_header.dart';
+import '../../../../data/local/sejarah_data.dart';
+import '../../../../data/models/sejarah_model.dart';
 import '../../detail/detail_sejarah_page.dart';
 
 class SejarahHighlightCard extends StatelessWidget {
-  const SejarahHighlightCard({super.key});
+  final SejarahModel? sejarah;
+
+  const SejarahHighlightCard({super.key, this.sejarah});
 
   @override
   Widget build(BuildContext context) {
+    final data = sejarah ?? getSejarahHariIni();
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -57,8 +64,8 @@ class SejarahHighlightCard extends StatelessWidget {
                             width: 5,
                           ),
                         ),
-                        child: Image.asset(
-                          'assets/images/1308history.png',
+                        child: AppImageView(
+                          imagePath: data.gambarUtama,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -75,7 +82,7 @@ class SejarahHighlightCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     child: Text(
-                      'HIS-150845-A',
+                      data.kodeTag,
                       style: AppTypography.tag(),
                     ),
                   ),
@@ -86,11 +93,11 @@ class SejarahHighlightCard extends StatelessWidget {
 
             // Story Description
             Text(
-              'Runtuhnya Tirani',
+              data.judul,
               style: AppTypography.headingLarge(
                 color: AppColors.textPrimary,
               ).copyWith(
-                fontSize: 36,
+                fontSize: 34,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -102,7 +109,7 @@ class SejarahHighlightCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '15 Agustus 1945: Saat kekosongan kekuasaan dunia membuka jalan keberanian bagi para pendiri bangsa untuk memproklamasikan kemerdekaan sejati.',
+              data.ringkasan,
               style: AppTypography.bodyMedium(),
               textAlign: TextAlign.justify,
             ),
@@ -113,7 +120,7 @@ class SejarahHighlightCard extends StatelessWidget {
               text: 'Masuki Kisah',
               borderRadius: 6,
               onPressed: () {
-                context.push(const DetailSejarahPage());
+                context.push(DetailSejarahPage(sejarah: data));
               },
             ),
           ],

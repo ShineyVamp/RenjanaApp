@@ -1,29 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_typography.dart';
+import '../../core/extensions/navigation.dart';
+import '../../core/widgets/app_image.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
-import '../../core/widgets/quiz_card_widget.dart';
-import '../../core/widgets/related_items_section.dart';
+import '../../data/local/budaya_data.dart';
+import '../../data/models/budaya_model.dart';
+import '../../data/repositories/budaya_repository.dart';
 
 class DetailBudayaPage extends StatefulWidget {
-  const DetailBudayaPage({super.key});
+  final BudayaModel? budaya;
+
+  const DetailBudayaPage({super.key, this.budaya});
 
   @override
   State<DetailBudayaPage> createState() => _DetailBudayaPageState();
 }
 
 class _DetailBudayaPageState extends State<DetailBudayaPage> {
+  final BudayaRepository _budayaRepository = BudayaRepository();
   bool _isBookmarked = false;
-
-  final List<Map<String, String>> _relatedCulture = const [
-    {'inv': 'INV. 1945-R-01', 'title': 'Parang'},
-    {'inv': 'INV. 1945-B-01', 'title': 'Celurit'},
-    {'inv': 'INV. 1945-K-01', 'title': 'Kujang'},
-    {'inv': 'INV. 1945-M-01', 'title': 'Mandau'},
-  ];
-
   final ScrollController _scrollRelated = ScrollController();
+  List<BudayaModel> _otherBudayaList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOtherBudaya();
+  }
+
+  Future<void> _loadOtherBudaya() async {
+    final list = await _budayaRepository.getRandomBudayaList(
+      count: 5,
+      exclude: widget.budaya,
+    );
+    if (!mounted) return;
+    setState(() {
+      _otherBudayaList = list;
+    });
+  }
 
   @override
   void dispose() {
@@ -33,6 +51,8 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final data = widget.budaya ?? defaultBudayaList.first;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F0E7),
       body: SafeArea(
@@ -44,18 +64,18 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
               constraints: const BoxConstraints(maxWidth: 800),
               child: Column(
                 children: [
-                  // header utama
+                  // Header utama
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // gambar dan icon button
+                      // Gambar utama dan tombol top bar
                       Stack(
                         alignment: Alignment.bottomCenter,
                         children: [
                           AspectRatio(
                             aspectRatio: 1,
-                            child: Image.asset(
-                              'assets/images/kerisB.jpg',
+                            child: AppImageView(
+                              imagePath: data.gambarUtama,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -75,7 +95,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             ),
                           ),
 
-                          // Tombol Top Bar
+                          // Tombol Top Bar (Back & Bookmark)
                           Positioned(
                             top: 0,
                             left: 0,
@@ -92,7 +112,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         ],
                       ),
 
-                      // judul dan iya
+                      // Judul & Tagline
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -105,7 +125,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'SENJATA TRADISIONAL',
+                                  data.kategoriLabel.toUpperCase(),
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -115,9 +135,10 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'KERIS',
+                                  data.judul,
+                                  textAlign: TextAlign.center,
                                   style: GoogleFonts.playfairDisplay(
-                                    fontSize: 38,
+                                    fontSize: 36,
                                     fontWeight: FontWeight.w900,
                                     color: const Color(0xFF1C1815),
                                     letterSpacing: 1.0,
@@ -130,68 +151,208 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                   color: const Color(0xFFA9312E),
                                 ),
                                 const SizedBox(height: 10),
-                                Text(
-                                  'Sebilah logam yang menyimpan\nwibawa, dan garis leluhur pemiliknya.',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.playfairDisplay(
-                                    fontSize: 14,
-                                    fontStyle: FontStyle.italic,
-                                    height: 1.4,
-                                    color: const Color(0xFF2A2420),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: Text(
+                                    data.tagline,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.playfairDisplay(
+                                      fontSize: 14,
+                                      fontStyle: FontStyle.italic,
+                                      height: 1.4,
+                                      color: const Color(0xFF2A2420),
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
 
-                          // deskripsi
-                          const DetailSectionBlock(
-                            padding: EdgeInsets.fromLTRB(22, 60, 22, 24),
+                          // Deskripsi
+                          DetailSectionBlock(
+                            padding: const EdgeInsets.fromLTRB(22, 60, 22, 24),
                             title: 'Deskripsi',
-                            content:
-                                'Keris bukan sekadar senjata tikam, melainkan pusaka yang menyatukan seni '
-                                'tempa, kepercayaan, dan status sosial. Dibuat oleh seorang empu melalui proses '
-                                'tempa berulang, bilah keris menampilkan pamor—pola logam yang muncul dari '
-                                'perpaduan besi dan meteorit. Setiap luk (lekuk) dan pamor dipercaya '
-                                'membawa makna serta tuah tersendiri bagi pemiliknya.',
+                            content: data.deskripsi,
                           ),
                         ],
                       ),
                     ],
                   ),
 
-                  // makna spiritual
-                  const DetailSectionBlock(
-                    padding: EdgeInsets.fromLTRB(22, 0, 22, 24),
-                    title: 'Makna Spiritual',
-                    content:
-                        'Bagi masyarakat Nusantara, keris diyakini menyimpan kekuatan spiritual yang '
-                        'disebut tuah. Sebilah keris pusaka sering dianggap memiliki "penghuni" atau roh '
-                        'penjaga yang mesti dirawat lewat ritual jamasan (pembersihan pusaka) setiap '
-                        'tahun. Keris bukan hanya diwariskan sebagai benda, tetapi sebagai '
-                        'penghubung antara pemiliknya dengan leluhur.',
-                  ),
+                  // Makna Spiritual
+                  if (data.maknaSpiritual != null &&
+                      data.maknaSpiritual!.isNotEmpty) ...[
+                    DetailSectionBlock(
+                      padding: const EdgeInsets.fromLTRB(22, 0, 22, 14),
+                      title: 'Makna Spiritual',
+                      content: data.maknaSpiritual!,
+                    ),
+                    if (data.gambarMaknaSpiritual != null &&
+                        data.gambarMaknaSpiritual!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: AppImageView(
+                              imagePath: data.gambarMaknaSpiritual!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
 
-                  // kontegs budaya
-                  const DetailSectionBlock(
-                    padding: EdgeInsets.fromLTRB(22, 0, 22, 28),
-                    title: 'Konteks Budaya',
-                    content:
-                        'Dalam kehidupan tradisional Jawa, keris menyertai berbagai peristiwa penting: '
-                        'dikenakan pengantin pria saat pernikahan, diselipkan di pinggang bangsawan sebagai penanda '
-                        'kedudukan, hingga diwariskan turun-temurun sebagai pusaka keluarga.\n\n'
-                        'Proses pembuatannya bisa memakan waktu berbulan-bulan, melibatkan puasa dan ritual dari sang empu, '
-                        'menjadikan keris bukan sekadar objek tempaan, melainkan karya yang lahir dari laku spiritual.',
-                  ),
+                  // Konteks Budaya
+                  if (data.konteksBudaya != null &&
+                      data.konteksBudaya!.isNotEmpty) ...[
+                    DetailSectionBlock(
+                      padding: const EdgeInsets.fromLTRB(22, 0, 22, 14),
+                      title: 'Konteks Budaya',
+                      content: data.konteksBudaya!,
+                    ),
+                    if (data.gambarKonteksBudaya != null &&
+                        data.gambarKonteksBudaya!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: AppImageView(
+                              imagePath: data.gambarKonteksBudaya!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
 
-                  // kotak kuisz
-                  const QuizCardWidget(),
+                  const SizedBox(height: 20),
 
-                  // budaya terkait
-                  RelatedItemsSection(
-                    title: 'Budaya Terkait',
-                    items: _relatedCulture,
-                    scrollController: _scrollRelated,
+                  // Section: Budaya Lainnya (5 Kartu Random Scrollable)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Budaya Lainnya',
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF1C1815),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          height: 1.5,
+                          width: 48,
+                          color: const Color(0xFFA9312E),
+                        ),
+                        const SizedBox(height: 16),
+                        ScrollbarTheme(
+                          data: const ScrollbarThemeData(
+                            thumbColor: WidgetStatePropertyAll(Color(0xFFA9312E)),
+                            trackColor: WidgetStatePropertyAll(Color(0x30D8CFBF)),
+                          ),
+                          child: Scrollbar(
+                            controller: _scrollRelated,
+                            interactive: true,
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            scrollbarOrientation: ScrollbarOrientation.bottom,
+                            thickness: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: SingleChildScrollView(
+                                controller: _scrollRelated,
+                                scrollDirection: Axis.horizontal,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: List.generate(
+                                      _otherBudayaList.length,
+                                      (index) {
+                                        final other = _otherBudayaList[index];
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                            right: index <
+                                                    _otherBudayaList.length - 1
+                                                ? 14
+                                                : 0,
+                                          ),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              context.push(
+                                                DetailBudayaPage(
+                                                  budaya: other,
+                                                ),
+                                              );
+                                            },
+                                            child: SizedBox(
+                                              width: 155,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(6),
+                                                    child: AspectRatio(
+                                                      aspectRatio: 1,
+                                                      child: Container(
+                                                        color: AppColors
+                                                            .surfaceMuted,
+                                                        child: AppImageView(
+                                                          imagePath:
+                                                              other.gambarUtama,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    other.kodeTag,
+                                                    style: AppTypography.tag(
+                                                      color: AppColors.primaryDark,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    other.judul,
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: AppTypography
+                                                        .editorialSubheading(
+                                                      color: AppColors.textPrimary,
+                                                    ).copyWith(
+                                                      fontSize: 13.5,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontStyle: FontStyle.normal,
+                                                      height: 1.25,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

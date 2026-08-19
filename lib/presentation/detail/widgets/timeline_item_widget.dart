@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
+import '../../../core/widgets/app_image.dart';
 
 class TimelineItemWidget extends StatelessWidget {
   final String date;
@@ -74,8 +75,8 @@ class TimelineItemWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: AspectRatio(
                     aspectRatio: 16 / 10,
-                    child: Image.asset(
-                      imagePath!,
+                    child: AppImageView(
+                      imagePath: imagePath!,
                       fit: BoxFit.cover,
                     ),
                   ),

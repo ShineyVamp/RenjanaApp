@@ -1,15 +1,22 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/extensions/navigation.dart';
+import '../../../../core/widgets/app_image.dart';
 import '../../../../core/widgets/section_header.dart';
+import '../../../../data/local/budaya_data.dart';
+import '../../../../data/models/budaya_model.dart';
 import '../../detail/detail_budaya_page.dart';
 
 class BudayaHighlightCard extends StatelessWidget {
-  const BudayaHighlightCard({super.key});
+  final BudayaModel? budaya;
+
+  const BudayaHighlightCard({super.key, this.budaya});
 
   @override
   Widget build(BuildContext context) {
+    final data = budaya ?? getRandomBudaya();
+
     return Column(
       children: [
         // Title Tag on Right
@@ -61,8 +68,8 @@ class BudayaHighlightCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/images/kerisB.jpg',
+                      child: AppImageView(
+                        imagePath: data.gambarUtama,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -75,18 +82,18 @@ class BudayaHighlightCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     child: Text(
-                      'BUD-SNJT-1',
+                      data.kodeTag,
                       style: AppTypography.tag(),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Q-RIS',
+                    data.judul,
                     style: AppTypography.headingMedium(),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Lebih dari sekadar senjata, keris adalah mahakarya seni tempa, perwujudan doa, dan simbol identitas kultural yang mendalam. Pola pamornya mengisahkan filsafat alam semesta.',
+                    data.deskripsi,
                     style: AppTypography.bodyMedium(),
                     textAlign: TextAlign.justify,
                   ),
@@ -94,7 +101,7 @@ class BudayaHighlightCard extends StatelessWidget {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      context.push(const DetailBudayaPage());
+                      context.push(DetailBudayaPage(budaya: data));
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,

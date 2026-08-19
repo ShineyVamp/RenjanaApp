@@ -2,26 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import '../../core/constants/app_colors.dart';
+import '../../data/models/user_model.dart';
+import '../admin/widgets/admin_drawer.dart';
 import '../home/home_page.dart';
 import '../quiz/quiz_page.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final UserSQLModel? currentUser;
+  final bool? isAdmin;
+
+  const MainPage({super.key, this.currentUser, this.isAdmin});
 
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
 
-  final List<String> _labels = [
-    'Beranda',
-    'Jelajah',
-    'Peta',
-    'Kuis',
-    'Profil',
-  ];
+  bool get _isAdmin {
+    if (widget.isAdmin == true) return true;
+    final name = widget.currentUser?.nama.toLowerCase().trim() ?? '';
+    return name == 'admin1' || name.contains('admin');
+  }
+
+  String get _userName {
+    if (widget.currentUser?.nama.isNotEmpty == true) {
+      return widget.currentUser!.nama;
+    }
+    return _isAdmin ? 'admin1' : 'Agus';
+  }
+
+  final List<String> _labels = ['Beranda', 'Jelajah', 'Peta', 'Kuis', 'Profil'];
 
   final List<String> _activeIcons = [
     'assets/animations/home.json',
@@ -39,30 +52,50 @@ class _MainPageState extends State<MainPage> {
     Icons.person_outline,
   ];
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    HomePage(),
-    HomePage(),
-    QuizPage(),
-    HomePage(),
-  ];
+  List<Widget> _getPages() {
+    return [
+      HomePage(
+        userName: _userName,
+        isAdmin: _isAdmin,
+        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+      HomePage(
+        userName: _userName,
+        isAdmin: _isAdmin,
+        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+      HomePage(
+        userName: _userName,
+        isAdmin: _isAdmin,
+        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+      const QuizPage(),
+      HomePage(
+        userName: _userName,
+        isAdmin: _isAdmin,
+        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final pages = _getPages();
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.background,
+      drawer: _isAdmin ? AdminDrawer(currentUser: widget.currentUser) : null,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
-          child: _pages[_selectedIndex],
+          child: pages[_selectedIndex],
         ),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: AppColors.background,
-          border: Border(
-            top: BorderSide(color: AppColors.primary, width: 0.8),
-          ),
+          border: Border(top: BorderSide(color: AppColors.primary, width: 0.8)),
         ),
         child: SafeArea(
           child: Center(
@@ -72,7 +105,7 @@ class _MainPageState extends State<MainPage> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
-                  children: List.generate(_pages.length, (index) {
+                  children: List.generate(pages.length, (index) {
                     final isSelected = _selectedIndex == index;
                     return Expanded(
                       child: GestureDetector(

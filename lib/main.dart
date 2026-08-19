@@ -11,10 +11,10 @@ void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
 
-  DevicePreview.enable();
-  final c = DevicePreview.controller;
-  await c.applyPreset(DevicePresets.iPhone16e);
-  await c.setOrientation(Orientation.portrait);
+  // DevicePreview.enable();
+  // final c = DevicePreview.controller;
+  // await c.applyPreset(DevicePresets.iPhone16e);
+  // await c.setOrientation(Orientation.portrait);
 
   runApp(const RenjanaApp());
 }
@@ -28,7 +28,7 @@ class RenjanaApp extends StatelessWidget {
       title: 'Renjana',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const MainPage(),
+      home: const SplashPage(),
     );
   }
 }
