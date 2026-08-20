@@ -34,14 +34,13 @@ class BudayaRepository {
     }).toList();
   }
 
-  /// Sorotan "Budaya Hari Ini": dipilih acak, tetapi benihnya tanggal hari ini
-  /// sehingga pilihannya tidak berubah saat halaman dimuat ulang dan baru
-  /// berganti keesokan harinya.
+  // Sorotan "Budaya Hari Ini". Acak, tapi benihnya tanggal hari ini supaya
+  // pilihannya tetap sama sampai besok.
   Future<BudayaModel> getBudayaHariIni() async {
     final list = await getAllBudaya();
     if (list.isEmpty) return defaultBudayaList.first;
 
-    // Diurutkan dulu agar hasil tidak bergantung pada urutan baris database.
+    // diurutkan dulu agar tidak bergantung urutan baris database
     final pool = List<BudayaModel>.from(list)
       ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
     final now = DateTime.now();
@@ -51,7 +50,7 @@ class BudayaRepository {
     return pool[Random(benihHariIni).nextInt(pool.length)];
   }
 
-  /// Semua budaya pada satu kategori (kolom `jenis`), diurutkan naik.
+  // Semua budaya pada satu kategori (kolom `jenis`).
   Future<List<BudayaModel>> getBudayaByJenis(String jenis) async {
     final list = await getAllBudaya();
     final target = jenis.trim().toUpperCase();
@@ -62,10 +61,7 @@ class BudayaRepository {
     return result;
   }
 
-  /// Budaya yang sekaligus tempat wisata (ID tag berakhiran `-D`).
-  ///
-  /// [acak] mengacak urutan (dipakai tombol "Tampilkan destinasi lain"),
-  /// [limit] membatasi jumlah yang dikembalikan.
+  // Budaya yang sekaligus tempat wisata (ID tag berakhiran `-D`).
   Future<List<BudayaModel>> getDestinasiList({
     bool acak = false,
     int? limit,
@@ -85,14 +81,13 @@ class BudayaRepository {
     return result;
   }
 
-  /// Jumlah seluruh destinasi, untuk menakar apakah masih ada yang belum
-  /// tampil saat pengguna menekan tombol acak ulang.
+  // Jumlah seluruh destinasi.
   Future<int> getDestinasiCount() async {
     final list = await getAllBudaya();
     return list.where((b) => b.isDestinasi).length;
   }
 
-  /// Jumlah item per kategori, dipakai daftar "Koleksi Budaya" di beranda.
+  // Budaya dikelompokkan per kategori, dipakai daftar Koleksi Budaya.
   Future<Map<String, List<BudayaModel>>> getBudayaGroupedByJenis() async {
     final list = await getAllBudaya();
     final Map<String, List<BudayaModel>> grouped = {};
@@ -158,8 +153,8 @@ class BudayaRepository {
     });
   }
 
-  /// [previousKodeTag] diisi bila ID tag ikut berubah, supaya baris yang
-  /// benar tetap ditemukan dan bookmark lama tidak menggantung.
+  // [previousKodeTag] diisi bila ID tag ikut berubah, supaya bookmark lama
+  // ikut dipindahkan.
   Future<int> updateBudaya(BudayaModel model, {String? previousKodeTag}) async {
     final db = await _dbHelper.database;
     final oldKodeTag = previousKodeTag ?? model.kodeTag;
@@ -200,7 +195,7 @@ class BudayaRepository {
       where: 'kodeTag = ?',
       whereArgs: [kodeTag],
     );
-    // Bersihkan bookmark yang menunjuk item yang sudah dihapus.
+    // bersihkan bookmark yang menunjuk item yang sudah dihapus
     await db.delete('bookmark', where: 'kodeTag = ?', whereArgs: [kodeTag]);
     return count;
   }

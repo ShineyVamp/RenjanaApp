@@ -75,11 +75,11 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
               constraints: const BoxConstraints(maxWidth: 800),
               child: Column(
                 children: [
-                  // Header utama
+                  // header utama
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Gambar utama dan tombol top bar
+                      // gambar utama
                       Stack(
                         alignment: Alignment.bottomCenter,
                         children: [
@@ -106,7 +106,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             ),
                           ),
 
-                          // Tombol Top Bar (Back & Bookmark)
+                          // tombol back, home, bookmark
                           Positioned(
                             top: 0,
                             left: 0,
@@ -142,7 +142,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         ],
                       ),
 
-                      // Judul & Tagline
+                      // judul & tagline
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -200,7 +200,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             ),
                           ),
 
-                          // Deskripsi
+                          // deskripsi
                           DetailSectionBlock(
                             padding: const EdgeInsets.fromLTRB(22, 60, 22, 24),
                             title: 'Deskripsi',
@@ -211,7 +211,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                     ],
                   ),
 
-                  // Makna Spiritual
+                  // section makna spiritual
                   if (data.maknaSpiritual != null &&
                       data.maknaSpiritual!.isNotEmpty) ...[
                     DetailSectionBlock(
@@ -236,7 +236,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                       ),
                   ],
 
-                  // Konteks Budaya
+                  // section konteks budaya
                   if (data.konteksBudaya != null &&
                       data.konteksBudaya!.isNotEmpty) ...[
                     DetailSectionBlock(
@@ -263,7 +263,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
 
                   const SizedBox(height: 20),
 
-                  // Section: Budaya Lainnya (5 Kartu Random Scrollable)
+                  // section budaya lainnya
                   Padding(
                     padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
                     child: Column(

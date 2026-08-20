@@ -54,9 +54,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     super.dispose();
   }
 
-  // ---------------------------------------------------------------------------
-  // SEJARAH CRUD & ALUR PERISTIWA (TIMELINE)
-  // ---------------------------------------------------------------------------
+  // form tambah/edit sejarah
   void _showSejarahFormDialog({SejarahModel? sejarahToEdit}) {
     final isEditing = sejarahToEdit != null;
     final kodeTagController = TextEditingController(
@@ -81,7 +79,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
         ? sejarahToEdit.gambarUtama
         : 'assets/images/170845history.png';
 
-    // Editable Timeline items
+    // salinan alur peristiwa yang bisa diedit di dalam dialog
     List<TimelineItemModel> timelineItems = isEditing
         ? List.from(sejarahToEdit.alurPeristiwa)
         : [
@@ -146,7 +144,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         const Divider(color: AppColors.primary),
                         const SizedBox(height: 12),
 
-                        // Kode Tag (HIS-ddMMyy-urutan)
+                        // input kode tag, format HIS-ddMMyy-urutan
                         Text(
                           'ID Tag (Format: HIS-<ddMMyy>-<urutan>)',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -161,7 +159,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Tanggal Key & Urutan
+                        // input tanggal key & urutan
                         Row(
                           children: [
                             Expanded(
@@ -216,7 +214,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Judul
+                        // input judul
                         Text(
                           'Judul Sejarah',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -233,7 +231,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Subtitle
+                        // input subtitle
                         Text(
                           'Subtitle / Format Tanggal',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -245,7 +243,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Ringkasan
+                        // input ringkasan
                         Text(
                           'Ringkasan Sejarah',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -263,7 +261,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 14),
 
-                        // Gambar Utama (Upload Widget)
+                        // pemilih gambar utama
                         AppImagePickerWidget(
                           label: 'Gambar Utama Sejarah',
                           isRequired: true,
@@ -276,9 +274,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 20),
 
-                        // -----------------------------------------------------
-                        // SECTION: ALUR PERISTIWA (TIMELINE ITEMS)
-                        // -----------------------------------------------------
+                        // section alur peristiwa
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -494,7 +490,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
 
                         const SizedBox(height: 24),
 
-                        // Button Simpan Sejarah
+                        // tombol simpan
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -575,7 +571,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     );
   }
 
-  // Dialog Helper for adding/editing a Timeline Item
+  // dialog tambah/edit satu item alur peristiwa
   void _showTimelineItemDialog(
     BuildContext parentCtx, {
     TimelineItemModel? itemToEdit,
@@ -695,13 +691,11 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // BUDAYA CRUD & SUB-IMAGES (Makna Spiritual & Konteks Budaya)
-  // ---------------------------------------------------------------------------
+  // form tambah/edit budaya
   void _showBudayaFormDialog({BudayaModel? budayaToEdit}) {
     final isEditing = budayaToEdit != null;
 
-    // Kategori dibatasi pada daftar resmi di budayaKategoriList.
+    // kategori dibatasi daftar resmi di budayaKategoriList
     String selectedJenis =
         (isEditing ? kategoriByKode(budayaToEdit.jenis) : null)?.kode ??
         budayaKategoriList.first.kode;
@@ -716,7 +710,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
           : buatKodeTagBudaya(jenis: selectedJenis, urutan: 1),
     );
 
-    // ID tag selalu diturunkan dari kategori + urutan + status destinasi.
+    // ID tag diturunkan dari kategori + urutan + status destinasi
     void syncKodeTag() {
       kodeTagController.text = buatKodeTagBudaya(
         jenis: selectedJenis,
@@ -803,7 +797,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         const Divider(color: AppColors.primary),
                         const SizedBox(height: 12),
 
-                        // Kategori & Urutan menentukan ID Tag
+                        // pilihan kategori & urutan
                         Row(
                           children: [
                             Expanded(
@@ -881,7 +875,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 4),
 
-                        // Penanda destinasi wisata (suffix -D pada ID Tag)
+                        // penanda destinasi wisata
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.primary,
@@ -904,7 +898,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 8),
 
-                        // ID Tag otomatis (BUD-<KATEGORI>-<urutan>[-D])
+                        // pratinjau ID tag
                         Text(
                           'ID Tag (otomatis)',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -922,7 +916,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Judul
+                        // input judul
                         Text(
                           'Judul Budaya',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -939,7 +933,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Kategori Label (mengikuti kategori terpilih)
+                        // label kategori, ikut kategori terpilih
                         Text(
                           'Kategori Label (otomatis)',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -968,7 +962,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Tagline
+                        // input tagline
                         Text(
                           'Tagline / Kalimat Pengantar',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -982,7 +976,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Deskripsi
+                        // input deskripsi
                         Text(
                           'Deskripsi Utama',
                           style: AppTypography.labelBold(fontSize: 13),
@@ -1000,7 +994,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 14),
 
-                        // 1. Gambar Utama Budaya (Wajib)
+                        // pemilih gambar utama
                         AppImagePickerWidget(
                           label: 'Gambar Utama Budaya',
                           isRequired: true,
@@ -1013,7 +1007,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 16),
 
-                        // 2. Makna Spiritual & Gambar Tambahan
+                        // section makna spiritual
                         Text(
                           'Sub-Bagian 1: Makna Spiritual',
                           style: GoogleFonts.dmSerifDisplay(
@@ -1043,7 +1037,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 16),
 
-                        // 3. Konteks Budaya & Gambar Tambahan
+                        // section konteks budaya
                         Text(
                           'Sub-Bagian 2: Konteks Budaya',
                           style: GoogleFonts.dmSerifDisplay(
@@ -1073,7 +1067,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 24),
 
-                        // Button Simpan Budaya
+                        // tombol simpan
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -1245,7 +1239,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Search Input
+                // kotak pencarian
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: TextField(
@@ -1271,7 +1265,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      // TAB 1: SEJARAH LIST
+                      // tab sejarah
                       ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: filteredSejarah.length,
@@ -1281,7 +1275,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         },
                       ),
 
-                      // TAB 2: BUDAYA LIST
+                      // tab budaya
                       ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: filteredBudaya.length,

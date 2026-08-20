@@ -9,8 +9,7 @@ import '../../../../data/models/budaya_model.dart';
 import '../../../../data/repositories/budaya_repository.dart';
 import '../../detail/detail_budaya_page.dart';
 
-/// Budaya yang sekaligus dapat dikunjungi sebagai tempat wisata,
-/// ditandai suffix `-D` pada ID tag (mis. `BUD-RMH-1-D`).
+// Budaya yang juga tempat wisata, ditandai suffix -D pada ID tag.
 class PilihanDestinasiList extends StatefulWidget {
   const PilihanDestinasiList({super.key});
 
@@ -22,7 +21,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
   final ScrollController _scrollController = ScrollController();
   final BudayaRepository _budayaRepository = BudayaRepository();
 
-  /// Banyaknya destinasi yang ditampilkan sekaligus di beranda.
+  // jumlah destinasi yang tampil sekaligus
   static const int _jumlahTampil = 5;
 
   List<BudayaModel> _items = [];
@@ -84,7 +83,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Number Watermark
+        // nomor watermark
         Text(
           '04',
           style: AppTypography.headingLarge(
@@ -98,7 +97,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
         ),
         const SizedBox(height: 8),
 
-        // Refresh khusus bagian ini, tidak mengubah sorotan harian di atas.
+        // tombol acak ulang, hanya bagian ini yang dimuat ulang
         TextButton.icon(
           onPressed: _isLoading || _isRefreshing ? null : _refreshDestinasi,
           style: TextButton.styleFrom(
@@ -125,7 +124,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
         ),
         const SizedBox(height: 12),
 
-        // Horizontal Scroll Cards
+        // kartu destinasi, scroll horizontal
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _isLoading

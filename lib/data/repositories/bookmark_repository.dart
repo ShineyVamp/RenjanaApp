@@ -20,7 +20,7 @@ class BookmarkRepository {
 
   static bool _legacyClaimed = false;
 
-  /// Email user yang sedang login; string kosong berarti belum login.
+  // Email user yang sedang login, string kosong berarti belum login.
   String get _currentUserEmail {
     try {
       return PreferenceHandler.userEmail.toLowerCase().trim();
@@ -29,8 +29,8 @@ class BookmarkRepository {
     }
   }
 
-  /// Bookmark dari versi aplikasi lama tersimpan tanpa pemilik. Saat user
-  /// pertama kali membuka bookmark, baris tersebut diklaim untuk akunnya.
+  // Bookmark versi lama tersimpan tanpa pemilik, diklaim sekali untuk akun
+  // yang sedang login.
   Future<Database> _db() async {
     final db = await _dbHelper.database;
     if (!_legacyClaimed) {

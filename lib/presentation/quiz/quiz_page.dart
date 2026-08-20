@@ -45,7 +45,7 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
-  // Get distinct themes with their questions count and details
+  // Soal dikelompokkan per tema untuk daftar rekomendasi.
   List<_ThemeRecommendation> get _themeRecommendations {
     final Map<String, List<QuizSQLModel>> grouped = {};
     for (final q in _allQuizzes) {
@@ -187,7 +187,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Preset Chips (10, 20, 50)
+                  // pilihan jumlah soal cepat
                   Wrap(
                     spacing: 10,
                     children: [10, 20, 50].map((count) {
@@ -222,7 +222,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Custom Input
+                  // input jumlah soal manual
                   Row(
                     children: [
                       Expanded(
@@ -260,7 +260,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Button Start
+                  // tombol mulai
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -419,7 +419,7 @@ class _QuizPageState extends State<QuizPage> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Kategori Cards
+                      // section kartu kategori
                       Column(
                         children: List.generate(_categories.length, (index) {
                           return Padding(
@@ -436,7 +436,7 @@ class _QuizPageState extends State<QuizPage> {
 
                       const SizedBox(height: 24),
 
-                      // Rekomendasi Kuis per Tema
+                      // section rekomendasi per tema
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -629,7 +629,7 @@ class _QuizRecommendationCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Gambar Tema
+                // gambar tema
                 ClipRRect(
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(12),
@@ -643,7 +643,7 @@ class _QuizRecommendationCard extends StatelessWidget {
                   ),
                 ),
 
-                // Deskripsi Tema
+                // deskripsi tema
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -678,8 +678,6 @@ class _QuizRecommendationCard extends StatelessWidget {
                                 color: AppColors.textSecondary,
                                 height: 1.3,
                               ),
-                              // maxLines: 2,
-                              // overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),

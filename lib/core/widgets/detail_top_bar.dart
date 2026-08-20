@@ -61,8 +61,7 @@ class DetailTopBar extends StatelessWidget {
                       color: Colors.white,
                       size: 18,
                     ),
-                    // Kembali ke MainPage: halaman detail bisa bertumpuk
-                    // (detail -> detail lainnya), jadi semua ditutup sekaligus.
+                    // tutup semua detail yang bertumpuk, balik ke MainPage
                     onTap:
                         onHome ??
                         () => Navigator.of(

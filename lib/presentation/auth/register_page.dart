@@ -146,7 +146,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 28),
 
-                // Nama Input
+                // input nama
                 AppTextField(
                   controller: _namaController,
                   labelText: 'Nama Lengkap',
@@ -160,7 +160,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Email Input
+                // input email
                 AppTextField(
                   controller: _emailController,
                   labelText: 'Email',
@@ -178,7 +178,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // No HP Input
+                // input no hp
                 AppTextField(
                   controller: _noHpController,
                   labelText: 'No. Handphone',
@@ -196,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Password Input
+                // input password
                 AppTextField(
                   controller: _passwordController,
                   labelText: 'Password',
@@ -226,7 +226,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 12),
 
-                // Password Rules Indicator
+                // indikator syarat password
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -253,7 +253,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Konfirmasi Password Input
+                // input konfirmasi password
                 AppTextField(
                   controller: _konfirmasiController,
                   labelText: 'Konfirmasi Password',
@@ -282,7 +282,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 32),
 
-                // Submit Button
+                // tombol daftar
                 AppButton(
                   text: _isLoading ? 'Mendaftarkan...' : 'Daftar Sekarang',
                   onPressed: _isLoading ? null : _register,

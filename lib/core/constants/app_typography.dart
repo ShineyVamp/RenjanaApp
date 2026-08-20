@@ -6,7 +6,7 @@ import 'app_colors.dart';
 class AppTypography {
   AppTypography._();
 
-  // DM Serif Display Styles (for headings & branding)
+  // DM Serif Display Styles (buat headings & branding)
   static TextStyle headingLarge({Color color = AppColors.textPrimary}) =>
       GoogleFonts.dmSerifDisplay(
         fontSize: 42,

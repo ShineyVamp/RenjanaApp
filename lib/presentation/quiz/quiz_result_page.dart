@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import 'quiz_play_page.dart';
 
@@ -11,7 +12,6 @@ class QuizResultPage extends StatefulWidget {
   final int correctCount;
   final int incorrectCount;
   final int elapsedSeconds;
-  final VoidCallback onRestart;
 
   const QuizResultPage({
     super.key,
@@ -21,7 +21,6 @@ class QuizResultPage extends StatefulWidget {
     required this.correctCount,
     required this.incorrectCount,
     required this.elapsedSeconds,
-    required this.onRestart,
   });
 
   @override
@@ -30,6 +29,17 @@ class QuizResultPage extends StatefulWidget {
 
 class _QuizResultPageState extends State<QuizResultPage> {
   int _selectedFilter = 0; // 0 = Semua, 1 = Benar, 2 = Salah
+
+  // Mengulang kuis dengan soal yang sama.
+  void _restartQuiz() {
+    context.pushReplacement(
+      QuizPlayPage(
+        title: widget.title,
+        category: widget.category,
+        questions: widget.playItems.map((item) => item.original).toList(),
+      ),
+    );
+  }
 
   String _formatDuration(int totalSeconds) {
     final minutes = (totalSeconds ~/ 60).toString().padLeft(2, '0');
@@ -62,7 +72,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
       feedbackTitle = 'Sempurna!';
       feedbackDesc =
           'Semua jawaban Anda benar! Anda adalah penjelajah nusantara sejati.';
-      feedbackColor = AppColors.gold; // Gold
+      feedbackColor = AppColors.gold;
       feedbackIcon = Icons.workspace_premium_rounded;
     } else if (scorePercent >= 70) {
       feedbackTitle = 'Hebat Sekali!';
@@ -118,7 +128,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Header Badge Kategori & Tema
+                // badge kategori & tema
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -140,7 +150,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Card Skor & Feedback
+                // kartu skor & feedback
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
@@ -194,7 +204,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                       const Divider(color: AppColors.borderLight),
                       const SizedBox(height: 16),
 
-                      // Stat Grid
+                      // ringkasan benar/salah
                       Row(
                         children: [
                           _buildStatItem(
@@ -224,7 +234,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Tombol Aksi
+                // tombol ulangi & selesai
                 Row(
                   children: [
                     Expanded(
@@ -249,7 +259,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                             color: AppColors.primary,
                           ),
                         ),
-                        onPressed: widget.onRestart,
+                        onPressed: _restartQuiz,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -282,7 +292,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                 ),
                 const SizedBox(height: 28),
 
-                // Section Review Jawaban
+                // section review jawaban
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -294,7 +304,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    // Filter chip (Semua / Benar / Salah)
+                    // chip filter semua/benar/salah
                     Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
@@ -314,7 +324,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                 ),
                 const SizedBox(height: 14),
 
-                // List Review
+                // daftar review
                 ...List.generate(_filteredItems.length, (index) {
                   final item = _filteredItems[index];
                   final originalIndex = widget.playItems.indexOf(item);
@@ -388,7 +398,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                         const Divider(color: AppColors.borderLight),
                         const SizedBox(height: 8),
 
-                        // Gambar jika ada
+                        // gambar soal, opsional
                         if (quiz.gambar != null &&
                             quiz.gambar!.trim().isNotEmpty) ...[
                           ClipRRect(
@@ -405,7 +415,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                           const SizedBox(height: 12),
                         ],
 
-                        // Detail Jawaban User & Benar
+                        // jawaban user dan kunci
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -459,7 +469,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
                         ],
                         const SizedBox(height: 10),
 
-                        // Kotak Penjelasan
+                        // kotak penjelasan
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),

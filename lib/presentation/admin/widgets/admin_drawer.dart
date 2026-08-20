@@ -20,7 +20,7 @@ class AdminDrawer extends StatelessWidget {
         top: false,
         child: Column(
           children: [
-            // Header
+            // header drawer
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 90, 20, 20),
@@ -34,7 +34,7 @@ class AdminDrawer extends StatelessWidget {
               ),
             ),
 
-            // Menu 1: Manage Quiz
+            // menu kelola kuis
             _buildDrawerTile(
               context: context,
               icon: Icons.quiz_rounded,
@@ -45,13 +45,13 @@ class AdminDrawer extends StatelessWidget {
               },
             ),
 
-            // Menu 2: Manage Konten Utama
+            // menu kelola konten
             _buildDrawerTile(
               context: context,
               icon: Icons.dashboard_customize_rounded,
               title: 'Manage Konten Utama',
               onTap: () {
-                Navigator.pop(context); // close drawer
+                Navigator.pop(context); // tutup drawer
                 context.push(const AdminManageContentPage());
               },
             ),

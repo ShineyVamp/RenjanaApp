@@ -34,7 +34,7 @@ class AppImagePickerWidget extends StatelessWidget {
 
   Future<bool> _requestGalleryPermission(BuildContext context) async {
     try {
-      // Check photos permission (Android 13+ / iOS) or storage (Android <13)
+      // izin foto untuk Android 13+/iOS, storage untuk Android lama
       PermissionStatus status = await Permission.photos.request();
       if (!status.isGranted && !status.isLimited) {
         status = await Permission.storage.request();
@@ -52,7 +52,7 @@ class AppImagePickerWidget extends StatelessWidget {
       }
       return true;
     } catch (_) {
-      // On platforms where permission_handler is not needed/supported (e.g. desktop), allow proceeding
+      // platform yang tidak butuh izin (mis. desktop) langsung diloloskan
       return true;
     }
   }
@@ -103,7 +103,7 @@ class AppImagePickerWidget extends StatelessWidget {
   }
 
   Future<void> _safePickFromDevice(BuildContext context) async {
-    // Request permission first
+    // minta izin dulu
     final hasPermission = await _requestGalleryPermission(context);
     if (!hasPermission) return;
 
@@ -185,7 +185,7 @@ class AppImagePickerWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      // Tombol Buka Galeri Device (Dengan Permintaan Izin Otomatis)
+                      // tombol buka galeri perangkat
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -231,7 +231,7 @@ class AppImagePickerWidget extends StatelessWidget {
                       Expanded(
                         child: TabBarView(
                           children: [
-                            // TAB 1: Grid Galeri Aset Renjana
+                            // tab galeri aset bawaan
                             GridView.builder(
                               itemCount: defaultAssets.length,
                               gridDelegate:
@@ -302,7 +302,7 @@ class AppImagePickerWidget extends StatelessWidget {
                               },
                             ),
 
-                            // TAB 2: Path Kustom
+                            // tab path kustom
                             SingleChildScrollView(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,7 +413,7 @@ class AppImagePickerWidget extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // Preview & Upload Card (1 Tombol Utama)
+        // kartu pratinjau gambar
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -426,7 +426,7 @@ class AppImagePickerWidget extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Thumbnail Box
+              // thumbnail
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -449,7 +449,7 @@ class AppImagePickerWidget extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // Detail & 1 Single Button
+              // keterangan & tombol pilih
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

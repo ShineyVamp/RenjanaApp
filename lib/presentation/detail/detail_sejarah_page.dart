@@ -76,7 +76,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
               constraints: const BoxConstraints(maxWidth: 800),
               child: Column(
                 children: [
-                  // Image dan Header Top Bar
+                  // gambar utama
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -106,7 +106,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                             ),
                           ),
 
-                          // Tombol Top Bar (Back & Bookmark)
+                          // tombol back, home, bookmark
                           Positioned(
                             top: 0,
                             left: 0,
@@ -173,7 +173,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                             ),
                           ),
 
-                          // RINGKASAN
+                          // ringkasan
                           DetailSectionBlock(
                             padding: const EdgeInsets.fromLTRB(22, 50, 22, 24),
                             title: 'Ringkasan',
@@ -184,7 +184,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                     ],
                   ),
 
-                  // Alur Peristiwa (Timeline)
+                  // section alur peristiwa
                   if (data.alurPeristiwa.isNotEmpty) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 22),
@@ -226,7 +226,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
 
                   const SizedBox(height: 28),
 
-                  // Section: Sejarah Lainnya (5 Kartu Random Scrollable)
+                  // section sejarah lainnya
                   Padding(
                     padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
                     child: Column(

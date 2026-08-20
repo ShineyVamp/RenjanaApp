@@ -16,7 +16,7 @@ class PreferenceHandler {
 
   static Future<void> saveUser(UserSQLModel user) async {
     await _prefs.setBool(_keyIsLogin, true);
-    // Password tidak ikut disimpan di SharedPreferences.
+    // password tidak ikut disimpan
     await _prefs.setString(_keyUserData, user.sanitized().toJson());
 
     await _prefs.setBool(_keyIsAdmin, user.isAdminAccount);
@@ -54,8 +54,7 @@ class PreferenceHandler {
     }
   }
 
-  /// Menghapus kunci sesi saja, bukan seluruh isi SharedPreferences,
-  /// supaya preferensi non-auth (mis. pengaturan aplikasi) tetap bertahan.
+  // Hanya kunci sesi yang dihapus, preferensi lain tetap bertahan.
   static Future<void> logOut() async {
     await _prefs.remove(_keyIsLogin);
     await _prefs.remove(_keyUserData);

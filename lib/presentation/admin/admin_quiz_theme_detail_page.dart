@@ -97,7 +97,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Header Modal
+                        // header modal
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -118,7 +118,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                         const Divider(color: AppColors.primary),
                         const SizedBox(height: 12),
 
-                        // Tema Info
+                        // info tema
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -140,7 +140,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Pertanyaan / Soal
+                        // input pertanyaan
                         Text(
                           'Pertanyaan / Soal Kuis',
                           style: AppTypography.labelBold(
@@ -173,7 +173,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Pilihan Jawaban
+                        // input pilihan jawaban
                         Text(
                           'Pilihan Jawaban (Pilih radio untuk kunci jawaban benar)',
                           style: AppTypography.labelBold(
@@ -236,7 +236,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Penjelasan / Pembahasan
+                        // input penjelasan
                         Text(
                           'Penjelasan / Pembahasan Soal (Opsional)',
                           style: AppTypography.labelBold(
@@ -267,7 +267,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Gambar (Opsional / Tambahan)
+                        // pemilih gambar, opsional
                         AppImagePickerWidget(
                           label: 'Gambar Soal (Opsional / Tambahan)',
                           isRequired: false,
@@ -278,7 +278,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Submit Button
+                        // tombol simpan
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -476,7 +476,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info Card Tema
+                  // kartu info tema
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -634,7 +634,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card
+          // header kartu soal
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -724,7 +724,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                 ],
                 const SizedBox(height: 12),
 
-                // Pilihan Jawaban Preview
+                // pratinjau pilihan jawaban
                 Text(
                   'Pilihan Jawaban:',
                   style: AppTypography.labelBold(fontSize: 11),
