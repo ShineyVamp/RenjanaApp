@@ -26,7 +26,12 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
     if (PreferenceHandler.isLogin) {
-      context.pushAndRemoveAll(const MainPage());
+      final user = PreferenceHandler.user;
+      final isAdmin = PreferenceHandler.isAdmin;
+      context.pushAndRemoveAll(MainPage(
+        currentUser: user,
+        isAdmin: isAdmin,
+      ));
     } else {
       context.pushAndRemoveAll(const OnboardingPage());
     }

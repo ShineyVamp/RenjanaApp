@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (user != null) {
-      await PreferenceHandler.setLogin(true);
+      await PreferenceHandler.saveUser(user);
       if (!mounted) return;
       context.pushAndRemoveAll(MainPage(currentUser: user));
     } else {

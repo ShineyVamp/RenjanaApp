@@ -5,6 +5,7 @@ import 'package:renjana/presentation/auth/test_logout.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../data/models/user_model.dart';
+import '../../services/preference_handler.dart';
 import '../admin/widgets/admin_drawer.dart';
 import '../home/home_page.dart';
 import '../quiz/quiz_page.dart';
@@ -25,15 +26,26 @@ class _MainPageState extends State<MainPage> {
 
   bool get _isAdmin {
     if (widget.isAdmin == true) return true;
-    final name = widget.currentUser?.nama.toLowerCase().trim() ?? '';
-    return name == 'admin1' || name.contains('admin');
+    final user = widget.currentUser ?? PreferenceHandler.user;
+    if (user != null) {
+      final name = user.nama.toLowerCase().trim();
+      final email = user.email.toLowerCase().trim();
+      return name == 'admin1' ||
+          name.contains('admin') ||
+          email.contains('admin');
+    }
+    return PreferenceHandler.isAdmin;
   }
 
   String get _userName {
     if (widget.currentUser?.nama.isNotEmpty == true) {
       return widget.currentUser!.nama;
     }
-    return _isAdmin ? 'admin1' : 'Agus';
+    final savedUser = PreferenceHandler.user;
+    if (savedUser?.nama.isNotEmpty == true) {
+      return savedUser!.nama;
+    }
+    return _isAdmin ? 'admin1' : PreferenceHandler.userName;
   }
 
   final List<String> _labels = ['Beranda', 'Jelajah', 'Peta', 'Kuis', 'Profil'];

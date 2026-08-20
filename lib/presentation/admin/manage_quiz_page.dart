@@ -6,6 +6,7 @@ import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../data/models/quiz_model.dart';
 import '../../../data/repositories/quiz_repository.dart';
+import 'admin_quiz_theme_detail_page.dart';
 import 'widgets/app_image_picker_widget.dart';
 
 class AdminManageQuizPage extends StatefulWidget {
@@ -29,18 +30,6 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
     'KEDAERAHAN',
   ];
 
-  final List<String> _availableImages = [
-    'assets/images/170845history.png',
-    'assets/images/rengasdengklok.jpg',
-    'assets/images/1308history.png',
-    'assets/images/borobudurB.jpg',
-    'assets/images/kerisB.jpg',
-    'assets/images/onboardin1.jpg',
-    'assets/images/onboardin2.jpg',
-    'assets/images/onboardin3.jpg',
-    'assets/images/perumusan.jpg',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -57,45 +46,52 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
     });
   }
 
-  List<QuizSQLModel> get _filteredList {
-    return _quizList.where((quiz) {
+  List<_AdminThemeGroup> get _themeGroups {
+    final Map<String, List<QuizSQLModel>> grouped = {};
+    for (final q in _quizList) {
+      if (q.tema.trim().isEmpty) continue;
+      grouped.putIfAbsent(q.tema, () => []).add(q);
+    }
+
+    final List<_AdminThemeGroup> groups = grouped.entries.map((e) {
+      final first = e.value.first;
+      String? coverImage = first.gambar;
+      for (final q in e.value) {
+        if (q.gambar != null && q.gambar!.trim().isNotEmpty) {
+          coverImage = q.gambar;
+          break;
+        }
+      }
+      return _AdminThemeGroup(
+        tema: e.key,
+        kategori: first.kategori,
+        coverImage: coverImage,
+        questions: e.value,
+      );
+    }).toList();
+
+    return groups.where((g) {
       final matchesCategory = _selectedCategory == 'SEMUA' ||
-          quiz.kategori.toUpperCase() == _selectedCategory.toUpperCase();
+          g.kategori.toUpperCase() == _selectedCategory.toUpperCase();
       final matchesQuery = _searchQuery.isEmpty ||
-          quiz.tema.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          quiz.soal.toLowerCase().contains(_searchQuery.toLowerCase());
+          g.tema.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          g.kategori.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesQuery;
     }).toList();
   }
 
-  void _showQuizFormDialog({QuizSQLModel? quizToEdit}) {
-    final isEditing = quizToEdit != null;
-    final kategoriController = TextEditingController(
-      text: isEditing ? quizToEdit.kategori : 'SEJARAH',
-    );
-    final temaController = TextEditingController(
-      text: isEditing ? quizToEdit.tema : '',
-    );
-    final soalController = TextEditingController(
-      text: isEditing ? quizToEdit.soal : '',
-    );
+  void _showAddThemeDialog() {
+    final kategoriController = TextEditingController(text: 'SEJARAH');
+    final temaController = TextEditingController();
+    final soalController = TextEditingController();
+    final penjelasanController = TextEditingController();
 
-    // Initial 4 answers
-    List<String> currentAnswers = isEditing && quizToEdit.daftarJawaban.isNotEmpty
-        ? List<String>.from(quizToEdit.daftarJawaban)
-        : ['', '', '', ''];
-    while (currentAnswers.length < 4) {
-      currentAnswers.add('');
-    }
-
-    final answerControllers = currentAnswers
-        .map((ans) => TextEditingController(text: ans))
-        .toList();
-
-    int selectedCorrectIndex = isEditing ? quizToEdit.jawabanBenar : 0;
-    String selectedImage = isEditing && quizToEdit.gambar != null
-        ? quizToEdit.gambar!
-        : _availableImages.first;
+    final answerControllers = List.generate(
+      4,
+      (index) => TextEditingController(),
+    );
+    int selectedCorrectIndex = 0;
+    String? selectedImage;
 
     final formKey = GlobalKey<FormState>();
 
@@ -106,9 +102,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) {
+      builder: (modalContext) {
         return StatefulBuilder(
-          builder: (modalContext, setModalState) {
+          builder: (ctx, setModalState) {
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(modalContext).viewInsets.bottom,
@@ -118,7 +114,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
               ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(modalContext).size.height * 0.85,
+                  maxHeight: MediaQuery.of(modalContext).size.height * 0.88,
                 ),
                 child: Form(
                   key: formKey,
@@ -127,20 +123,19 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Title
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              isEditing ? 'Edit Kuis' : 'Tambah Kuis Baru',
+                              'Tambah Tema & Kuis Baru',
                               style: GoogleFonts.dmSerifDisplay(
-                                fontSize: 24,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close),
+                              icon: const Icon(Icons.close_rounded),
                               onPressed: () => Navigator.pop(modalContext),
                             ),
                           ],
@@ -158,11 +153,10 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
-                          initialValue:
-                              _categories.contains(kategoriController.text) &&
-                                      kategoriController.text != 'SEMUA'
-                                  ? kategoriController.text
-                                  : 'SEJARAH',
+                          initialValue: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
+                                  .contains(kategoriController.text)
+                              ? kategoriController.text
+                              : 'SEJARAH',
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.surface,
@@ -195,9 +189,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Tema / Judul
+                        // Nama Tema
                         Text(
-                          'Tema / Judul Kuis',
+                          'Nama Tema Kuis',
                           style: AppTypography.labelBold(
                             fontSize: 13,
                             color: AppColors.textPrimary,
@@ -222,14 +216,14 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                             ),
                           ),
                           validator: (val) => val == null || val.trim().isEmpty
-                              ? 'Tema tidak boleh kosong'
+                              ? 'Nama tema tidak boleh kosong'
                               : null,
                         ),
                         const SizedBox(height: 14),
 
-                        // Soal
+                        // Soal Pertama
                         Text(
-                          'Pertanyaan / Soal Kuis',
+                          'Soal Pertama',
                           style: AppTypography.labelBold(
                             fontSize: 13,
                             color: AppColors.textPrimary,
@@ -238,7 +232,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: soalController,
-                          maxLines: 3,
+                          maxLines: 2,
                           decoration: InputDecoration(
                             hintText: 'Masukkan pertanyaan soal kuis...',
                             filled: true,
@@ -269,6 +263,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
+
                         RadioGroup<int>(
                           groupValue: selectedCorrectIndex,
                           onChanged: (val) {
@@ -321,19 +316,48 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 12),
 
+                        // Penjelasan
+                        Text(
+                          'Penjelasan / Pembahasan Soal (Opsional)',
+                          style: AppTypography.labelBold(
+                            fontSize: 13,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: penjelasanController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            hintText: 'Penjelasan mengapa jawaban benar...',
+                            filled: true,
+                            fillColor: AppColors.surface,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: AppColors.border,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Gambar
                         AppImagePickerWidget(
-                          label: 'Pilih / Upload Cover Kuis',
-                          isRequired: true,
+                          label: 'Gambar Cover / Soal (Opsional)',
+                          isRequired: false,
                           currentImagePath: selectedImage,
                           onImageSelected: (path) {
-                            if (path != null) {
-                              setModalState(() => selectedImage = path);
-                            }
+                            setModalState(() => selectedImage = path);
                           },
                         ),
                         const SizedBox(height: 24),
 
-                        // Action Button
+                        // Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -352,36 +376,37 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                                   .toList();
 
                               final model = QuizSQLModel(
-                                id: isEditing ? quizToEdit.id : null,
                                 kategori: kategoriController.text.trim(),
                                 tema: temaController.text.trim(),
                                 soal: soalController.text.trim(),
                                 daftarJawaban: answers,
                                 jawabanBenar: selectedCorrectIndex,
                                 gambar: selectedImage,
+                                penjelasan:
+                                    penjelasanController.text.trim().isNotEmpty
+                                        ? penjelasanController.text.trim()
+                                        : null,
                               );
 
-                              bool success;
-                              if (isEditing) {
-                                success = await _quizRepository.updateQuiz(model);
-                              } else {
-                                success = await _quizRepository.tambahQuiz(model);
-                              }
+                              final success =
+                                  await _quizRepository.tambahQuiz(model);
 
                               if (!mounted) return;
                               if (modalContext.mounted) {
                                 Navigator.pop(modalContext);
                               }
 
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              final messenger = ScaffoldMessenger.of(context);
+                              messenger.clearSnackBars();
+                              messenger.showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     success
-                                        ? (isEditing
-                                            ? 'Kuis berhasil diperbarui!'
-                                            : 'Kuis berhasil ditambahkan!')
-                                        : 'Gagal menyimpan kuis.',
+                                        ? 'Tema dan kuis berhasil dibuat!'
+                                        : 'Gagal membuat kuis.',
                                   ),
+                                  duration: const Duration(milliseconds: 1500),
+                                  behavior: SnackBarBehavior.floating,
                                   backgroundColor: success
                                       ? AppColors.success
                                       : AppColors.error,
@@ -391,7 +416,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               _loadQuizzes();
                             },
                             child: Text(
-                              isEditing ? 'Simpan Perubahan' : 'Tambah Kuis',
+                              'Buat Tema Kuis',
                               style: GoogleFonts.plusJakartaSans(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -412,65 +437,283 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
     );
   }
 
-  void _confirmDeleteQuiz(QuizSQLModel quiz) {
-    showDialog(
+  void _showEditThemeDialog(_AdminThemeGroup group) {
+    final kategoriController =
+        TextEditingController(text: group.kategori.toUpperCase());
+    final temaController = TextEditingController(text: group.tema);
+    String? selectedImage = group.coverImage;
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: AppColors.surface,
-          title: Text(
-            'Hapus Kuis?',
-            style: GoogleFonts.dmSerifDisplay(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryDark,
-            ),
-          ),
-          content: Text(
-            'Apakah Anda yakin ingin menghapus kuis "${quiz.tema}"?',
-            style: AppTypography.bodyMedium(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Batal',
-                style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary),
+      isScrollControlled: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom,
+                top: 20,
+                left: 20,
+                right: 20,
               ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-              ),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                if (quiz.id != null) {
-                  final success = await _quizRepository.deleteQuiz(quiz.id!);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        success
-                            ? 'Kuis berhasil dihapus'
-                            : 'Gagal menghapus kuis',
+              child: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Edit Tema & Cover',
+                            style: GoogleFonts.dmSerifDisplay(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded),
+                            onPressed: () => Navigator.pop(modalContext),
+                          ),
+                        ],
                       ),
-                      backgroundColor:
-                          success ? AppColors.success : AppColors.error,
-                    ),
-                  );
-                  _loadQuizzes();
-                }
-              },
-              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+                      const Divider(color: AppColors.primary),
+                      const SizedBox(height: 12),
+
+                      // Kategori
+                      Text(
+                        'Kategori',
+                        style: AppTypography.labelBold(
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        initialValue: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
+                                .contains(kategoriController.text.toUpperCase())
+                            ? kategoriController.text.toUpperCase()
+                            : 'SEJARAH',
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.border,
+                            ),
+                          ),
+                        ),
+                        items: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
+                            .map(
+                              (kat) => DropdownMenuItem(
+                                value: kat,
+                                child: Text(kat),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() {
+                              kategoriController.text = val;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Nama Tema
+                      Text(
+                        'Nama Tema Kuis',
+                        style: AppTypography.labelBold(
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: temaController,
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: Perjalanan Revolusi',
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.border,
+                            ),
+                          ),
+                        ),
+                        validator: (val) => val == null || val.trim().isEmpty
+                            ? 'Nama tema tidak boleh kosong'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Gambar Cover
+                      AppImagePickerWidget(
+                        label: 'Gambar Cover Tema Kuis',
+                        isRequired: false,
+                        currentImagePath: selectedImage,
+                        onImageSelected: (path) {
+                          setModalState(() => selectedImage = path);
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Button Submit
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () async {
+                            if (!formKey.currentState!.validate()) return;
+
+                            final newTema = temaController.text.trim();
+                            final newKategori = kategoriController.text.trim();
+
+                            final success = await _quizRepository.updateThemeInfo(
+                              oldTema: group.tema,
+                              newTema: newTema,
+                              newKategori: newKategori,
+                              newCoverImage: selectedImage,
+                            );
+
+                            if (!mounted) return;
+                            if (modalContext.mounted) {
+                              Navigator.pop(modalContext);
+                            }
+
+                            final messenger = ScaffoldMessenger.of(context);
+                            messenger.clearSnackBars();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  success
+                                      ? 'Tema kuis & cover berhasil diperbarui!'
+                                      : 'Gagal memperbarui tema.',
+                                ),
+                                duration: const Duration(milliseconds: 1500),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: success
+                                    ? AppColors.success
+                                    : AppColors.error,
+                              ),
+                            );
+
+                            _loadQuizzes();
+                          },
+                          child: Text(
+                            'Simpan Perubahan Tema',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
+  void _confirmDeleteTheme(_AdminThemeGroup group) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Hapus Tema Kuis?',
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Seluruh ${group.questions.length} soal dalam tema "${group.tema}" akan dihapus permanen.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              await _quizRepository.deleteQuizzesByTema(group.tema);
+              if (!mounted) return;
+              final messenger = ScaffoldMessenger.of(context);
+              messenger.clearSnackBars();
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Tema kuis berhasil dihapus'),
+                  duration: Duration(milliseconds: 1500),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: AppColors.success,
+                ),
+              );
+              _loadQuizzes();
+            },
+            child: Text(
+              'Hapus Tema',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredList;
+    final groups = _themeGroups;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -478,182 +721,171 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
         backgroundColor: AppColors.background,
         surfaceTintColor: AppColors.background,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        centerTitle: true,
         title: Text(
-          'Manage Quiz',
+          'Kelola Kuis',
           style: GoogleFonts.dmSerifDisplay(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28),
-            tooltip: 'Tambah Kuis Baru',
-            onPressed: () => _showQuizFormDialog(),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            onPressed: _loadQuizzes,
           ),
         ],
         shape: const Border(
           bottom: BorderSide(color: AppColors.primary, width: 0.8),
         ),
       ),
-      body: Column(
-        children: [
-          // Search & Filter
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            color: AppColors.background,
-            child: Column(
-              children: [
-                // Search Field
-                TextField(
-                  onChanged: (val) {
-                    setState(() => _searchQuery = val);
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Cari kuis berdasarkan judul / soal...',
-                    prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-                    filled: true,
-                    fillColor: AppColors.surface,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.border),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Search Box
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Cari tema kuis...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.borderLight),
+                      ),
                     ),
+                    onChanged: (val) => setState(() => _searchQuery = val),
                   ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
-                // Category Filter Tabs
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _categories.map((cat) {
-                      final isSelected = _selectedCategory == cat;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Text(cat),
-                          selected: isSelected,
-                          selectedColor: AppColors.primary,
-                          labelStyle: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : AppColors.textSecondary,
-                          ),
-                          backgroundColor: AppColors.surface,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                  // Kategori Filter Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _categories.map((cat) {
+                        final isSelected = _selectedCategory == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(cat),
+                            selected: isSelected,
+                            selectedColor: AppColors.primary,
+                            backgroundColor: AppColors.surface,
+                            labelStyle: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
+                            ),
                             side: BorderSide(
                               color: isSelected
                                   ? AppColors.primary
-                                  : AppColors.border,
+                                  : AppColors.borderLight,
                             ),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() => _selectedCategory = cat);
+                              }
+                            },
                           ),
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = cat;
-                            });
-                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Daftar Tema Kuis',
+                        style: GoogleFonts.dmSerifDisplay(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      Text(
+                        '${groups.length} Tema',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(height: 14),
 
-          // Total Data Info
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Kuis: ${filtered.length}',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  'Klik edit/hapus pada kartu',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // List of Quizzes
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filtered.isEmpty
-                    ? Center(
+                  if (groups.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: Center(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
                               Icons.quiz_outlined,
-                              size: 48,
-                              color: AppColors.textMuted,
+                              size: 40,
+                              color: AppColors.textSecondary,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             Text(
-                              'Belum ada data kuis',
-                              style: AppTypography.bodyMedium(),
-                            ),
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                              ),
-                              onPressed: () => _showQuizFormDialog(),
-                              icon: const Icon(Icons.add, color: Colors.white),
-                              label: const Text(
-                                'Tambah Kuis Pertama',
-                                style: TextStyle(color: Colors.white),
+                              'Belum ada tema kuis ditemukan.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final quiz = filtered[index];
-                          return _buildAdminQuizCard(quiz);
-                        },
                       ),
-          ),
-        ],
-      ),
+                    )
+                  else
+                    Column(
+                      children: groups.map((group) {
+                        return _buildThemeCard(group);
+                      }).toList(),
+                    ),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => _showQuizFormDialog(),
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
-          'Tambah Kuis',
+          'Tambah Tema',
           style: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
+        onPressed: _showAddThemeDialog,
       ),
     );
   }
 
-  Widget _buildAdminQuizCard(QuizSQLModel quiz) {
+  Widget _buildThemeCard(_AdminThemeGroup group) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -661,7 +893,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -671,54 +903,108 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header inside card
+          // Header Card (TERPISAH dari klik body agar tidak terjadi salah klik navigasi)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.06),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    quiz.kategori.toUpperCase(),
+                    group.kategori.toUpperCase(),
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      letterSpacing: 0.8,
                     ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${group.questions.length} Soal',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
                   ),
                 ),
                 const Spacer(),
-                InkWell(
-                  onTap: () => _showQuizFormDialog(quizToEdit: quiz),
-                  borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      color: Colors.blueAccent,
-                      size: 20,
+
+                // Tombol Edit Tema & Cover (Hit Box Luas & Jelas)
+                Material(
+                  color: Colors.blue.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () => _showEditThemeDialog(group),
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.edit_outlined,
+                            color: Colors.blueAccent,
+                            size: 16,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Edit',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
-                InkWell(
-                  onTap: () => _confirmDeleteQuiz(quiz),
-                  borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.delete_outline,
-                      color: AppColors.error,
-                      size: 20,
+                const SizedBox(width: 8),
+
+                // Tombol Hapus Tema (Hit Box Luas & Jelas)
+                Material(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () => _confirmDeleteTheme(group),
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: AppColors.error,
+                            size: 16,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Hapus',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -726,99 +1012,91 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
             ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Tema / Judul
-                Text(
-                  quiz.tema,
-                  style: GoogleFonts.dmSerifDisplay(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+          // Body Card (Khusus untuk navigasi ke edit soal kuis tema ini)
+          Material(
+            color: Colors.transparent,
+            borderRadius:
+                const BorderRadius.vertical(bottom: Radius.circular(12)),
+            child: InkWell(
+              onTap: () async {
+                await context.push(
+                  AdminQuizThemeDetailPage(
+                    tema: group.tema,
+                    kategori: group.kategori,
                   ),
-                ),
-                const SizedBox(height: 6),
-
-                // Pertanyaan / Soal
-                Text(
-                  quiz.soal,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                if (quiz.gambar != null && quiz.gambar!.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: SizedBox(
-                      height: 110,
-                      width: double.infinity,
-                      child: AppImageView(
-                        imagePath: quiz.gambar,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 10),
-
-                // Options preview
-                if (quiz.daftarJawaban.isNotEmpty) ...[
-                  Text(
-                    'Pilihan Jawaban:',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  ...List.generate(quiz.daftarJawaban.length, (optIndex) {
-                    final isCorrect = optIndex == quiz.jawabanBenar;
-                    final labels = ['A', 'B', 'C', 'D'];
-                    final label = optIndex < labels.length ? labels[optIndex] : '$optIndex';
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isCorrect
-                                ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
-                            size: 14,
-                            color: isCorrect
-                                ? AppColors.success
-                                : AppColors.textMuted,
+                );
+                _loadQuizzes();
+              },
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    if (group.coverImage != null &&
+                        group.coverImage!.trim().isNotEmpty) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 80,
+                          height: 70,
+                          child: AppImageView(
+                            imagePath: group.coverImage!,
+                            fit: BoxFit.cover,
                           ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              '$label. ${quiz.daftarJawaban[optIndex]}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: isCorrect
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isCorrect
-                                    ? AppColors.success
-                                    : AppColors.textSecondary,
-                              ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                    ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            group.tema,
+                            style: GoogleFonts.dmSerifDisplay(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Klik untuk mengelola atau mengedit soal di tema ini.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
-                    );
-                  }),
-                ],
-              ],
+                    ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _AdminThemeGroup {
+  final String tema;
+  final String kategori;
+  final String? coverImage;
+  final List<QuizSQLModel> questions;
+
+  _AdminThemeGroup({
+    required this.tema,
+    required this.kategori,
+    this.coverImage,
+    required this.questions,
+  });
 }

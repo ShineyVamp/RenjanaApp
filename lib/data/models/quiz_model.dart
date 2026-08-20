@@ -8,6 +8,7 @@ class QuizSQLModel {
   final List<String> daftarJawaban;
   final int jawabanBenar;
   final String? gambar;
+  final String? penjelasan;
 
   QuizSQLModel({
     this.id,
@@ -17,6 +18,7 @@ class QuizSQLModel {
     required this.daftarJawaban,
     required this.jawabanBenar,
     this.gambar,
+    this.penjelasan,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +30,7 @@ class QuizSQLModel {
       'daftarJawaban': jsonEncode(daftarJawaban),
       'jawabanBenar': jawabanBenar,
       'gambar': gambar,
+      'penjelasan': penjelasan,
     };
   }
 
@@ -53,6 +56,7 @@ class QuizSQLModel {
       daftarJawaban: parsedJawaban,
       jawabanBenar: map['jawabanBenar'] as int? ?? 0,
       gambar: map['gambar'] as String?,
+      penjelasan: map['penjelasan'] as String?,
     );
   }
 

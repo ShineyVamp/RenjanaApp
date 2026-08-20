@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'budaya_data.dart';
+import 'quiz_data.dart';
 import 'sejarah_data.dart';
 
 class DbHelper {
@@ -25,16 +26,38 @@ class DbHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 5,
       onCreate: (db, version) async {
         await _createTables(db);
         await _seedInitialData(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         await _createTables(db);
+        await _checkAndUpdateSchema(db);
         await _seedInitialData(db);
       },
+      onOpen: (db) async {
+        await _createTables(db);
+        await _checkAndUpdateSchema(db);
+      },
     );
+  }
+
+  Future<void> _checkAndUpdateSchema(Database db) async {
+    try {
+      await db.execute('''CREATE TABLE IF NOT EXISTS bookmark (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        itemType TEXT,
+        kodeTag TEXT UNIQUE,
+        createdAt TEXT
+      )''');
+
+      final tableInfo = await db.rawQuery('PRAGMA table_info(quiz)');
+      final hasPenjelasan = tableInfo.any((col) => col['name'] == 'penjelasan');
+      if (!hasPenjelasan) {
+        await db.execute('ALTER TABLE quiz ADD COLUMN penjelasan TEXT');
+      }
+    } catch (_) {}
   }
 
   Future<void> _createTables(Database db) async {
@@ -53,7 +76,8 @@ class DbHelper {
       soal TEXT UNIQUE,
       daftarJawaban TEXT,
       jawabanBenar INTEGER,
-      gambar TEXT
+      gambar TEXT,
+      penjelasan TEXT
     )''');
 
     await db.execute('''CREATE TABLE IF NOT EXISTS content (
@@ -95,41 +119,36 @@ class DbHelper {
       gambarKonteksBudaya TEXT,
       relatedItems TEXT
     )''');
+
+    await db.execute('''CREATE TABLE IF NOT EXISTS bookmark (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      itemType TEXT,
+      kodeTag TEXT UNIQUE,
+      createdAt TEXT
+    )''');
   }
 
   Future<void> _seedInitialData(Database db) async {
-    // Seed initial quizzes if empty
+    // Seed initial quizzes if empty or only old minimal seed
     final quizCount = Sqflite.firstIntValue(
       await db.rawQuery('SELECT COUNT(*) FROM quiz'),
     );
-    if (quizCount == 0) {
-      await db.insert('quiz', {
-        'kategori': 'SEJARAH',
-        'tema': 'Perjalanan Revolusi',
-        'soal': 'Di kota manakah teks proklamasi kemerdekaan Indonesia dirumuskan?',
-        'daftarJawaban': jsonEncode([
-          'Jakarta (Rumah Laksamana Maeda)',
-          'Bandung',
-          'Yogyakarta',
-          'Rengasdengklok',
-        ]),
-        'jawabanBenar': 0,
-        'gambar': 'assets/images/rengasdengklok.jpg',
-      });
-
-      await db.insert('quiz', {
-        'kategori': 'BUDAYA',
-        'tema': 'Budaya Sulawesi Selatan',
-        'soal': 'Rumah adat khas masyarakat Toraja di Sulawesi Selatan disebut apa?',
-        'daftarJawaban': jsonEncode([
-          'Tongkonan',
-          'Rumah Gadang',
-          'Joglo',
-          'Honai',
-        ]),
-        'jawabanBenar': 0,
-        'gambar': 'assets/images/borobudurB.jpg',
-      });
+    if (quizCount == null || quizCount <= 2) {
+      for (final q in defaultQuizList) {
+        await db.insert(
+          'quiz',
+          {
+            'kategori': q.kategori,
+            'tema': q.tema,
+            'soal': q.soal,
+            'daftarJawaban': jsonEncode(q.daftarJawaban),
+            'jawabanBenar': q.jawabanBenar,
+            'gambar': q.gambar,
+            'penjelasan': q.penjelasan,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
     }
 
     // Seed initial sejarah if empty
