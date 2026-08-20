@@ -1,11 +1,9 @@
 ﻿import 'dart:convert';
 
-/// Nama akun yang diberi hak admin. Sementara hanya dua akun ini; nanti
-/// digantikan kolom `role` atau custom claims saat pindah ke Firebase.
+// Nama akun yang diberi hak admin.
 const Set<String> adminAccountNames = {'admin1', 'admin2'};
 
-/// Pengecekan hak admin dari nama akun. Satu-satunya sumber kebenaran,
-/// dipakai PreferenceHandler maupun MainPage.
+// Pengecekan hak admin, dipakai PreferenceHandler dan MainPage.
 bool isAdminAccountName(String nama) =>
     adminAccountNames.contains(nama.toLowerCase().trim());
 
@@ -50,7 +48,7 @@ class UserSQLModel {
     );
   }
 
-  /// Salinan tanpa kredensial, dipakai saat menyimpan sesi ke SharedPreferences.
+  // Salinan tanpa password, dipakai saat menyimpan sesi.
   UserSQLModel sanitized() => copyWith(password: '');
 
   bool get isAdminAccount => isAdminAccountName(nama);

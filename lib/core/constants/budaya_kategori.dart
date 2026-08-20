@@ -1,13 +1,10 @@
-/// Katalog kategori budaya. Ini satu-satunya sumber kebenaran kategori:
-/// data seed, form admin, dan daftar "Koleksi Budaya" di beranda semuanya
-/// mengacu ke daftar ini supaya tidak ada kategori liar.
+// Katalog kategori budaya, dipakai beranda, halaman kategori, dan form admin.
 class BudayaKategori {
-  final String kode; // dipakai pada kolom `jenis` dan ID tag
-  final String nama; // nama tampilan
+  final String kode;
+  final String nama;
 
   const BudayaKategori({required this.kode, required this.nama});
 
-  /// Nilai untuk kolom `kategoriLabel` (selalu huruf kapital).
   String get label => nama.toUpperCase();
 }
 
@@ -22,8 +19,7 @@ const List<BudayaKategori> budayaKategoriList = [
   BudayaKategori(kode: 'BHS', nama: 'Bahasa dan Sastra Daerah'),
 ];
 
-/// Suffix ID tag untuk item yang sekaligus merupakan tempat wisata.
-/// Contoh: `BUD-RMH-1-D` (D = Destinasi).
+// penanda item yang juga tempat wisata
 const String kodeDestinasiSuffix = '-D';
 
 BudayaKategori? kategoriByKode(String kode) {
@@ -34,11 +30,9 @@ BudayaKategori? kategoriByKode(String kode) {
   return null;
 }
 
-/// Nama kategori untuk sebuah kode `jenis`; mengembalikan kode itu sendiri
-/// bila tidak dikenali (data lama yang belum termigrasi).
 String namaKategori(String kode) => kategoriByKode(kode)?.nama ?? kode;
 
-/// Menyusun ID tag standar: `BUD-<JENIS>-<urutan>` + `-D` bila destinasi.
+// ID tag budaya: BUD-<kategori>-<urutan>, plus -D bila destinasi.
 String buatKodeTagBudaya({
   required String jenis,
   required int urutan,

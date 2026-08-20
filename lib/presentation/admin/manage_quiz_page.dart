@@ -140,7 +140,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         const Divider(color: AppColors.primary),
                         const SizedBox(height: 12),
 
-                        // Kategori
+                        // pilihan kategori
                         Text(
                           'Kategori',
                           style: AppTypography.labelBold(
@@ -190,7 +190,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Nama Tema
+                        // input nama tema
                         Text(
                           'Nama Tema Kuis',
                           style: AppTypography.labelBold(
@@ -222,7 +222,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Soal Pertama
+                        // input soal pertama
                         Text(
                           'Soal Pertama',
                           style: AppTypography.labelBold(
@@ -255,7 +255,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Pilihan Jawaban
+                        // input pilihan jawaban
                         Text(
                           'Pilihan Jawaban (Pilih radio untuk jawaban benar)',
                           style: AppTypography.labelBold(
@@ -318,7 +318,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Penjelasan
+                        // input penjelasan
                         Text(
                           'Penjelasan / Pembahasan Soal (Opsional)',
                           style: AppTypography.labelBold(
@@ -348,7 +348,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Gambar
+                        // pemilih gambar
                         AppImagePickerWidget(
                           label: 'Gambar Cover / Soal (Opsional)',
                           isRequired: false,
@@ -359,7 +359,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Button
+                        // tombol simpan
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -492,7 +492,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       const Divider(color: AppColors.primary),
                       const SizedBox(height: 12),
 
-                      // Kategori
+                      // pilihan kategori
                       Text(
                         'Kategori',
                         style: AppTypography.labelBold(
@@ -542,7 +542,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Nama Tema
+                      // input nama tema
                       Text(
                         'Nama Tema Kuis',
                         style: AppTypography.labelBold(
@@ -574,7 +574,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Gambar Cover
+                      // pemilih gambar sampul
                       AppImagePickerWidget(
                         label: 'Gambar Cover Tema Kuis',
                         isRequired: false,
@@ -585,7 +585,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Button Submit
+                      // tombol simpan
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -758,7 +758,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Search Box
+                  // kotak pencarian
                   TextField(
                     decoration: InputDecoration(
                       hintText: 'Cari tema kuis...',
@@ -783,7 +783,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Kategori Filter Chips
+                  // chip filter kategori
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -914,7 +914,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card (TERPISAH dari klik body agar tidak terjadi salah klik navigasi)
+          // header kartu, area kliknya dipisah dari body
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
@@ -954,7 +954,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                 ),
                 const Spacer(),
 
-                // Tombol Edit Tema & Cover (Hit Box Luas & Jelas)
+                // tombol edit tema & sampul
                 Material(
                   color: Colors.blue.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -990,7 +990,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                 ),
                 const SizedBox(width: 8),
 
-                // Tombol Hapus Tema (Hit Box Luas & Jelas)
+                // tombol hapus tema
                 Material(
                   color: AppColors.error.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -1028,7 +1028,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
             ),
           ),
 
-          // Body Card (Khusus untuk navigasi ke edit soal kuis tema ini)
+          // body kartu, membuka daftar soal tema ini
           Material(
             color: Colors.transparent,
             borderRadius: const BorderRadius.vertical(

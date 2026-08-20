@@ -1,6 +1,4 @@
-// Data awal sejarah yang diisikan ke tabel `sejarah` saat database
-// pertama kali dibuat. Bukan sumber data runtime: setelah tersimpan,
-// aplikasi selalu membaca lewat SejarahRepository.
+// Data awal untuk tabel `sejarah`, dipakai sekali saat database dibuat.
 import '../../models/sejarah_model.dart';
 
 final List<SejarahModel> defaultSejarahList = [

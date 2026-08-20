@@ -113,8 +113,8 @@ class SejarahRepository {
     });
   }
 
-  /// [previousKodeTag] diisi bila ID tag ikut berubah, supaya baris yang
-  /// benar tetap ditemukan dan bookmark lama tidak menggantung.
+  // [previousKodeTag] diisi bila ID tag ikut berubah, supaya bookmark lama
+  // ikut dipindahkan.
   Future<int> updateSejarah(
     SejarahModel model, {
     String? previousKodeTag,
@@ -156,7 +156,7 @@ class SejarahRepository {
       where: 'kodeTag = ?',
       whereArgs: [kodeTag],
     );
-    // Bersihkan bookmark yang menunjuk item yang sudah dihapus.
+    // bersihkan bookmark yang menunjuk item yang sudah dihapus
     await db.delete('bookmark', where: 'kodeTag = ?', whereArgs: [kodeTag]);
     return count;
   }

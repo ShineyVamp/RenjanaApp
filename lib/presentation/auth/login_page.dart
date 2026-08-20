@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                 Container(width: 100, height: 2, color: AppColors.primary),
                 const SizedBox(height: 36),
 
-                // Email Input
+                // input email
                 AppTextField(
                   controller: _emailController,
                   labelText: 'Email',
@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password Input
+                // input password
                 AppTextField(
                   controller: _passwordController,
                   labelText: 'Password',
@@ -131,14 +131,14 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 32),
 
-                // Login Button
+                // tombol masuk
                 AppButton(
                   text: _isLoading ? 'Memuat...' : 'Login',
                   onPressed: _isLoading ? null : _login,
                 ),
                 const SizedBox(height: 24),
 
-                // Register Link
+                // tautan ke halaman daftar
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

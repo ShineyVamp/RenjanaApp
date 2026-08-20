@@ -19,7 +19,7 @@ class SejarahHighlightCard extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Number Background Watermark
+        // nomor watermark
         Positioned(
           right: -15,
           top: -40,
@@ -36,7 +36,7 @@ class SejarahHighlightCard extends StatelessWidget {
             const SectionBadgeTitle(title: 'Sejarah Hari Ini'),
             const SizedBox(height: 20),
 
-            // Image Card with Angled Frame and ID Tag
+            // gambar dengan bingkai miring dan ID tag
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -85,7 +85,7 @@ class SejarahHighlightCard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Story Description
+            // ringkasan
             Text(
               data.judul,
               style: AppTypography.headingLarge(
@@ -102,7 +102,7 @@ class SejarahHighlightCard extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Action Button
+            // tombol baca selengkapnya
             AppButton(
               text: 'Masuki Kisah',
               borderRadius: 6,

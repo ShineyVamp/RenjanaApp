@@ -95,7 +95,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               return _buildOnboardingSlide(item);
             },
           ),
-          // Bottom Navigation Controls
+          // kontrol navigasi bawah
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
             child: Column(

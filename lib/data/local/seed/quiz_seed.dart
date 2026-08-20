@@ -1,12 +1,8 @@
-// Bank soal awal yang diisikan ke tabel `quiz` saat database pertama
-// kali dibuat. Bukan sumber data runtime: aplikasi membaca lewat
-// QuizRepository.
+// Bank soal awal untuk tabel `quiz`, dipakai sekali saat database dibuat.
 import '../../models/quiz_model.dart';
 
 final List<QuizSQLModel> defaultQuizList = [
-  // ==========================================
-  // SEJARAH - Tema: Perjalanan Revolusi
-  // ==========================================
+  // Sejarah - Perjalanan Revolusi
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Perjalanan Revolusi',
@@ -83,9 +79,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Ibu Fatmawati menjahit Bendera Pusaka Sang Saka Merah Putih pada Oktober 1944 yang kemudian dikibarkan pada saat proklamasi.',
   ),
 
-  // ==========================================
-  // SEJARAH - Tema: Detik-Detik Kemerdekaan
-  // ==========================================
+  // Sejarah - Detik-Detik Kemerdekaan
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Detik-Detik Kemerdekaan',
@@ -119,9 +113,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'BPUPKI (Badan Penyelidik Usaha-usaha Persiapan Kemerdekaan Indonesia) dibentuk untuk merumuskan dasar negara dan UUD.',
   ),
 
-  // ==========================================
-  // BUDAYA - Tema: Cagar Budaya & Arsitektur
-  // ==========================================
+  // Budaya - Cagar Budaya & Arsitektur
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Cagar Budaya & Arsitektur',
@@ -161,9 +153,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Tongkonan adalah rumah adat suku Toraja yang berfungsi sebagai pusat kehidupan sosial dan ritual keluarga adat Toraja.',
   ),
 
-  // ==========================================
-  // BUDAYA - Tema: Tradisi & Mahakarya Leluhur
-  // ==========================================
+  // Budaya - Tradisi & Mahakarya Leluhur
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Tradisi & Mahakarya Leluhur',
@@ -192,9 +182,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Tenun ikat NTT diwariskan turun-temurun dengan motif khas setiap pulau serta mencerminkan status sosial dan filosofi kehidupan.',
   ),
 
-  // ==========================================
-  // KEDAERAHAN - Tema: Kekayaan Sulawesi Selatan
-  // ==========================================
+  // Kedaerahan - Kekayaan Sulawesi Selatan
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Kekayaan Sulawesi Selatan',
@@ -239,9 +227,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Coto Makassar dimasak menggunakan lebih dari 40 jenis rempah (Rampa Patangpulo) dan biasa disantap bersama ketupat.',
   ),
 
-  // ==========================================
-  // KEDAERAHAN - Tema: Pesona Nusantara
-  // ==========================================
+  // Kedaerahan - Pesona Nusantara
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Pesona Nusantara',

@@ -9,7 +9,7 @@ import '../../data/models/budaya_model.dart';
 import '../../data/repositories/budaya_repository.dart';
 import '../detail/detail_budaya_page.dart';
 
-/// Daftar seluruh koleksi budaya pada satu kategori.
+// Daftar koleksi budaya pada satu kategori.
 class KoleksiKategoriPage extends StatefulWidget {
   final BudayaKategori kategori;
 
@@ -131,9 +131,7 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
           color: AppColors.surface,
           border: Border.all(color: AppColors.borderPrimary),
         ),
-        // Tanpa CrossAxisAlignment.stretch: di dalam ListView tinggi Row tidak
-        // terbatas, sehingga stretch akan meminta anaknya setinggi tak hingga.
-        // Ukuran gambar dikunci lewat AspectRatio dari lebar 110.
+        // tinggi kartu ikut isi teks, gambar dikunci lewat AspectRatio
         child: Row(
           children: [
             SizedBox(

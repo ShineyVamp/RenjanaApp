@@ -20,7 +20,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
   List<BookmarkItemModel> _bookmarks = [];
   bool _isLoading = true;
   String _searchQuery = '';
-  String _selectedTab = 'SEMUA'; // 'SEMUA' | 'SEJARAH' | 'BUDAYA'
+  String _selectedTab = 'SEMUA'; // SEMUA | SEJARAH | BUDAYA
 
   @override
   void initState() {
@@ -138,7 +138,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
                 )
               : Column(
                   children: [
-                    // Search & Filters Header
+                    // header pencarian & filter
                     Container(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                       decoration: const BoxDecoration(
@@ -152,7 +152,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
                       ),
                       child: Column(
                         children: [
-                          // Search Box
+                          // kotak pencarian
                           TextField(
                             decoration: InputDecoration(
                               hintText: 'Cari konten tersimpan...',
@@ -185,7 +185,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Tab Filter Chips
+                          // chip filter kategori
                           Row(
                             children: [
                               _buildTabChip(
@@ -205,7 +205,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
                       ),
                     ),
 
-                    // List of Bookmarked Items
+                    // daftar item tersimpan
                     Expanded(
                       child: filtered.isEmpty
                           ? _buildEmptyState()
@@ -285,7 +285,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card
+              // header kartu
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -348,7 +348,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
                 ),
               ),
 
-              // Content Body
+              // isi kartu
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(

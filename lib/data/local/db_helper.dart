@@ -5,7 +5,7 @@ import 'seed/budaya_seed.dart';
 import 'seed/quiz_seed.dart';
 import 'seed/sejarah_seed.dart';
 
-/// Target pemetaan satu baris budaya saat migrasi kategori.
+// Nilai tujuan satu baris budaya saat migrasi kategori.
 class _BudayaKategoriTarget {
   final String kodeTag;
   final String jenis;
@@ -56,10 +56,9 @@ class DbHelper {
     );
   }
 
-  /// Penyesuaian skema untuk database yang dibuat versi aplikasi sebelumnya.
-  /// Hanya dijalankan saat migrasi versi, bukan setiap kali database dibuka.
+  // Penyesuaian skema untuk database bawaan versi aplikasi sebelumnya.
   Future<void> _migrateSchema(Database db) async {
-    // v5: kolom penjelasan pada soal kuis.
+    // v5: kolom penjelasan pada soal kuis
     try {
       final quizInfo = await db.rawQuery('PRAGMA table_info(quiz)');
       final hasPenjelasan = quizInfo.any((col) => col['name'] == 'penjelasan');
@@ -68,8 +67,8 @@ class DbHelper {
       }
     } catch (_) {}
 
-    // v6: bookmark dipisah per user. Skema lama memakai UNIQUE(kodeTag)
-    // global sehingga tabel harus dibangun ulang.
+    // v6: bookmark dipisah per user, tabel dibangun ulang karena UNIQUE
+    // pada skema lama masih global.
     try {
       final bookmarkInfo = await db.rawQuery('PRAGMA table_info(bookmark)');
       final hasUserEmail = bookmarkInfo.any(
@@ -88,8 +87,8 @@ class DbHelper {
       }
     } catch (_) {}
 
-    // v6: kategori budaya dibakukan menjadi delapan kategori resmi dan item
-    // yang juga tempat wisata ditandai suffix -D pada ID tag.
+    // v6: kategori budaya dibakukan jadi delapan kategori resmi, destinasi
+    // ditandai suffix -D pada ID tag
     try {
       for (final entry in _budayaKategoriMigration.entries) {
         final target = entry.value;
@@ -104,13 +103,13 @@ class DbHelper {
           where: 'kodeTag = ?',
           whereArgs: [entry.key],
         );
-        // Bookmark menyimpan kodeTag, ikut disesuaikan agar tidak putus.
+        // bookmark menyimpan kodeTag, ikut disesuaikan agar tidak putus
         await db.rawUpdate(
           'UPDATE OR IGNORE bookmark SET kodeTag = ? WHERE kodeTag = ?',
           [target.kodeTag, entry.key],
         );
       }
-      // Data buatan admin dengan jenis lama 'ADT' diarahkan ke Rumah Adat.
+      // jenis lama 'ADT' diarahkan ke Rumah Adat
       await db.update(
         'budaya',
         {'jenis': 'RMH', 'kategoriLabel': 'RUMAH ADAT'},
@@ -119,14 +118,13 @@ class DbHelper {
       );
     } catch (_) {}
 
-    // v6: tabel content tidak lagi dipakai, digantikan tabel sejarah & budaya.
+    // v6: tabel content digantikan tabel sejarah & budaya
     try {
       await db.execute('DROP TABLE IF EXISTS content');
     } catch (_) {}
 
-    // v7: kolom relatedItems dibuang karena tidak pernah ditampilkan di UI.
-    // Kolom dilepas dengan membangun ulang tabel agar tetap jalan di perangkat
-    // dengan SQLite lama yang belum mendukung ALTER TABLE DROP COLUMN.
+    // v7: kolom relatedItems dibuang lewat rebuild tabel, karena SQLite lama
+    // belum mendukung ALTER TABLE DROP COLUMN
     await _dropKolomRelatedItems(db, 'sejarah', _sejarahTableSql, const [
       'id',
       'kodeTag',
@@ -181,7 +179,7 @@ class DbHelper {
     } catch (_) {}
   }
 
-  /// Pemetaan ID tag budaya bawaan versi lama ke skema kategori baru.
+  // Pemetaan ID tag budaya bawaan versi lama ke skema kategori baru.
   static const Map<String, _BudayaKategoriTarget> _budayaKategoriMigration = {
     'BUD-ADT-1': _BudayaKategoriTarget(
       kodeTag: 'BUD-SRK-1-D',
@@ -275,7 +273,7 @@ class DbHelper {
   }
 
   Future<void> _seedInitialData(Database db) async {
-    // Seed initial quizzes if empty or only old minimal seed
+    // seed kuis
     final quizCount = Sqflite.firstIntValue(
       await db.rawQuery('SELECT COUNT(*) FROM quiz'),
     );
@@ -293,7 +291,7 @@ class DbHelper {
       }
     }
 
-    // Seed initial sejarah if empty
+    // seed sejarah
     final sejarahCount = Sqflite.firstIntValue(
       await db.rawQuery('SELECT COUNT(*) FROM sejarah'),
     );
@@ -314,7 +312,7 @@ class DbHelper {
       }
     }
 
-    // Seed initial budaya if empty
+    // seed budaya
     final budayaCount = Sqflite.firstIntValue(
       await db.rawQuery('SELECT COUNT(*) FROM budaya'),
     );

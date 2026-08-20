@@ -36,13 +36,13 @@ class TimelineItemModel {
 
 class SejarahModel {
   final int? id;
-  final String kodeTag; // Format: HIS-150845-1
-  final String tanggalKey; // Format: 150845 (ddMMyy)
-  final int urutan; // 1 = highlight harian utama
+  final String kodeTag; // HIS-150845-1
+  final String tanggalKey; // ddMMyy, mis. 150845
+  final int urutan; // 1 = sorotan harian utama
   final String judul;
   final String subtitle;
   final String ringkasan;
-  final String gambarUtama; // Wajib (untuk card home & header detail)
+  final String gambarUtama;
   final List<TimelineItemModel> alurPeristiwa;
 
   const SejarahModel({

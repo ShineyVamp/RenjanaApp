@@ -1,6 +1,4 @@
-// Data awal budaya yang diisikan ke tabel `budaya` saat database
-// pertama kali dibuat. Bukan sumber data runtime: setelah tersimpan,
-// aplikasi selalu membaca lewat BudayaRepository.
+// Data awal untuk tabel `budaya`, dipakai sekali saat database dibuat.
 import '../../models/budaya_model.dart';
 
 final List<BudayaModel> defaultBudayaList = [

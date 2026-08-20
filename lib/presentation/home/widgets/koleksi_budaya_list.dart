@@ -9,8 +9,7 @@ import '../../../../data/models/budaya_model.dart';
 import '../../../../data/repositories/budaya_repository.dart';
 import '../../koleksi/koleksi_kategori_page.dart';
 
-/// Daftar delapan kategori budaya. Gambar dan jumlah item pada tiap kartu
-/// diambil dari data budaya yang tersimpan di database.
+// Daftar delapan kategori budaya, gambar dan jumlah item diambil dari database.
 class KoleksiBudayaList extends StatefulWidget {
   const KoleksiBudayaList({super.key});
 
@@ -50,7 +49,7 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Number Watermark
+        // nomor watermark
         Text(
           '03',
           style: AppTypography.headingLarge(
@@ -64,7 +63,7 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
         ),
         const SizedBox(height: 20),
 
-        // Horizontal Scroll Cards
+        // kartu kategori, scroll horizontal
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _isLoading

@@ -15,7 +15,7 @@ import 'widgets/koleksi_budaya_list.dart';
 import 'widgets/pilihan_destinasi_list.dart';
 import 'widgets/sejarah_highlight_card.dart';
 
-/// Ruang kosong sementara sorotan harian masih dimuat dari database.
+// Ruang kosong selagi sorotan harian dimuat.
 class _HighlightPlaceholder extends StatelessWidget {
   const _HighlightPlaceholder();
 
@@ -177,7 +177,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User Greeting & Date
+              // section sapaan & tanggal
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -202,14 +202,14 @@ class _HomePageState extends State<HomePage> {
                     const Divider(color: AppColors.primary),
                     const SizedBox(height: 32),
 
-                    // Section 01: Sejarah Hari Ini
+                    // section sejarah hari ini
                     if (_sejarahHariIni != null)
                       SejarahHighlightCard(data: _sejarahHariIni!)
                     else
                       const _HighlightPlaceholder(),
                     const SizedBox(height: 48),
 
-                    // Section 02: Budaya Hari Ini
+                    // section budaya hari ini
                     if (_budayaHariIni != null)
                       BudayaHighlightCard(data: _budayaHariIni!)
                     else
@@ -219,15 +219,15 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 48),
 
-              // Section 03: Koleksi Budaya
+              // section koleksi budaya
               const KoleksiBudayaList(),
               const SizedBox(height: 48),
 
-              // Section 04: Pilihan Destinasi
+              // section pilihan destinasi
               const PilihanDestinasiList(),
               const SizedBox(height: 36),
 
-              // Contribution Banner
+              // section banner melestarikan
               const BannerMelestarikan(),
               const SizedBox(height: 24),
             ],

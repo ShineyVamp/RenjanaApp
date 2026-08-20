@@ -62,7 +62,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
           ? q.daftarJawaban[q.jawabanBenar]
           : (q.daftarJawaban.isNotEmpty ? q.daftarJawaban.first : '');
 
-      // Shuffle options
+      // urutan pilihan jawaban diacak
       final List<String> options = List<String>.from(q.daftarJawaban)
         ..shuffle();
       final int newCorrectIndex = options.indexOf(correctText);
@@ -135,15 +135,6 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
         correctCount: correct,
         incorrectCount: incorrect,
         elapsedSeconds: _elapsedSeconds,
-        onRestart: () {
-          context.pushReplacement(
-            QuizPlayPage(
-              title: widget.title,
-              category: widget.category,
-              questions: widget.questions,
-            ),
-          );
-        },
       ),
     );
   }
@@ -312,7 +303,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Soal Index & Tema
+                    // header nomor soal & tema
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -351,7 +342,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Pertanyaan Soal
+                    // pertanyaan
                     Text(
                       quiz.soal,
                       style: GoogleFonts.dmSerifDisplay(
@@ -363,7 +354,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Gambar Opsional (Hanya jika ada)
+                    // gambar soal, opsional
                     if (quiz.gambar != null &&
                         quiz.gambar!.trim().isNotEmpty) ...[
                       ClipRRect(
@@ -385,7 +376,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                       const SizedBox(height: 18),
                     ],
 
-                    // Pilihan Jawaban (Shuffled)
+                    // pilihan jawaban
                     Text(
                       'Pilih Jawaban yang Benar:',
                       style: AppTypography.labelBold(
@@ -518,7 +509,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                       );
                     }),
 
-                    // Kotak Pembahasan / Penjelasan jika sudah dijawab
+                    // kotak pembahasan, muncul setelah dijawab
                     if (currentItem.isAnswered) ...[
                       const SizedBox(height: 16),
                       AnimatedContainer(
@@ -601,7 +592,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Tombol Selanjutnya
+                      // tombol lanjut
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
