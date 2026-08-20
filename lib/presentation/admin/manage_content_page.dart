@@ -4,7 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
-import '../../../data/local/budaya_kategori.dart';
+import '../../../core/constants/budaya_kategori.dart';
 import '../../../data/models/budaya_model.dart';
 import '../../../data/models/sejarah_model.dart';
 import '../../../data/repositories/budaya_repository.dart';
@@ -171,7 +171,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 children: [
                                   Text(
                                     'Tanggal Key (ddMMyy)',
-                                    style: AppTypography.labelBold(fontSize: 13),
+                                    style: AppTypography.labelBold(
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   TextFormField(
@@ -179,8 +181,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                     decoration: _inputDecoration('150845'),
                                     validator: (val) =>
                                         val == null || val.trim().isEmpty
-                                            ? 'Wajib diisi'
-                                            : null,
+                                        ? 'Wajib diisi'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -193,7 +195,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 children: [
                                   Text(
                                     'Urutan',
-                                    style: AppTypography.labelBold(fontSize: 13),
+                                    style: AppTypography.labelBold(
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   TextFormField(
@@ -202,8 +206,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                     decoration: _inputDecoration('1'),
                                     validator: (val) =>
                                         val == null || val.trim().isEmpty
-                                            ? 'Wajib'
-                                            : null,
+                                        ? 'Wajib'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -220,7 +224,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: judulController,
-                          decoration: _inputDecoration('Contoh: Detik Proklamasi'),
+                          decoration: _inputDecoration(
+                            'Contoh: Detik Proklamasi',
+                          ),
                           validator: (val) => val == null || val.trim().isEmpty
                               ? 'Judul tidak boleh kosong'
                               : null,
@@ -353,7 +359,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               decoration: BoxDecoration(
                                 color: AppColors.surface,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.borderLight),
+                                border: Border.all(
+                                  color: AppColors.borderLight,
+                                ),
                               ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,9 +416,12 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                             color: AppColors.textSecondary,
                                           ),
                                         ),
-                                        if (item.hasImage && item.imgPath != null)
+                                        if (item.hasImage &&
+                                            item.imgPath != null)
                                           Padding(
-                                            padding: const EdgeInsets.only(top: 4),
+                                            padding: const EdgeInsets.only(
+                                              top: 4,
+                                            ),
                                             child: Row(
                                               children: [
                                                 const Icon(
@@ -421,13 +432,18 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                                 const SizedBox(width: 4),
                                                 Expanded(
                                                   child: Text(
-                                                    item.imgPath!.split('/').last,
+                                                    item.imgPath!
+                                                        .split('/')
+                                                        .last,
                                                     maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: GoogleFonts.plusJakartaSans(
-                                                      fontSize: 10.5,
-                                                      color: AppColors.primaryDark,
-                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 10.5,
+                                                          color: AppColors
+                                                              .primaryDark,
+                                                        ),
                                                   ),
                                                 ),
                                               ],
@@ -496,7 +512,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 id: isEditing ? sejarahToEdit.id : null,
                                 kodeTag: kodeTagController.text.trim(),
                                 tanggalKey: tanggalKeyController.text.trim(),
-                                urutan: int.tryParse(
+                                urutan:
+                                    int.tryParse(
                                       urutanController.text.trim(),
                                     ) ??
                                     1,
@@ -505,9 +522,6 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 ringkasan: ringkasanController.text.trim(),
                                 gambarUtama: selectedImage,
                                 alurPeristiwa: timelineItems,
-                                relatedItems: isEditing
-                                    ? sejarahToEdit.relatedItems
-                                    : const [],
                               );
 
                               if (isEditing) {
@@ -609,7 +623,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                     const SizedBox(height: 4),
                     TextField(
                       controller: dateController,
-                      decoration: _inputDecoration('16 AGUSTUS 1945 · 03:00 WIB'),
+                      decoration: _inputDecoration(
+                        '16 AGUSTUS 1945 · 03:00 WIB',
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
@@ -659,7 +675,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                       title: titleController.text.trim(),
                       desc: descController.text.trim(),
                       imgPath: selectedTimelineImage,
-                      hasImage: selectedTimelineImage != null &&
+                      hasImage:
+                          selectedTimelineImage != null &&
                           selectedTimelineImage!.isNotEmpty,
                     );
                     onSave(item);
@@ -685,10 +702,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     final isEditing = budayaToEdit != null;
 
     // Kategori dibatasi pada daftar resmi di budayaKategoriList.
-    String selectedJenis = (isEditing
-            ? kategoriByKode(budayaToEdit.jenis)
-            : null)
-        ?.kode ??
+    String selectedJenis =
+        (isEditing ? kategoriByKode(budayaToEdit.jenis) : null)?.kode ??
         budayaKategoriList.first.kode;
     bool isDestinasi = isEditing ? budayaToEdit.isDestinasi : false;
 
@@ -729,10 +744,12 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     String selectedImage = isEditing
         ? budayaToEdit.gambarUtama
         : 'assets/images/kerisB.jpg';
-    String? selectedMaknaSpiritualImage =
-        isEditing ? budayaToEdit.gambarMaknaSpiritual : null;
-    String? selectedKonteksBudayaImage =
-        isEditing ? budayaToEdit.gambarKonteksBudaya : null;
+    String? selectedMaknaSpiritualImage = isEditing
+        ? budayaToEdit.gambarMaknaSpiritual
+        : null;
+    String? selectedKonteksBudayaImage = isEditing
+        ? budayaToEdit.gambarKonteksBudaya
+        : null;
 
     final formKey = GlobalKey<FormState>();
 
@@ -796,7 +813,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 children: [
                                   Text(
                                     'Kategori Budaya',
-                                    style: AppTypography.labelBold(fontSize: 13),
+                                    style: AppTypography.labelBold(
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
@@ -810,10 +829,12 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                             child: Text(
                                               k.nama,
                                               overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.plusJakartaSans(
-                                                fontSize: 13,
-                                                color: AppColors.textPrimary,
-                                              ),
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    color:
+                                                        AppColors.textPrimary,
+                                                  ),
                                             ),
                                           ),
                                         )
@@ -837,7 +858,9 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 children: [
                                   Text(
                                     'Urutan',
-                                    style: AppTypography.labelBold(fontSize: 13),
+                                    style: AppTypography.labelBold(
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   TextFormField(
@@ -848,8 +871,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                         setModalState(syncKodeTag),
                                     validator: (val) =>
                                         val == null || val.trim().isEmpty
-                                            ? 'Wajib'
-                                            : null,
+                                        ? 'Wajib'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -934,7 +957,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                             border: Border.all(color: AppColors.border),
                           ),
                           child: Text(
-                            kategoriByKode(selectedJenis)?.label ?? selectedJenis,
+                            kategoriByKode(selectedJenis)?.label ??
+                                selectedJenis,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -1063,9 +1087,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                             onPressed: () async {
                               if (!formKey.currentState!.validate()) return;
 
-                              final urutan = int.tryParse(
-                                    urutanController.text.trim(),
-                                  ) ??
+                              final urutan =
+                                  int.tryParse(urutanController.text.trim()) ??
                                   1;
                               final model = BudayaModel(
                                 id: isEditing ? budayaToEdit.id : null,
@@ -1079,25 +1102,25 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 judul: judulController.text.trim(),
                                 kategoriLabel:
                                     kategoriByKode(selectedJenis)?.label ??
-                                        selectedJenis,
+                                    selectedJenis,
                                 tagline: taglineController.text.trim(),
                                 deskripsi: deskripsiController.text.trim(),
                                 gambarUtama: selectedImage,
-                                maknaSpiritual: maknaSpiritualController.text
+                                maknaSpiritual:
+                                    maknaSpiritualController.text
                                         .trim()
                                         .isNotEmpty
                                     ? maknaSpiritualController.text.trim()
                                     : null,
-                                gambarMaknaSpiritual: selectedMaknaSpiritualImage,
-                                konteksBudaya: konteksBudayaController.text
+                                gambarMaknaSpiritual:
+                                    selectedMaknaSpiritualImage,
+                                konteksBudaya:
+                                    konteksBudayaController.text
                                         .trim()
                                         .isNotEmpty
                                     ? konteksBudayaController.text.trim()
                                     : null,
                                 gambarKonteksBudaya: selectedKonteksBudayaImage,
-                                relatedItems: isEditing
-                                    ? budayaToEdit.relatedItems
-                                    : const [],
                               );
 
                               if (isEditing) {

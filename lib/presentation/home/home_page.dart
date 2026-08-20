@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
-import '../../data/local/budaya_data.dart';
-import '../../data/local/sejarah_data.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/repositories/budaya_repository.dart';
@@ -16,6 +14,23 @@ import 'widgets/budaya_highlight_card.dart';
 import 'widgets/koleksi_budaya_list.dart';
 import 'widgets/pilihan_destinasi_list.dart';
 import 'widgets/sejarah_highlight_card.dart';
+
+/// Ruang kosong sementara sorotan harian masih dimuat dari database.
+class _HighlightPlaceholder extends StatelessWidget {
+  const _HighlightPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 220,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.borderPrimary),
+      ),
+      child: const CircularProgressIndicator(color: AppColors.primary),
+    );
+  }
+}
 
 class HomePage extends StatefulWidget {
   final String userName;
@@ -43,14 +58,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _sejarahHariIni = getSejarahHariIni();
-    _budayaHariIni = getRandomBudaya();
     _loadFromRepository();
   }
 
   Future<void> _loadFromRepository() async {
     final sejarah = await _sejarahRepository.getSejarahHariIni();
-    final budaya = await _budayaRepository.getRandomBudaya();
+    final budaya = await _budayaRepository.getBudayaHariIni();
     if (!mounted) return;
     setState(() {
       _sejarahHariIni = sejarah;
@@ -81,7 +94,8 @@ class _HomePageState extends State<HomePage> {
                         size: 26,
                       ),
                       padding: EdgeInsets.zero,
-                      onPressed: widget.onOpenDrawer ??
+                      onPressed:
+                          widget.onOpenDrawer ??
                           () {
                             Scaffold.of(ctx).openDrawer();
                           },
@@ -109,7 +123,11 @@ class _HomePageState extends State<HomePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset('assets/images/Rlogos.png', width: 32, height: 32),
+                      Image.asset(
+                        'assets/images/Rlogos.png',
+                        width: 32,
+                        height: 32,
+                      ),
                       const SizedBox(width: 8),
                       Text('RENJANA', style: AppTypography.brandTitle()),
                     ],
@@ -185,11 +203,17 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 32),
 
                     // Section 01: Sejarah Hari Ini
-                    SejarahHighlightCard(sejarah: _sejarahHariIni),
+                    if (_sejarahHariIni != null)
+                      SejarahHighlightCard(data: _sejarahHariIni!)
+                    else
+                      const _HighlightPlaceholder(),
                     const SizedBox(height: 48),
 
                     // Section 02: Budaya Hari Ini
-                    BudayaHighlightCard(budaya: _budayaHariIni),
+                    if (_budayaHariIni != null)
+                      BudayaHighlightCard(data: _budayaHariIni!)
+                    else
+                      const _HighlightPlaceholder(),
                   ],
                 ),
               ),

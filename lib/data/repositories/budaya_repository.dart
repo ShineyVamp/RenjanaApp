@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'dart:math';
-import '../local/budaya_data.dart';
 import '../local/db_helper.dart';
+import '../local/seed/budaya_seed.dart';
 import '../models/budaya_model.dart';
-import '../models/sejarah_model.dart';
 
 class BudayaRepository {
   final DbHelper _dbHelper = DbHelper();
@@ -17,19 +15,6 @@ class BudayaRepository {
     }
 
     return maps.map((map) {
-      List<RelatedItemModel> related = [];
-      if (map['relatedItems'] != null &&
-          map['relatedItems'].toString().isNotEmpty) {
-        try {
-          final decoded = jsonDecode(map['relatedItems'] as String);
-          if (decoded is List) {
-            related = decoded
-                .map((i) => RelatedItemModel.fromMap(i as Map<String, dynamic>))
-                .toList();
-          }
-        } catch (_) {}
-      }
-
       return BudayaModel(
         id: map['id'] as int?,
         kodeTag: map['kodeTag'] as String? ?? 'BUD-SNJT-1',
@@ -39,21 +24,31 @@ class BudayaRepository {
         kategoriLabel: map['kategoriLabel'] as String? ?? 'SENJATA TRADISIONAL',
         tagline: map['tagline'] as String? ?? '',
         deskripsi: map['deskripsi'] as String? ?? '',
-        gambarUtama: map['gambarUtama'] as String? ?? 'assets/images/kerisB.jpg',
+        gambarUtama:
+            map['gambarUtama'] as String? ?? 'assets/images/kerisB.jpg',
         maknaSpiritual: map['maknaSpiritual'] as String?,
         gambarMaknaSpiritual: map['gambarMaknaSpiritual'] as String?,
         konteksBudaya: map['konteksBudaya'] as String?,
         gambarKonteksBudaya: map['gambarKonteksBudaya'] as String?,
-        relatedItems: related,
       );
     }).toList();
   }
 
-  Future<BudayaModel> getRandomBudaya() async {
+  /// Sorotan "Budaya Hari Ini": dipilih acak, tetapi benihnya tanggal hari ini
+  /// sehingga pilihannya tidak berubah saat halaman dimuat ulang dan baru
+  /// berganti keesokan harinya.
+  Future<BudayaModel> getBudayaHariIni() async {
     final list = await getAllBudaya();
     if (list.isEmpty) return defaultBudayaList.first;
-    final pool = List<BudayaModel>.from(list)..shuffle();
-    return pool.first;
+
+    // Diurutkan dulu agar hasil tidak bergantung pada urutan baris database.
+    final pool = List<BudayaModel>.from(list)
+      ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
+    final now = DateTime.now();
+    final benihHariIni =
+        DateTime(now.year, now.month, now.day).millisecondsSinceEpoch ~/
+        Duration.millisecondsPerDay;
+    return pool[Random(benihHariIni).nextInt(pool.length)];
   }
 
   /// Semua budaya pada satu kategori (kolom `jenis`), diurutkan naik.
@@ -68,11 +63,33 @@ class BudayaRepository {
   }
 
   /// Budaya yang sekaligus tempat wisata (ID tag berakhiran `-D`).
-  Future<List<BudayaModel>> getDestinasiList() async {
+  ///
+  /// [acak] mengacak urutan (dipakai tombol "Tampilkan destinasi lain"),
+  /// [limit] membatasi jumlah yang dikembalikan.
+  Future<List<BudayaModel>> getDestinasiList({
+    bool acak = false,
+    int? limit,
+  }) async {
     final list = await getAllBudaya();
     final result = list.where((b) => b.isDestinasi).toList();
-    result.sort((a, b) => a.judul.compareTo(b.judul));
+
+    if (acak) {
+      result.shuffle();
+    } else {
+      result.sort((a, b) => a.judul.compareTo(b.judul));
+    }
+
+    if (limit != null && limit > 0 && result.length > limit) {
+      return result.sublist(0, limit);
+    }
     return result;
+  }
+
+  /// Jumlah seluruh destinasi, untuk menakar apakah masih ada yang belum
+  /// tampil saat pengguna menekan tombol acak ulang.
+  Future<int> getDestinasiCount() async {
+    final list = await getAllBudaya();
+    return list.where((b) => b.isDestinasi).length;
   }
 
   /// Jumlah item per kategori, dipakai daftar "Koleksi Budaya" di beranda.
@@ -110,8 +127,9 @@ class BudayaRepository {
     final random = Random();
     while (result.length < count) {
       if (pool.isNotEmpty) {
-        final index =
-            result.length < pool.length ? result.length : random.nextInt(pool.length);
+        final index = result.length < pool.length
+            ? result.length
+            : random.nextInt(pool.length);
         result.add(pool[index]);
       } else if (list.isNotEmpty) {
         result.add(list.first);
@@ -137,9 +155,6 @@ class BudayaRepository {
       'gambarMaknaSpiritual': model.gambarMaknaSpiritual,
       'konteksBudaya': model.konteksBudaya,
       'gambarKonteksBudaya': model.gambarKonteksBudaya,
-      'relatedItems': jsonEncode(
-        model.relatedItems.map((i) => i.toMap()).toList(),
-      ),
     });
   }
 
@@ -163,9 +178,6 @@ class BudayaRepository {
         'gambarMaknaSpiritual': model.gambarMaknaSpiritual,
         'konteksBudaya': model.konteksBudaya,
         'gambarKonteksBudaya': model.gambarKonteksBudaya,
-        'relatedItems': jsonEncode(
-          model.relatedItems.map((i) => i.toMap()).toList(),
-        ),
       },
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',
       whereArgs: [model.id ?? oldKodeTag],

@@ -14,9 +14,9 @@ class BookmarkRepository {
     DbHelper? dbHelper,
     SejarahRepository? sejarahRepository,
     BudayaRepository? budayaRepository,
-  })  : _dbHelper = dbHelper ?? DbHelper(),
-        _sejarahRepository = sejarahRepository ?? SejarahRepository(),
-        _budayaRepository = budayaRepository ?? BudayaRepository();
+  }) : _dbHelper = dbHelper ?? DbHelper(),
+       _sejarahRepository = sejarahRepository ?? SejarahRepository(),
+       _budayaRepository = budayaRepository ?? BudayaRepository();
 
   static bool _legacyClaimed = false;
 
@@ -76,16 +76,12 @@ class BookmarkRepository {
   Future<bool> addBookmark(String itemType, String kodeTag) async {
     try {
       final db = await _db();
-      final id = await db.insert(
-        'bookmark',
-        {
-          'userEmail': _currentUserEmail,
-          'itemType': itemType.toLowerCase(),
-          'kodeTag': kodeTag,
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      final id = await db.insert('bookmark', {
+        'userEmail': _currentUserEmail,
+        'itemType': itemType.toLowerCase(),
+        'kodeTag': kodeTag,
+        'createdAt': DateTime.now().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       return id > 0;
     } catch (_) {
       return false;
@@ -118,19 +114,17 @@ class BookmarkRepository {
 
       final List<BookmarkItemModel> items = [];
       for (final map in results) {
-        final itemType =
-            (map['itemType'] as String? ?? 'sejarah').toLowerCase();
+        final itemType = (map['itemType'] as String? ?? 'sejarah')
+            .toLowerCase();
         final kodeTag = map['kodeTag'] as String? ?? '';
 
         if (itemType == 'sejarah') {
-          final sejarah =
-              await _sejarahRepository.getSejarahByKodeTag(kodeTag);
+          final sejarah = await _sejarahRepository.getSejarahByKodeTag(kodeTag);
           if (sejarah != null) {
             items.add(BookmarkItemModel.fromMap(map, sejarah: sejarah));
           }
         } else if (itemType == 'budaya') {
-          final budaya =
-              await _budayaRepository.getBudayaByKodeTag(kodeTag);
+          final budaya = await _budayaRepository.getBudayaByKodeTag(kodeTag);
           if (budaya != null) {
             items.add(BookmarkItemModel.fromMap(map, budaya: budaya));
           }
@@ -140,22 +134,6 @@ class BookmarkRepository {
       return items;
     } catch (_) {
       return [];
-    }
-  }
-
-  Future<int> getBookmarksCount() async {
-    try {
-      final db = await _db();
-      final results = await db.rawQuery(
-        'SELECT COUNT(*) as total FROM bookmark WHERE userEmail = ?',
-        [_currentUserEmail],
-      );
-      if (results.isNotEmpty && results.first['total'] != null) {
-        return (results.first['total'] as num).toInt();
-      }
-      return 0;
-    } catch (_) {
-      return 0;
     }
   }
 }

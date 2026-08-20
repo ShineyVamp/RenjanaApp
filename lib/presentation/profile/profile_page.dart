@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/extensions/navigation.dart';
 import '../../services/preference_handler.dart';
-import 'login_page.dart';
+import '../auth/login_page.dart';
 
-class Logout18 extends StatefulWidget {
-  const Logout18({super.key});
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
   @override
-  State<Logout18> createState() => _Logout18State();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _Logout18State extends State<Logout18> {
+class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -4,27 +4,22 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/extensions/navigation.dart';
 import '../../../../core/widgets/app_image.dart';
 import '../../../../core/widgets/section_header.dart';
-import '../../../../data/local/budaya_data.dart';
 import '../../../../data/models/budaya_model.dart';
 import '../../detail/detail_budaya_page.dart';
 
 class BudayaHighlightCard extends StatelessWidget {
-  final BudayaModel? budaya;
+  final BudayaModel data;
 
-  const BudayaHighlightCard({super.key, this.budaya});
+  const BudayaHighlightCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    final data = budaya ?? getRandomBudaya();
-
     return Column(
       children: [
         // Title Tag on Right
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: const [
-            SectionBadgeTitle(title: 'Budaya Hari Ini'),
-          ],
+          children: const [SectionBadgeTitle(title: 'Budaya Hari Ini')],
         ),
         const SizedBox(height: 16),
 
@@ -81,16 +76,10 @@ class BudayaHighlightCard extends StatelessWidget {
                       horizontal: 8,
                       vertical: 2,
                     ),
-                    child: Text(
-                      data.kodeTag,
-                      style: AppTypography.tag(),
-                    ),
+                    child: Text(data.kodeTag, style: AppTypography.tag()),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    data.judul,
-                    style: AppTypography.headingMedium(),
-                  ),
+                  Text(data.judul, style: AppTypography.headingMedium()),
                   const SizedBox(height: 8),
                   Text(
                     data.deskripsi,

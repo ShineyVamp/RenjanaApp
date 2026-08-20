@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 
@@ -17,8 +17,9 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          isCenter ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: isCenter
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         Text(
           title,
@@ -48,11 +49,9 @@ class SectionBadgeTitle extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       child: Text(
         title,
-        style: AppTypography.tag(color: Colors.white).copyWith(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0,
-        ),
+        style: AppTypography.tag(
+          color: Colors.white,
+        ).copyWith(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 0),
       ),
     );
   }

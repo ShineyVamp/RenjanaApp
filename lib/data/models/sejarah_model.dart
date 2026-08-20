@@ -34,30 +34,6 @@ class TimelineItemModel {
   }
 }
 
-class RelatedItemModel {
-  final String inv;
-  final String title;
-
-  const RelatedItemModel({
-    required this.inv,
-    required this.title,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'inv': inv,
-      'title': title,
-    };
-  }
-
-  factory RelatedItemModel.fromMap(Map<String, dynamic> map) {
-    return RelatedItemModel(
-      inv: map['inv'] as String? ?? '',
-      title: map['title'] as String? ?? '',
-    );
-  }
-}
-
 class SejarahModel {
   final int? id;
   final String kodeTag; // Format: HIS-150845-1
@@ -68,7 +44,6 @@ class SejarahModel {
   final String ringkasan;
   final String gambarUtama; // Wajib (untuk card home & header detail)
   final List<TimelineItemModel> alurPeristiwa;
-  final List<RelatedItemModel> relatedItems;
 
   const SejarahModel({
     this.id,
@@ -80,6 +55,5 @@ class SejarahModel {
     required this.ringkasan,
     required this.gambarUtama,
     this.alurPeristiwa = const [],
-    this.relatedItems = const [],
   });
 }

@@ -8,7 +8,6 @@ class AppImageView extends StatelessWidget {
   final double? width;
   final double? height;
   final BorderRadius? borderRadius;
-  final Widget? placeholder;
 
   const AppImageView({
     super.key,
@@ -17,7 +16,6 @@ class AppImageView extends StatelessWidget {
     this.width,
     this.height,
     this.borderRadius,
-    this.placeholder,
   });
 
   @override
@@ -25,7 +23,7 @@ class AppImageView extends StatelessWidget {
     Widget imageWidget;
 
     if (imagePath == null || imagePath!.trim().isEmpty) {
-      imageWidget = placeholder ?? _defaultPlaceholder();
+      imageWidget = _defaultPlaceholder();
     } else {
       final path = imagePath!.trim();
       if (path.startsWith('assets/')) {
@@ -34,8 +32,7 @@ class AppImageView extends StatelessWidget {
           fit: fit,
           width: width,
           height: height,
-          errorBuilder: (context, error, stackTrace) =>
-              placeholder ?? _defaultPlaceholder(),
+          errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
         );
       } else {
         final file = File(path);
@@ -45,8 +42,7 @@ class AppImageView extends StatelessWidget {
             fit: fit,
             width: width,
             height: height,
-            errorBuilder: (context, error, stackTrace) =>
-                placeholder ?? _defaultPlaceholder(),
+            errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
           );
         } else {
           imageWidget = Image.asset(
@@ -54,18 +50,14 @@ class AppImageView extends StatelessWidget {
             fit: fit,
             width: width,
             height: height,
-            errorBuilder: (context, error, stackTrace) =>
-                placeholder ?? _defaultPlaceholder(),
+            errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
           );
         }
       }
     }
 
     if (borderRadius != null) {
-      return ClipRRect(
-        borderRadius: borderRadius!,
-        child: imageWidget,
-      );
+      return ClipRRect(borderRadius: borderRadius!, child: imageWidget);
     }
 
     return imageWidget;
@@ -77,11 +69,7 @@ class AppImageView extends StatelessWidget {
       height: height,
       color: AppColors.surfaceMuted,
       child: const Center(
-        child: Icon(
-          Icons.image_outlined,
-          color: Colors.black26,
-          size: 28,
-        ),
+        child: Icon(Icons.image_outlined, color: Colors.black26, size: 28),
       ),
     );
   }

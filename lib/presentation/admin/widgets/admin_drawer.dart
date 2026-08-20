@@ -55,45 +55,6 @@ class AdminDrawer extends StatelessWidget {
                 context.push(const AdminManageContentPage());
               },
             ),
-
-            // const Spacer(),
-            // const Divider(color: AppColors.borderPrimary, height: 1),
-
-            // Logout Option
-            // ListTile(
-            //   leading: Container(
-            //     padding: const EdgeInsets.all(8),
-            //     decoration: BoxDecoration(
-            //       color: AppColors.primary.withOpacity(0.1),
-            //       borderRadius: BorderRadius.circular(8),
-            //     ),
-            //     child: const Icon(
-            //       Icons.logout_rounded,
-            //       color: AppColors.primary,
-            //       size: 20,
-            //     ),
-            //   ),
-            //   title: Text(
-            //     'Keluar Akun',
-            //     style: GoogleFonts.plusJakartaSans(
-            //       fontSize: 14,
-            //       fontWeight: FontWeight.bold,
-            //       color: AppColors.primary,
-            //     ),
-            //   ),
-            //   subtitle: Text(
-            //     'Kembali ke halaman login',
-            //     style: GoogleFonts.plusJakartaSans(
-            //       fontSize: 11,
-            //       color: AppColors.textSecondary,
-            //     ),
-            //   ),
-            //   onTap: () {
-            //     Navigator.pop(context);
-            //     context.pushAndRemoveAll(const LoginPage());
-            //   },
-            // ),
-            // const SizedBox(height: 12),
           ],
         ),
       ),

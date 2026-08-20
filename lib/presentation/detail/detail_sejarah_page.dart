@@ -7,16 +7,15 @@ import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
-import '../../data/local/sejarah_data.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
 import 'widgets/timeline_item_widget.dart';
 
 class DetailSejarahPage extends StatefulWidget {
-  final SejarahModel? sejarah;
+  final SejarahModel sejarah;
 
-  const DetailSejarahPage({super.key, this.sejarah});
+  const DetailSejarahPage({super.key, required this.sejarah});
 
   @override
   State<DetailSejarahPage> createState() => _DetailSejarahPageState();
@@ -37,7 +36,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
   }
 
   Future<void> _checkBookmarkStatus() async {
-    final data = widget.sejarah ?? defaultSejarahList.first;
+    final data = widget.sejarah;
     final bookmarked = await _bookmarkRepository.isBookmarked(data.kodeTag);
     if (!mounted) return;
     setState(() {
@@ -64,7 +63,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.sejarah ?? defaultSejarahList.first;
+    final data = widget.sejarah;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -130,7 +129,9 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                           ? 'Berhasil disimpan ke Bookmark'
                                           : 'Berhasil dihapus dari Bookmark',
                                     ),
-                                    duration: const Duration(milliseconds: 1200),
+                                    duration: const Duration(
+                                      milliseconds: 1200,
+                                    ),
                                     behavior: SnackBarBehavior.floating,
                                     backgroundColor: AppColors.success,
                                   ),
@@ -248,8 +249,12 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                         const SizedBox(height: 16),
                         ScrollbarTheme(
                           data: const ScrollbarThemeData(
-                            thumbColor: WidgetStatePropertyAll(AppColors.primaryDark),
-                            trackColor: WidgetStatePropertyAll(AppColors.scrollTrack),
+                            thumbColor: WidgetStatePropertyAll(
+                              AppColors.primaryDark,
+                            ),
+                            trackColor: WidgetStatePropertyAll(
+                              AppColors.scrollTrack,
+                            ),
                           ),
                           child: Scrollbar(
                             controller: _scrollRelated,
@@ -266,14 +271,16 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(bottom: 20),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: List.generate(
                                       _otherSejarahList.length,
                                       (index) {
                                         final other = _otherSejarahList[index];
                                         return Padding(
                                           padding: EdgeInsets.only(
-                                            right: index <
+                                            right:
+                                                index <
                                                     _otherSejarahList.length - 1
                                                 ? 14
                                                 : 0,
@@ -294,7 +301,9 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                                 children: [
                                                   ClipRRect(
                                                     borderRadius:
-                                                        BorderRadius.circular(6),
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                     child: AspectRatio(
                                                       aspectRatio: 1,
                                                       child: Container(
@@ -312,23 +321,28 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                                   Text(
                                                     other.kodeTag,
                                                     style: AppTypography.tag(
-                                                      color: AppColors.primaryDark,
+                                                      color:
+                                                          AppColors.primaryDark,
                                                     ),
                                                   ),
                                                   const SizedBox(height: 2),
                                                   Text(
                                                     other.judul,
                                                     maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: AppTypography
-                                                        .editorialSubheading(
-                                                      color: AppColors.textPrimary,
-                                                    ).copyWith(
-                                                      fontSize: 13.5,
-                                                      fontWeight: FontWeight.w700,
-                                                      fontStyle: FontStyle.normal,
-                                                      height: 1.25,
-                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style:
+                                                        AppTypography.editorialSubheading(
+                                                          color: AppColors
+                                                              .textPrimary,
+                                                        ).copyWith(
+                                                          fontSize: 13.5,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontStyle:
+                                                              FontStyle.normal,
+                                                          height: 1.25,
+                                                        ),
                                                   ),
                                                 ],
                                               ),

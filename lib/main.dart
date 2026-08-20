@@ -9,10 +9,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
   await PreferenceHandler.init();
-  // DevicePreview.enable();
-  // final c = DevicePreview.controller;
-  // await c.applyPreset(DevicePresets.iPhone16e);
-  // await c.setOrientation(Orientation.portrait);
 
   runApp(const RenjanaApp());
 }

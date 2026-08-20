@@ -6,19 +6,16 @@ import '../../../../core/extensions/navigation.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_image.dart';
 import '../../../../core/widgets/section_header.dart';
-import '../../../../data/local/sejarah_data.dart';
 import '../../../../data/models/sejarah_model.dart';
 import '../../detail/detail_sejarah_page.dart';
 
 class SejarahHighlightCard extends StatelessWidget {
-  final SejarahModel? sejarah;
+  final SejarahModel data;
 
-  const SejarahHighlightCard({super.key, this.sejarah});
+  const SejarahHighlightCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    final data = sejarah ?? getSejarahHariIni();
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -81,10 +78,7 @@ class SejarahHighlightCard extends StatelessWidget {
                       horizontal: 8,
                       vertical: 2,
                     ),
-                    child: Text(
-                      data.kodeTag,
-                      style: AppTypography.tag(),
-                    ),
+                    child: Text(data.kodeTag, style: AppTypography.tag()),
                   ),
                 ),
               ],
@@ -96,17 +90,10 @@ class SejarahHighlightCard extends StatelessWidget {
               data.judul,
               style: AppTypography.headingLarge(
                 color: AppColors.textPrimary,
-              ).copyWith(
-                fontSize: 34,
-                fontStyle: FontStyle.italic,
-              ),
+              ).copyWith(fontSize: 34, fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 4),
-            Container(
-              width: 120,
-              height: 1.5,
-              color: AppColors.primary,
-            ),
+            Container(width: 120, height: 1.5, color: AppColors.primary),
             const SizedBox(height: 12),
             Text(
               data.ringkasan,

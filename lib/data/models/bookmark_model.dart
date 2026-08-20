@@ -28,8 +28,8 @@ class BookmarkItemModel {
   String get description => itemType == 'sejarah'
       ? (sejarah?.ringkasan ?? '')
       : (budaya?.tagline.isNotEmpty == true
-          ? budaya!.tagline
-          : (budaya?.deskripsi ?? ''));
+            ? budaya!.tagline
+            : (budaya?.deskripsi ?? ''));
 
   String get imagePath => itemType == 'sejarah'
       ? (sejarah?.gambarUtama ?? 'assets/images/170845history.png')

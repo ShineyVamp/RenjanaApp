@@ -23,12 +23,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
   String _selectedCategory = 'SEMUA';
   String _searchQuery = '';
 
-  final List<String> _categories = [
-    'SEMUA',
-    'SEJARAH',
-    'BUDAYA',
-    'KEDAERAHAN',
-  ];
+  final List<String> _categories = ['SEMUA', 'SEJARAH', 'BUDAYA', 'KEDAERAHAN'];
 
   @override
   void initState() {
@@ -71,9 +66,11 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
     }).toList();
 
     return groups.where((g) {
-      final matchesCategory = _selectedCategory == 'SEMUA' ||
+      final matchesCategory =
+          _selectedCategory == 'SEMUA' ||
           g.kategori.toUpperCase() == _selectedCategory.toUpperCase();
-      final matchesQuery = _searchQuery.isEmpty ||
+      final matchesQuery =
+          _searchQuery.isEmpty ||
           g.tema.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           g.kategori.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesQuery;
@@ -153,8 +150,12 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
-                          initialValue: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
-                                  .contains(kategoriController.text)
+                          initialValue:
+                              [
+                                'SEJARAH',
+                                'BUDAYA',
+                                'KEDAERAHAN',
+                              ].contains(kategoriController.text)
                               ? kategoriController.text
                               : 'SEJARAH',
                           decoration: InputDecoration(
@@ -291,19 +292,20 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                                           fillColor: AppColors.surface,
                                           contentPadding:
                                               const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 10,
-                                          ),
+                                                horizontal: 12,
+                                                vertical: 10,
+                                              ),
                                           border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                             borderSide: const BorderSide(
                                               color: AppColors.border,
                                             ),
                                           ),
                                         ),
-                                        validator: (val) => val == null ||
-                                                val.trim().isEmpty
+                                        validator: (val) =>
+                                            val == null || val.trim().isEmpty
                                             ? 'Pilihan ${labels[i]} wajib diisi'
                                             : null,
                                       ),
@@ -384,12 +386,13 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                                 gambar: selectedImage,
                                 penjelasan:
                                     penjelasanController.text.trim().isNotEmpty
-                                        ? penjelasanController.text.trim()
-                                        : null,
+                                    ? penjelasanController.text.trim()
+                                    : null,
                               );
 
-                              final success =
-                                  await _quizRepository.tambahQuiz(model);
+                              final success = await _quizRepository.tambahQuiz(
+                                model,
+                              );
 
                               if (!mounted) return;
                               if (modalContext.mounted) {
@@ -438,8 +441,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
   }
 
   void _showEditThemeDialog(_AdminThemeGroup group) {
-    final kategoriController =
-        TextEditingController(text: group.kategori.toUpperCase());
+    final kategoriController = TextEditingController(
+      text: group.kategori.toUpperCase(),
+    );
     final temaController = TextEditingController(text: group.tema);
     String? selectedImage = group.coverImage;
     final formKey = GlobalKey<FormState>();
@@ -498,8 +502,12 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        initialValue: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
-                                .contains(kategoriController.text.toUpperCase())
+                        initialValue:
+                            [
+                              'SEJARAH',
+                              'BUDAYA',
+                              'KEDAERAHAN',
+                            ].contains(kategoriController.text.toUpperCase())
                             ? kategoriController.text.toUpperCase()
                             : 'SEJARAH',
                         decoration: InputDecoration(
@@ -594,12 +602,13 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                             final newTema = temaController.text.trim();
                             final newKategori = kategoriController.text.trim();
 
-                            final success = await _quizRepository.updateThemeInfo(
-                              oldTema: group.tema,
-                              newTema: newTema,
-                              newKategori: newKategori,
-                              newCoverImage: selectedImage,
-                            );
+                            final success = await _quizRepository
+                                .updateThemeInfo(
+                                  oldTema: group.tema,
+                                  newTema: newTema,
+                                  newKategori: newKategori,
+                                  newCoverImage: selectedImage,
+                                );
 
                             if (!mounted) return;
                             if (modalContext.mounted) {
@@ -765,7 +774,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.borderLight),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderLight,
+                        ),
                       ),
                     ),
                     onChanged: (val) => setState(() => _searchQuery = val),
@@ -908,8 +919,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.06),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
             ),
             child: Row(
               children: [
@@ -950,8 +962,10 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                     onTap: () => _showEditThemeDialog(group),
                     borderRadius: BorderRadius.circular(8),
                     child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -984,8 +998,10 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                     onTap: () => _confirmDeleteTheme(group),
                     borderRadius: BorderRadius.circular(8),
                     child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1015,8 +1031,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
           // Body Card (Khusus untuk navigasi ke edit soal kuis tema ini)
           Material(
             color: Colors.transparent,
-            borderRadius:
-                const BorderRadius.vertical(bottom: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(12),
+            ),
             child: InkWell(
               onTap: () async {
                 await context.push(
@@ -1027,8 +1044,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                 );
                 _loadQuizzes();
               },
-              borderRadius:
-                  const BorderRadius.vertical(bottom: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(

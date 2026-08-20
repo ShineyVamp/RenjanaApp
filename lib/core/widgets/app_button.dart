@@ -1,30 +1,24 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 
-enum AppButtonType { primary, outlined, secondary }
+enum AppButtonType { primary, outlined }
 
 class AppButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final AppButtonType type;
-  final double? width;
-  final double height;
   final double borderRadius;
-  final Widget? icon;
-  final Color? backgroundColor;
   final Color? textColor;
+
+  static const double _height = 52;
 
   const AppButton({
     super.key,
     required this.text,
     required this.onPressed,
     this.type = AppButtonType.primary,
-    this.width,
-    this.height = 52,
     this.borderRadius = 12,
-    this.icon,
-    this.backgroundColor,
     this.textColor,
   });
 
@@ -32,74 +26,54 @@ class AppButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.width,
-    this.height = 52,
     this.borderRadius = 12,
-    this.icon,
-    this.backgroundColor,
     this.textColor,
   }) : type = AppButtonType.outlined;
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBg = backgroundColor ??
-        (type == AppButtonType.primary
-            ? AppColors.primary
-            : Colors.transparent);
+    final isPrimary = type == AppButtonType.primary;
+    final effectiveTextColor =
+        textColor ?? (isPrimary ? Colors.white : AppColors.primary);
 
-    final effectiveTextColor = textColor ??
-        (type == AppButtonType.primary ? Colors.white : AppColors.primary);
-
-    final textWidget = Text(
+    final label = Text(
       text,
       style: AppTypography.buttonText(color: effectiveTextColor),
       textAlign: TextAlign.center,
     );
 
-    final buttonChild = icon != null
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              icon!,
-              const SizedBox(width: 8),
-              textWidget,
-            ],
-          )
-        : textWidget;
-
     if (type == AppButtonType.outlined) {
       return SizedBox(
-        width: width ?? double.infinity,
-        height: height,
+        width: double.infinity,
+        height: _height,
         child: OutlinedButton(
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
-            backgroundColor: effectiveBg,
+            backgroundColor: Colors.transparent,
             side: const BorderSide(color: AppColors.primary, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
             ),
             elevation: 0,
           ),
-          child: buttonChild,
+          child: label,
         ),
       );
     }
 
     return SizedBox(
-      width: width ?? double.infinity,
-      height: height,
+      width: double.infinity,
+      height: _height,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: effectiveBg,
+          backgroundColor: AppColors.primary,
           elevation: 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
-        child: buttonChild,
+        child: label,
       ),
     );
   }

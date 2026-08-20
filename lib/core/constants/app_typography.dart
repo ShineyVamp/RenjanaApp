@@ -36,13 +36,6 @@ class AppTypography {
       );
 
   // Playfair Display Styles (buat editorial/detail section titles)
-  static TextStyle editorialTitle({Color color = AppColors.textPrimary}) =>
-      GoogleFonts.playfairDisplay(
-        fontSize: 32,
-        fontWeight: FontWeight.w800,
-        color: color,
-      );
-
   static TextStyle editorialHeading({Color color = AppColors.textPrimary}) =>
       GoogleFonts.playfairDisplay(
         fontSize: 22,

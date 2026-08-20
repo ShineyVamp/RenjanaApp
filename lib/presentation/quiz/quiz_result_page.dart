@@ -120,8 +120,10 @@ class _QuizResultPageState extends State<QuizResultPage> {
               children: [
                 // Header Badge Kategori & Tema
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -234,8 +236,11 @@ class _QuizResultPageState extends State<QuizResultPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        icon: const Icon(Icons.refresh_rounded,
-                            color: AppColors.primary, size: 18),
+                        icon: const Icon(
+                          Icons.refresh_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
                         label: Text(
                           'Ulangi Kuis',
                           style: GoogleFonts.plusJakartaSans(
@@ -257,8 +262,11 @@ class _QuizResultPageState extends State<QuizResultPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        icon: const Icon(Icons.home_rounded,
-                            color: Colors.white, size: 18),
+                        icon: const Icon(
+                          Icons.home_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                         label: Text(
                           'Menu Kuis',
                           style: GoogleFonts.plusJakartaSans(
@@ -349,10 +357,10 @@ class _QuizResultPageState extends State<QuizResultPage> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          isCorrect
-                              ? Icons.check_rounded
-                              : Icons.close_rounded,
-                          color: isCorrect ? AppColors.success : AppColors.error,
+                          isCorrect ? Icons.check_rounded : Icons.close_rounded,
+                          color: isCorrect
+                              ? AppColors.success
+                              : AppColors.error,
                           size: 18,
                         ),
                       ),
