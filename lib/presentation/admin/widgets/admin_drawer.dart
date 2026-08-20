@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../data/models/user_model.dart';
@@ -22,7 +23,7 @@ class AdminDrawer extends StatelessWidget {
             // Header
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 90, 20, 20),
               child: Text(
                 "BUAT ATMIN",
                 style: GoogleFonts.plusJakartaSans(
