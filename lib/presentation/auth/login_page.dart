@@ -47,6 +47,8 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (user != null) {
+      await PreferenceHandler.setLogin(true);
+      if (!mounted) return;
       context.pushAndRemoveAll(MainPage(currentUser: user));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,10 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Login Button
                 AppButton(
                   text: _isLoading ? 'Memuat...' : 'Login',
-                  onPressed: () {
-                    _isLoading ? null : _login;
-                    PreferenceHandler.setLogin(true);
-                  },
+                  onPressed: _isLoading ? null : _login,
                 ),
                 const SizedBox(height: 24),
 

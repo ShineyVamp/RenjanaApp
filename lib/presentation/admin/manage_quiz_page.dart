@@ -158,10 +158,11 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
-                          value: _categories.contains(kategoriController.text) &&
-                                  kategoriController.text != 'SEMUA'
-                              ? kategoriController.text
-                              : 'SEJARAH',
+                          initialValue:
+                              _categories.contains(kategoriController.text) &&
+                                      kategoriController.text != 'SEMUA'
+                                  ? kategoriController.text
+                                  : 'SEJARAH',
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.surface,
@@ -268,52 +269,56 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        ...List.generate(4, (i) {
-                          final labels = ['A', 'B', 'C', 'D'];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Radio<int>(
-                                  value: i,
-                                  groupValue: selectedCorrectIndex,
-                                  activeColor: AppColors.primary,
-                                  onChanged: (val) {
-                                    setModalState(() {
-                                      selectedCorrectIndex = val ?? 0;
-                                    });
-                                  },
-                                ),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: answerControllers[i],
-                                    decoration: InputDecoration(
-                                      labelText: 'Pilihan ${labels[i]}',
-                                      filled: true,
-                                      fillColor: AppColors.surface,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 10,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
-                                        borderSide: const BorderSide(
-                                          color: AppColors.border,
+                        RadioGroup<int>(
+                          groupValue: selectedCorrectIndex,
+                          onChanged: (val) {
+                            setModalState(() {
+                              selectedCorrectIndex = val ?? 0;
+                            });
+                          },
+                          child: Column(
+                            children: List.generate(4, (i) {
+                              final labels = ['A', 'B', 'C', 'D'];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Radio<int>(
+                                      value: i,
+                                      activeColor: AppColors.primary,
+                                    ),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: answerControllers[i],
+                                        decoration: InputDecoration(
+                                          labelText: 'Pilihan ${labels[i]}',
+                                          filled: true,
+                                          fillColor: AppColors.surface,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 10,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.border,
+                                            ),
+                                          ),
                                         ),
+                                        validator: (val) => val == null ||
+                                                val.trim().isEmpty
+                                            ? 'Pilihan ${labels[i]} wajib diisi'
+                                            : null,
                                       ),
                                     ),
-                                    validator: (val) => val == null ||
-                                            val.trim().isEmpty
-                                        ? 'Pilihan ${labels[i]} wajib diisi'
-                                        : null,
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        }),
+                              );
+                            }),
+                          ),
+                        ),
                         const SizedBox(height: 12),
 
                         AppImagePickerWidget(
@@ -364,7 +369,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               }
 
                               if (!mounted) return;
-                              Navigator.pop(modalContext);
+                              if (modalContext.mounted) {
+                                Navigator.pop(modalContext);
+                              }
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -654,7 +661,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -668,7 +675,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Row(

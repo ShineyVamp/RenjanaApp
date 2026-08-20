@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../data/models/user_model.dart';
-import '../../auth/login_page.dart';
 import '../manage_content_page.dart';
 import '../manage_quiz_page.dart';
 

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 extension ExtendedNavigator on BuildContext {
   Future<dynamic> push(Widget page, {String? name}) async {
@@ -63,7 +63,7 @@ extension ExtendedNavigator on BuildContext {
     );
   }
 
-  void pop([result]) async {
-    return Navigator.of(this).pop(result);
+  void pop<T extends Object?>([T? result]) {
+    Navigator.of(this).pop(result);
   }
 }
