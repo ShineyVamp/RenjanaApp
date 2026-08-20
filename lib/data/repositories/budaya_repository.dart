@@ -56,6 +56,15 @@ class BudayaRepository {
     return pool.first;
   }
 
+  Future<BudayaModel?> getBudayaByKodeTag(String kodeTag) async {
+    final list = await getAllBudaya();
+    try {
+      return list.firstWhere((b) => b.kodeTag == kodeTag);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<List<BudayaModel>> getRandomBudayaList({
     int count = 5,
     BudayaModel? exclude,

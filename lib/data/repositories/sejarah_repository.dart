@@ -73,6 +73,15 @@ class SejarahRepository {
     }
   }
 
+  Future<SejarahModel?> getSejarahByKodeTag(String kodeTag) async {
+    final list = await getAllSejarah();
+    try {
+      return list.firstWhere((s) => s.kodeTag == kodeTag);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<List<SejarahModel>> getRandomSejarahList({
     int count = 5,
     SejarahModel? exclude,

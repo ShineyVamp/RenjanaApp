@@ -9,6 +9,7 @@ import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
 import '../../data/local/budaya_data.dart';
 import '../../data/models/budaya_model.dart';
+import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/budaya_repository.dart';
 
 class DetailBudayaPage extends StatefulWidget {
@@ -22,6 +23,7 @@ class DetailBudayaPage extends StatefulWidget {
 
 class _DetailBudayaPageState extends State<DetailBudayaPage> {
   final BudayaRepository _budayaRepository = BudayaRepository();
+  final BookmarkRepository _bookmarkRepository = BookmarkRepository();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
   List<BudayaModel> _otherBudayaList = [];
@@ -29,7 +31,17 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
   @override
   void initState() {
     super.initState();
+    _checkBookmarkStatus();
     _loadOtherBudaya();
+  }
+
+  Future<void> _checkBookmarkStatus() async {
+    final data = widget.budaya ?? defaultBudayaList.first;
+    final bookmarked = await _bookmarkRepository.isBookmarked(data.kodeTag);
+    if (!mounted) return;
+    setState(() {
+      _isBookmarked = bookmarked;
+    });
   }
 
   Future<void> _loadOtherBudaya() async {
@@ -102,10 +114,27 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             right: 0,
                             child: DetailTopBar(
                               isBookmarked: _isBookmarked,
-                              onBookmarkToggle: () {
+                              onBookmarkToggle: () async {
+                                final messenger = ScaffoldMessenger.of(context);
+                                final nowBookmarked = await _bookmarkRepository
+                                    .toggleBookmark('budaya', data.kodeTag);
+                                if (!mounted) return;
                                 setState(() {
-                                  _isBookmarked = !_isBookmarked;
+                                  _isBookmarked = nowBookmarked;
                                 });
+                                messenger.clearSnackBars();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      nowBookmarked
+                                          ? 'Berhasil disimpan ke Bookmark'
+                                          : 'Berhasil dihapus dari Bookmark',
+                                    ),
+                                    duration: const Duration(milliseconds: 1200),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
                               },
                             ),
                           ),

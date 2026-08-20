@@ -3,12 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/extensions/navigation.dart';
 import '../../data/local/budaya_data.dart';
 import '../../data/local/sejarah_data.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/repositories/budaya_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
+import '../bookmark/bookmark_page.dart';
 import 'widgets/banner_melestarikan.dart';
 import 'widgets/budaya_highlight_card.dart';
 import 'widgets/koleksi_budaya_list.dart';
@@ -92,11 +94,14 @@ class _HomePageState extends State<HomePage> {
                   onTap: () async {
                     await _loadFromRepository();
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.clearSnackBars();
+                      messenger.showSnackBar(
                         const SnackBar(
                           content: Text('Halaman beranda diperbarui'),
                           duration: Duration(milliseconds: 1200),
-                          backgroundColor: AppColors.primary,
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: AppColors.success,
                         ),
                       );
                     }
@@ -130,11 +135,19 @@ class _HomePageState extends State<HomePage> {
                 ],
               ],
             ),
-            actions: const [
-              Padding(
-                padding: EdgeInsets.only(right: 16),
-                child: Icon(Icons.bookmark_border, color: AppColors.primary),
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.bookmark_outline_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+                tooltip: 'Koleksi Tersimpan',
+                onPressed: () {
+                  context.push(const BookmarkPage());
+                },
               ),
+              const SizedBox(width: 4),
             ],
             shape: const Border(
               bottom: BorderSide(color: AppColors.primary, width: 0.8),

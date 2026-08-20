@@ -47,6 +47,33 @@ class QuizRepository {
     return results.map((map) => QuizSQLModel.fromMap(map)).toList();
   }
 
+  Future<List<QuizSQLModel>> getRandomQuizzesByCategory(
+    String kategori,
+    int limit,
+  ) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> results = await db.query(
+      'quiz',
+      where: 'UPPER(kategori) = ?',
+      whereArgs: [kategori.toUpperCase()],
+      orderBy: 'RANDOM()',
+      limit: limit,
+    );
+    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+  }
+
+  Future<int> getQuizCountByKategori(String kategori) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as total FROM quiz WHERE UPPER(kategori) = ?',
+      [kategori.toUpperCase()],
+    );
+    if (result.isNotEmpty && result.first['total'] != null) {
+      return (result.first['total'] as num).toInt();
+    }
+    return 0;
+  }
+
   Future<bool> updateQuiz(QuizSQLModel quiz) async {
     final db = await _dbHelper.database;
     try {
@@ -66,6 +93,43 @@ class QuizRepository {
     final db = await _dbHelper.database;
     try {
       final count = await db.delete('quiz', where: 'id = ?', whereArgs: [id]);
+      return count > 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteQuizzesByTema(String tema) async {
+    final db = await _dbHelper.database;
+    try {
+      final count = await db.delete('quiz', where: 'tema = ?', whereArgs: [tema]);
+      return count > 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> updateThemeInfo({
+    required String oldTema,
+    required String newTema,
+    required String newKategori,
+    String? newCoverImage,
+  }) async {
+    final db = await _dbHelper.database;
+    try {
+      final Map<String, dynamic> values = {
+        'tema': newTema,
+        'kategori': newKategori,
+      };
+      if (newCoverImage != null) {
+        values['gambar'] = newCoverImage;
+      }
+      final count = await db.update(
+        'quiz',
+        values,
+        where: 'tema = ?',
+        whereArgs: [oldTema],
+      );
       return count > 0;
     } catch (e) {
       return false;

@@ -520,13 +520,17 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               if (modalCtx.mounted) {
                                 Navigator.pop(modalCtx);
                               }
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              final messenger = ScaffoldMessenger.of(context);
+                              messenger.clearSnackBars();
+                              messenger.showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     isEditing
                                         ? 'Data sejarah berhasil diperbarui!'
                                         : 'Data sejarah baru berhasil ditambahkan!',
                                   ),
+                                  duration: const Duration(milliseconds: 1500),
+                                  behavior: SnackBarBehavior.floating,
                                   backgroundColor: AppColors.success,
                                 ),
                               );
@@ -1019,13 +1023,17 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               if (modalCtx.mounted) {
                                 Navigator.pop(modalCtx);
                               }
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              final messenger = ScaffoldMessenger.of(context);
+                              messenger.clearSnackBars();
+                              messenger.showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     isEditing
                                         ? 'Data budaya berhasil diperbarui!'
                                         : 'Data budaya baru berhasil ditambahkan!',
                                   ),
+                                  duration: const Duration(milliseconds: 1500),
+                                  behavior: SnackBarBehavior.floating,
                                   backgroundColor: AppColors.success,
                                 ),
                               );
@@ -1271,9 +1279,13 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                     await _sejarahRepository.deleteSejarah(item.kodeTag);
                     await _loadAllData();
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.clearSnackBars();
+                    messenger.showSnackBar(
                       const SnackBar(
                         content: Text('Data sejarah berhasil dihapus'),
+                        duration: Duration(milliseconds: 1500),
+                        behavior: SnackBarBehavior.floating,
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -1430,9 +1442,13 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                     await _budayaRepository.deleteBudaya(item.kodeTag);
                     await _loadAllData();
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.clearSnackBars();
+                    messenger.showSnackBar(
                       const SnackBar(
                         content: Text('Data budaya berhasil dihapus'),
+                        duration: Duration(milliseconds: 1500),
+                        behavior: SnackBarBehavior.floating,
                         backgroundColor: AppColors.success,
                       ),
                     );
