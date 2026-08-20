@@ -360,7 +360,7 @@ class _QuizPageState extends State<QuizPage> {
           backgroundColor: AppColors.background,
           surfaceTintColor: AppColors.background,
           elevation: 0,
-          centerTitle: false,
+          centerTitle: true,
           title: Row(
             mainAxisAlignment: .start,
             mainAxisSize: MainAxisSize.min,
@@ -373,12 +373,6 @@ class _QuizPageState extends State<QuizPage> {
               ),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-              onPressed: _loadData,
-            ),
-          ],
           shape: const Border(
             bottom: BorderSide(color: AppColors.primary, width: 0.8),
           ),
