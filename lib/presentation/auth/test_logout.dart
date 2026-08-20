@@ -16,11 +16,12 @@ class _Logout18State extends State<Logout18> {
     return Scaffold(
       body: Center(
         child: InkWell(
-          onTap: () {
-            PreferenceHandler.logOut();
-            context.pushAndRemoveAll(LoginPage());
+          onTap: () async {
+            await PreferenceHandler.logOut();
+            if (!context.mounted) return;
+            context.pushAndRemoveAll(const LoginPage());
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+              const SnackBar(
                 content: Text("Berhasil Logout"),
                 duration: Duration(milliseconds: 1200),
               ),

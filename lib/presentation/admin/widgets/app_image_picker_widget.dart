@@ -284,7 +284,7 @@ class AppImagePickerWidget extends StatelessWidget {
                                           Container(
                                             decoration: BoxDecoration(
                                               color: AppColors.primary
-                                                  .withOpacity(0.35),
+                                                  .withValues(alpha: 0.35),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                             ),
@@ -439,7 +439,7 @@ class AppImagePickerWidget extends StatelessWidget {
                           fit: BoxFit.cover,
                         )
                       : Container(
-                          color: AppColors.primary.withOpacity(0.08),
+                          color: AppColors.primary.withValues(alpha: 0.08),
                           child: const Icon(
                             Icons.add_photo_alternate_outlined,
                             color: AppColors.primary,

@@ -516,7 +516,10 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               }
 
                               await _loadAllData();
-                              Navigator.pop(modalCtx);
+                              if (!mounted) return;
+                              if (modalCtx.mounted) {
+                                Navigator.pop(modalCtx);
+                              }
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -1012,7 +1015,10 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               }
 
                               await _loadAllData();
-                              Navigator.pop(modalCtx);
+                              if (!mounted) return;
+                              if (modalCtx.mounted) {
+                                Navigator.pop(modalCtx);
+                              }
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -1196,7 +1202,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1209,7 +1215,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(12),
               ),
@@ -1264,6 +1270,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                   onTap: () async {
                     await _sejarahRepository.deleteSejarah(item.kodeTag);
                     await _loadAllData();
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Data sejarah berhasil dihapus'),
@@ -1354,7 +1361,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1367,7 +1374,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(12),
               ),
@@ -1422,6 +1429,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                   onTap: () async {
                     await _budayaRepository.deleteBudaya(item.kodeTag);
                     await _loadAllData();
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Data budaya berhasil dihapus'),
