@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:renjana/presentation/auth/test_logout.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../data/models/user_model.dart';
 import '../admin/widgets/admin_drawer.dart';
@@ -70,11 +72,7 @@ class _MainPageState extends State<MainPage> {
         onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       const QuizPage(),
-      HomePage(
-        userName: _userName,
-        isAdmin: _isAdmin,
-        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-      ),
+      const Logout18(),
     ];
   }
 

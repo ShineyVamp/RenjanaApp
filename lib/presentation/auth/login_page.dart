@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:renjana/services/preference_handler.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
@@ -75,11 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: AppTypography.headingLarge(),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  width: 100,
-                  height: 2,
-                  color: AppColors.primary,
-                ),
+                Container(width: 100, height: 2, color: AppColors.primary),
                 const SizedBox(height: 36),
 
                 // Email Input
@@ -134,7 +132,10 @@ class _LoginPageState extends State<LoginPage> {
                 // Login Button
                 AppButton(
                   text: _isLoading ? 'Memuat...' : 'Login',
-                  onPressed: _isLoading ? null : _login,
+                  onPressed: () {
+                    _isLoading ? null : _login;
+                    PreferenceHandler.setLogin(true);
+                  },
                 ),
                 const SizedBox(height: 24),
 

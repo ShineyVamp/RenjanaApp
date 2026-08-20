@@ -1,16 +1,14 @@
-﻿import 'package:device_preview/device_preview.dart';
-import 'package:device_preview/presets.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:renjana/presentation/main/main_page.dart';
 import 'package:renjana/presentation/splash/splash_page.dart';
+import 'package:renjana/services/preference_handler.dart';
 
 import 'core/constants/app_theme.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-
+  await PreferenceHandler.init();
   // DevicePreview.enable();
   // final c = DevicePreview.controller;
   // await c.applyPreset(DevicePresets.iPhone16e);
