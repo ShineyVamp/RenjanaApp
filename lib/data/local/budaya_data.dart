@@ -31,11 +31,11 @@ final List<BudayaModel> defaultBudayaList = [
     ],
   ),
   const BudayaModel(
-    kodeTag: 'BUD-ADT-1',
-    jenis: 'ADT',
+    kodeTag: 'BUD-SRK-1-D',
+    jenis: 'SRK',
     urutan: 1,
     judul: 'BOROBUDUR',
-    kategoriLabel: 'WARISAN ARSITEKTUR',
+    kategoriLabel: 'SENI RUPA DAN KRIYA',
     tagline: 'Monumen keagungan wangsa Syailendra di hamparan perbukitan Menoreh.',
     deskripsi:
         'Candi Borobudur merupakan mahakarya arsitektur batu terbesar di dunia '
@@ -85,7 +85,7 @@ final List<BudayaModel> defaultBudayaList = [
     jenis: 'TRN',
     urutan: 1,
     judul: 'TARI SAMAN ACEH',
-    kategoriLabel: 'SENI PERTUNJUKAN',
+    kategoriLabel: 'TARIAN TRADISIONAL',
     tagline: 'Harmoni gerak tepuk tangan serempak berkecepatan tinggi warisan Gayo.',
     deskripsi:
         'Tari Saman adalah tarian tradisional suku Gayo di Aceh yang dinobatkan '
@@ -103,11 +103,11 @@ final List<BudayaModel> defaultBudayaList = [
     ],
   ),
   const BudayaModel(
-    kodeTag: 'BUD-ADT-2',
-    jenis: 'ADT',
-    urutan: 2,
+    kodeTag: 'BUD-RMH-1-D',
+    jenis: 'RMH',
+    urutan: 1,
     judul: 'TONGKONAN TORAJA',
-    kategoriLabel: 'ARSITEKTUR VERNAKULAR',
+    kategoriLabel: 'RUMAH ADAT',
     tagline: 'Rumah adat berbentuk perahu simbol hubungan kosmis leluhur Toraja.',
     deskripsi:
         'Tongkonan adalah rumah adat masyarakat Toraja dengan atap melengkung '
@@ -128,7 +128,7 @@ final List<BudayaModel> defaultBudayaList = [
     jenis: 'MSK',
     urutan: 1,
     judul: 'GAMELAN JAWA',
-    kategoriLabel: 'INSTRUMEN MUSIK',
+    kategoriLabel: 'ALAT MUSIK DAN LAGU DAERAH',
     tagline: 'Ansambel musik perkusi tembaga pembawa ketenangan jiwa.',
     deskripsi:
         'Gamelan adalah orkestra tradisional Jawa dan Bali yang memadukan '

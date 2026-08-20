@@ -126,9 +126,15 @@ class SejarahRepository {
     });
   }
 
-  Future<int> updateSejarah(SejarahModel model) async {
+  /// [previousKodeTag] diisi bila ID tag ikut berubah, supaya baris yang
+  /// benar tetap ditemukan dan bookmark lama tidak menggantung.
+  Future<int> updateSejarah(
+    SejarahModel model, {
+    String? previousKodeTag,
+  }) async {
     final db = await _dbHelper.database;
-    return await db.update(
+    final oldKodeTag = previousKodeTag ?? model.kodeTag;
+    final count = await db.update(
       'sejarah',
       {
         'kodeTag': model.kodeTag,
@@ -145,17 +151,29 @@ class SejarahRepository {
           model.relatedItems.map((i) => i.toMap()).toList(),
         ),
       },
-      where: 'kodeTag = ?',
-      whereArgs: [model.kodeTag],
+      where: model.id != null ? 'id = ?' : 'kodeTag = ?',
+      whereArgs: [model.id ?? oldKodeTag],
     );
+
+    if (oldKodeTag != model.kodeTag) {
+      await db.rawUpdate(
+        'UPDATE OR IGNORE bookmark SET kodeTag = ? WHERE kodeTag = ?',
+        [model.kodeTag, oldKodeTag],
+      );
+    }
+
+    return count;
   }
 
   Future<int> deleteSejarah(String kodeTag) async {
     final db = await _dbHelper.database;
-    return await db.delete(
+    final count = await db.delete(
       'sejarah',
       where: 'kodeTag = ?',
       whereArgs: [kodeTag],
     );
+    // Bersihkan bookmark yang menunjuk item yang sudah dihapus.
+    await db.delete('bookmark', where: 'kodeTag = ?', whereArgs: [kodeTag]);
+    return count;
   }
 }

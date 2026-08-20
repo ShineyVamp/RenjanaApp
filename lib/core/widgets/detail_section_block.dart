@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renjana/core/constants/app_typography.dart';
+import '../constants/app_colors.dart';
 
 class DetailSectionBlock extends StatelessWidget {
   final String title;
@@ -28,7 +29,7 @@ class DetailSectionBlock extends StatelessWidget {
           Container(
             height: 1.5,
             width: dividerWidth,
-            color: const Color(0xFFA9312E),
+            color: AppColors.primaryDark,
           ),
           const SizedBox(height: 12),
           Text(
@@ -36,7 +37,7 @@ class DetailSectionBlock extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               height: 1.6,
-              color: const Color(0xFF4A443F),
+              color: AppColors.textSecondary,
             ),
           ),
         ],

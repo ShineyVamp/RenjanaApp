@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../extensions/navigation.dart';
+import '../constants/app_colors.dart';
 
 class DetailTopBar extends StatelessWidget {
   final bool isBookmarked;
@@ -20,7 +21,7 @@ class DetailTopBar extends StatelessWidget {
     required VoidCallback? onTap,
   }) {
     return Material(
-      color: const Color(0xFFA9312E),
+      color: AppColors.primaryDark,
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),

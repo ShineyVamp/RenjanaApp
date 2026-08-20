@@ -56,6 +56,38 @@ class BudayaRepository {
     return pool.first;
   }
 
+  /// Semua budaya pada satu kategori (kolom `jenis`), diurutkan naik.
+  Future<List<BudayaModel>> getBudayaByJenis(String jenis) async {
+    final list = await getAllBudaya();
+    final target = jenis.trim().toUpperCase();
+    final result = list
+        .where((b) => b.jenis.trim().toUpperCase() == target)
+        .toList();
+    result.sort((a, b) => a.urutan.compareTo(b.urutan));
+    return result;
+  }
+
+  /// Budaya yang sekaligus tempat wisata (ID tag berakhiran `-D`).
+  Future<List<BudayaModel>> getDestinasiList() async {
+    final list = await getAllBudaya();
+    final result = list.where((b) => b.isDestinasi).toList();
+    result.sort((a, b) => a.judul.compareTo(b.judul));
+    return result;
+  }
+
+  /// Jumlah item per kategori, dipakai daftar "Koleksi Budaya" di beranda.
+  Future<Map<String, List<BudayaModel>>> getBudayaGroupedByJenis() async {
+    final list = await getAllBudaya();
+    final Map<String, List<BudayaModel>> grouped = {};
+    for (final b in list) {
+      grouped.putIfAbsent(b.jenis.trim().toUpperCase(), () => []).add(b);
+    }
+    for (final items in grouped.values) {
+      items.sort((a, b) => a.urutan.compareTo(b.urutan));
+    }
+    return grouped;
+  }
+
   Future<BudayaModel?> getBudayaByKodeTag(String kodeTag) async {
     final list = await getAllBudaya();
     try {
@@ -111,9 +143,12 @@ class BudayaRepository {
     });
   }
 
-  Future<int> updateBudaya(BudayaModel model) async {
+  /// [previousKodeTag] diisi bila ID tag ikut berubah, supaya baris yang
+  /// benar tetap ditemukan dan bookmark lama tidak menggantung.
+  Future<int> updateBudaya(BudayaModel model, {String? previousKodeTag}) async {
     final db = await _dbHelper.database;
-    return await db.update(
+    final oldKodeTag = previousKodeTag ?? model.kodeTag;
+    final count = await db.update(
       'budaya',
       {
         'kodeTag': model.kodeTag,
@@ -132,17 +167,29 @@ class BudayaRepository {
           model.relatedItems.map((i) => i.toMap()).toList(),
         ),
       },
-      where: 'kodeTag = ?',
-      whereArgs: [model.kodeTag],
+      where: model.id != null ? 'id = ?' : 'kodeTag = ?',
+      whereArgs: [model.id ?? oldKodeTag],
     );
+
+    if (oldKodeTag != model.kodeTag) {
+      await db.rawUpdate(
+        'UPDATE OR IGNORE bookmark SET kodeTag = ? WHERE kodeTag = ?',
+        [model.kodeTag, oldKodeTag],
+      );
+    }
+
+    return count;
   }
 
   Future<int> deleteBudaya(String kodeTag) async {
     final db = await _dbHelper.database;
-    return await db.delete(
+    final count = await db.delete(
       'budaya',
       where: 'kodeTag = ?',
       whereArgs: [kodeTag],
     );
+    // Bersihkan bookmark yang menunjuk item yang sudah dihapus.
+    await db.delete('bookmark', where: 'kodeTag = ?', whereArgs: [kodeTag]);
+    return count;
   }
 }

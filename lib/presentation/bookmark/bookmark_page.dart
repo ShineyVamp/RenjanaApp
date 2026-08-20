@@ -293,7 +293,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
                       decoration: BoxDecoration(
                         color: isSejarah
                             ? AppColors.primary
-                            : const Color(0xFF795548),
+                            : AppColors.accentBudaya,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(

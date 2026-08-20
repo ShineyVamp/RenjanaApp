@@ -5,10 +5,27 @@ import 'budaya_data.dart';
 import 'quiz_data.dart';
 import 'sejarah_data.dart';
 
+/// Target pemetaan satu baris budaya saat migrasi kategori.
+class _BudayaKategoriTarget {
+  final String kodeTag;
+  final String jenis;
+  final int urutan;
+  final String kategoriLabel;
+
+  const _BudayaKategoriTarget({
+    required this.kodeTag,
+    required this.jenis,
+    required this.urutan,
+    required this.kategoriLabel,
+  });
+}
+
 class DbHelper {
   static final DbHelper _instance = DbHelper._internal();
   factory DbHelper() => _instance;
   DbHelper._internal();
+
+  static const int _dbVersion = 6;
 
   static Database? _database;
 
@@ -26,39 +43,123 @@ class DbHelper {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: _dbVersion,
       onCreate: (db, version) async {
         await _createTables(db);
         await _seedInitialData(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         await _createTables(db);
-        await _checkAndUpdateSchema(db);
+        await _migrateSchema(db);
         await _seedInitialData(db);
-      },
-      onOpen: (db) async {
-        await _createTables(db);
-        await _checkAndUpdateSchema(db);
       },
     );
   }
 
-  Future<void> _checkAndUpdateSchema(Database db) async {
+  /// Penyesuaian skema untuk database yang dibuat versi aplikasi sebelumnya.
+  /// Hanya dijalankan saat migrasi versi, bukan setiap kali database dibuka.
+  Future<void> _migrateSchema(Database db) async {
+    // v5: kolom penjelasan pada soal kuis.
     try {
-      await db.execute('''CREATE TABLE IF NOT EXISTS bookmark (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        itemType TEXT,
-        kodeTag TEXT UNIQUE,
-        createdAt TEXT
-      )''');
-
-      final tableInfo = await db.rawQuery('PRAGMA table_info(quiz)');
-      final hasPenjelasan = tableInfo.any((col) => col['name'] == 'penjelasan');
+      final quizInfo = await db.rawQuery('PRAGMA table_info(quiz)');
+      final hasPenjelasan = quizInfo.any((col) => col['name'] == 'penjelasan');
       if (!hasPenjelasan) {
         await db.execute('ALTER TABLE quiz ADD COLUMN penjelasan TEXT');
       }
     } catch (_) {}
+
+    // v6: bookmark dipisah per user. Skema lama memakai UNIQUE(kodeTag)
+    // global sehingga tabel harus dibangun ulang.
+    try {
+      final bookmarkInfo = await db.rawQuery('PRAGMA table_info(bookmark)');
+      final hasUserEmail =
+          bookmarkInfo.any((col) => col['name'] == 'userEmail');
+      if (bookmarkInfo.isNotEmpty && !hasUserEmail) {
+        await db.transaction((txn) async {
+          await txn.execute('ALTER TABLE bookmark RENAME TO bookmark_legacy');
+          await txn.execute(_bookmarkTableSql);
+          await txn.execute('''
+            INSERT INTO bookmark (userEmail, itemType, kodeTag, createdAt)
+            SELECT '', itemType, kodeTag, createdAt FROM bookmark_legacy
+          ''');
+          await txn.execute('DROP TABLE bookmark_legacy');
+        });
+      }
+    } catch (_) {}
+
+    // v6: kategori budaya dibakukan menjadi delapan kategori resmi dan item
+    // yang juga tempat wisata ditandai suffix -D pada ID tag.
+    try {
+      for (final entry in _budayaKategoriMigration.entries) {
+        final target = entry.value;
+        await db.update(
+          'budaya',
+          {
+            'kodeTag': target.kodeTag,
+            'jenis': target.jenis,
+            'urutan': target.urutan,
+            'kategoriLabel': target.kategoriLabel,
+          },
+          where: 'kodeTag = ?',
+          whereArgs: [entry.key],
+        );
+        // Bookmark menyimpan kodeTag, ikut disesuaikan agar tidak putus.
+        await db.rawUpdate(
+          'UPDATE OR IGNORE bookmark SET kodeTag = ? WHERE kodeTag = ?',
+          [target.kodeTag, entry.key],
+        );
+      }
+      // Data buatan admin dengan jenis lama 'ADT' diarahkan ke Rumah Adat.
+      await db.update(
+        'budaya',
+        {'jenis': 'RMH', 'kategoriLabel': 'RUMAH ADAT'},
+        where: 'jenis = ?',
+        whereArgs: ['ADT'],
+      );
+    } catch (_) {}
+
+    // v6: tabel content tidak lagi dipakai, digantikan tabel sejarah & budaya.
+    try {
+      await db.execute('DROP TABLE IF EXISTS content');
+    } catch (_) {}
   }
+
+  /// Pemetaan ID tag budaya bawaan versi lama ke skema kategori baru.
+  static const Map<String, _BudayaKategoriTarget> _budayaKategoriMigration = {
+    'BUD-ADT-1': _BudayaKategoriTarget(
+      kodeTag: 'BUD-SRK-1-D',
+      jenis: 'SRK',
+      urutan: 1,
+      kategoriLabel: 'SENI RUPA DAN KRIYA',
+    ),
+    'BUD-ADT-2': _BudayaKategoriTarget(
+      kodeTag: 'BUD-RMH-1-D',
+      jenis: 'RMH',
+      urutan: 1,
+      kategoriLabel: 'RUMAH ADAT',
+    ),
+    'BUD-TRN-1': _BudayaKategoriTarget(
+      kodeTag: 'BUD-TRN-1',
+      jenis: 'TRN',
+      urutan: 1,
+      kategoriLabel: 'TARIAN TRADISIONAL',
+    ),
+    'BUD-MSK-1': _BudayaKategoriTarget(
+      kodeTag: 'BUD-MSK-1',
+      jenis: 'MSK',
+      urutan: 1,
+      kategoriLabel: 'ALAT MUSIK DAN LAGU DAERAH',
+    ),
+  };
+
+  static const String _bookmarkTableSql = '''CREATE TABLE IF NOT EXISTS bookmark (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userEmail TEXT NOT NULL DEFAULT '',
+      itemType TEXT,
+      kodeTag TEXT,
+      createdAt TEXT,
+      UNIQUE(userEmail, kodeTag)
+    )''';
 
   Future<void> _createTables(Database db) async {
     await db.execute('''CREATE TABLE IF NOT EXISTS user (
@@ -78,16 +179,6 @@ class DbHelper {
       jawabanBenar INTEGER,
       gambar TEXT,
       penjelasan TEXT
-    )''');
-
-    await db.execute('''CREATE TABLE IF NOT EXISTS content (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tipe TEXT,
-      kodeTag TEXT,
-      judul TEXT,
-      deskripsi TEXT,
-      gambar TEXT,
-      extraInfo TEXT
     )''');
 
     await db.execute('''CREATE TABLE IF NOT EXISTS sejarah (
@@ -120,12 +211,7 @@ class DbHelper {
       relatedItems TEXT
     )''');
 
-    await db.execute('''CREATE TABLE IF NOT EXISTS bookmark (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      itemType TEXT,
-      kodeTag TEXT UNIQUE,
-      createdAt TEXT
-    )''');
+    await db.execute(_bookmarkTableSql);
   }
 
   Future<void> _seedInitialData(Database db) async {

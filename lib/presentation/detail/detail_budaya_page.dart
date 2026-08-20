@@ -66,7 +66,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
     final data = widget.budaya ?? defaultBudayaList.first;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F0E7),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         top: false,
         bottom: false,
@@ -98,8 +98,8 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Color(0x00F4F0E7),
-                                    Color(0xFFF4F0E7),
+                                    AppColors.backgroundTransparent,
+                                    AppColors.background,
                                   ],
                                   stops: [0, 1],
                                 ),
@@ -158,7 +158,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
-                                    color: const Color(0xFFA9312E),
+                                    color: AppColors.primaryDark,
                                     letterSpacing: 1.4,
                                   ),
                                 ),
@@ -169,7 +169,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                   style: GoogleFonts.playfairDisplay(
                                     fontSize: 36,
                                     fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF1C1815),
+                                    color: AppColors.textPrimary,
                                     letterSpacing: 1.0,
                                   ),
                                 ),
@@ -177,7 +177,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                 Container(
                                   height: 1.5,
                                   width: 36,
-                                  color: const Color(0xFFA9312E),
+                                  color: AppColors.primaryDark,
                                 ),
                                 const SizedBox(height: 10),
                                 Padding(
@@ -191,7 +191,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                       fontSize: 14,
                                       fontStyle: FontStyle.italic,
                                       height: 1.4,
-                                      color: const Color(0xFF2A2420),
+                                      color: AppColors.textDeep,
                                     ),
                                   ),
                                 ),
@@ -273,20 +273,20 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1C1815),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Container(
                           height: 1.5,
                           width: 48,
-                          color: const Color(0xFFA9312E),
+                          color: AppColors.primaryDark,
                         ),
                         const SizedBox(height: 16),
                         ScrollbarTheme(
                           data: const ScrollbarThemeData(
-                            thumbColor: WidgetStatePropertyAll(Color(0xFFA9312E)),
-                            trackColor: WidgetStatePropertyAll(Color(0x30D8CFBF)),
+                            thumbColor: WidgetStatePropertyAll(AppColors.primaryDark),
+                            trackColor: WidgetStatePropertyAll(AppColors.scrollTrack),
                           ),
                           child: Scrollbar(
                             controller: _scrollRelated,

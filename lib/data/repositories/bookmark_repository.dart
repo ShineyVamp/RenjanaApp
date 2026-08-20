@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import '../../services/preference_handler.dart';
 import '../local/db_helper.dart';
 import '../models/bookmark_model.dart';
 import 'budaya_repository.dart';
@@ -17,13 +18,43 @@ class BookmarkRepository {
         _sejarahRepository = sejarahRepository ?? SejarahRepository(),
         _budayaRepository = budayaRepository ?? BudayaRepository();
 
+  static bool _legacyClaimed = false;
+
+  /// Email user yang sedang login; string kosong berarti belum login.
+  String get _currentUserEmail {
+    try {
+      return PreferenceHandler.userEmail.toLowerCase().trim();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Bookmark dari versi aplikasi lama tersimpan tanpa pemilik. Saat user
+  /// pertama kali membuka bookmark, baris tersebut diklaim untuk akunnya.
+  Future<Database> _db() async {
+    final db = await _dbHelper.database;
+    if (!_legacyClaimed) {
+      _legacyClaimed = true;
+      final email = _currentUserEmail;
+      if (email.isNotEmpty) {
+        try {
+          await db.rawUpdate(
+            "UPDATE OR IGNORE bookmark SET userEmail = ? WHERE userEmail = ''",
+            [email],
+          );
+        } catch (_) {}
+      }
+    }
+    return db;
+  }
+
   Future<bool> isBookmarked(String kodeTag) async {
     try {
-      final db = await _dbHelper.database;
+      final db = await _db();
       final results = await db.query(
         'bookmark',
-        where: 'kodeTag = ?',
-        whereArgs: [kodeTag],
+        where: 'kodeTag = ? AND userEmail = ?',
+        whereArgs: [kodeTag, _currentUserEmail],
       );
       return results.isNotEmpty;
     } catch (_) {
@@ -44,10 +75,11 @@ class BookmarkRepository {
 
   Future<bool> addBookmark(String itemType, String kodeTag) async {
     try {
-      final db = await _dbHelper.database;
+      final db = await _db();
       final id = await db.insert(
         'bookmark',
         {
+          'userEmail': _currentUserEmail,
           'itemType': itemType.toLowerCase(),
           'kodeTag': kodeTag,
           'createdAt': DateTime.now().toIso8601String(),
@@ -62,11 +94,11 @@ class BookmarkRepository {
 
   Future<bool> removeBookmark(String kodeTag) async {
     try {
-      final db = await _dbHelper.database;
+      final db = await _db();
       final count = await db.delete(
         'bookmark',
-        where: 'kodeTag = ?',
-        whereArgs: [kodeTag],
+        where: 'kodeTag = ? AND userEmail = ?',
+        whereArgs: [kodeTag, _currentUserEmail],
       );
       return count > 0;
     } catch (_) {
@@ -76,8 +108,13 @@ class BookmarkRepository {
 
   Future<List<BookmarkItemModel>> getAllBookmarks() async {
     try {
-      final db = await _dbHelper.database;
-      final results = await db.query('bookmark', orderBy: 'id DESC');
+      final db = await _db();
+      final results = await db.query(
+        'bookmark',
+        where: 'userEmail = ?',
+        whereArgs: [_currentUserEmail],
+        orderBy: 'id DESC',
+      );
 
       final List<BookmarkItemModel> items = [];
       for (final map in results) {
@@ -108,9 +145,11 @@ class BookmarkRepository {
 
   Future<int> getBookmarksCount() async {
     try {
-      final db = await _dbHelper.database;
-      final results =
-          await db.rawQuery('SELECT COUNT(*) as total FROM bookmark');
+      final db = await _db();
+      final results = await db.rawQuery(
+        'SELECT COUNT(*) as total FROM bookmark WHERE userEmail = ?',
+        [_currentUserEmail],
+      );
       if (results.isNotEmpty && results.first['total'] != null) {
         return (results.first['total'] as num).toInt();
       }

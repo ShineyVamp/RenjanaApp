@@ -1,3 +1,4 @@
+import '../local/budaya_kategori.dart';
 import 'sejarah_model.dart';
 
 class BudayaModel {
@@ -32,4 +33,12 @@ class BudayaModel {
     this.gambarKonteksBudaya,
     this.relatedItems = const [],
   });
+
+  /// True bila item ini juga terdaftar sebagai tempat wisata,
+  /// ditandai suffix `-D` pada [kodeTag] (mis. `BUD-RMH-1-D`).
+  bool get isDestinasi =>
+      kodeTag.trim().toUpperCase().endsWith(kodeDestinasiSuffix);
+
+  /// Nama kategori tampilan berdasarkan [jenis].
+  String get namaKategoriBudaya => namaKategori(jenis);
 }

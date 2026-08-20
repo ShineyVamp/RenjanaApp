@@ -67,7 +67,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     final data = widget.sejarah ?? defaultSejarahList.first;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F0E7),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         top: false,
         bottom: false,
@@ -98,8 +98,8 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Color(0x00F4F0E7),
-                                    Color(0xFFF4F0E7),
+                                    AppColors.backgroundTransparent,
+                                    AppColors.background,
                                   ],
                                   stops: [0, 1],
                                 ),
@@ -156,7 +156,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 54,
                                     fontWeight: FontWeight.w900,
-                                    color: const Color(0xFFA9312E),
+                                    color: AppColors.primaryDark,
                                   ),
                                 ),
                                 Text(
@@ -165,7 +165,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                   style: GoogleFonts.playfairDisplay(
                                     fontSize: 32,
                                     fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF1C1815),
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ],
@@ -195,14 +195,14 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                             style: GoogleFonts.playfairDisplay(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFF1C1815),
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Container(
                             height: 1.5,
                             width: 100,
-                            color: const Color(0xFFA9312E),
+                            color: AppColors.primaryDark,
                           ),
                           const SizedBox(height: 20),
                           ...List.generate(data.alurPeristiwa.length, (index) {
@@ -236,20 +236,20 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1C1815),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Container(
                           height: 1.5,
                           width: 48,
-                          color: const Color(0xFFA9312E),
+                          color: AppColors.primaryDark,
                         ),
                         const SizedBox(height: 16),
                         ScrollbarTheme(
                           data: const ScrollbarThemeData(
-                            thumbColor: WidgetStatePropertyAll(Color(0xFFA9312E)),
-                            trackColor: WidgetStatePropertyAll(Color(0x30D8CFBF)),
+                            thumbColor: WidgetStatePropertyAll(AppColors.primaryDark),
+                            trackColor: WidgetStatePropertyAll(AppColors.scrollTrack),
                           ),
                           child: Scrollbar(
                             controller: _scrollRelated,
