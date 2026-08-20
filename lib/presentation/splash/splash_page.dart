@@ -1,5 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:renjana/presentation/main/main_page.dart';
+import 'package:renjana/services/preference_handler.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
@@ -16,7 +19,15 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _navigateToNext();
+    isLogin();
+  }
+
+  void isLogin() async {
+    if (PreferenceHandler.isLogin) {
+      context.pushAndRemoveAll(MainPage());
+    } else {
+      _navigateToNext();
+    }
   }
 
   void _navigateToNext() async {
@@ -35,10 +46,7 @@ class _SplashPageState extends State<SplashPage> {
           children: [
             Image.asset('assets/images/Rlogos.png', width: 140),
             const SizedBox(height: 12),
-            Text(
-              'RENJANA',
-              style: AppTypography.headingLarge(),
-            ),
+            Text('RENJANA', style: AppTypography.headingLarge()),
             const SizedBox(height: 6),
             Text(
               'Museum Indonesia Dalam Genggaman',
