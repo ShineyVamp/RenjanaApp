@@ -14,10 +14,6 @@ class PreferenceHandler {
   static const _keyUserName = "userName";
   static const _keyUserEmail = "userEmail";
 
-  static Future<void> setLogin(bool isLogin) async {
-    await _prefs.setBool(_keyIsLogin, isLogin);
-  }
-
   static Future<void> saveUser(UserSQLModel user) async {
     await _prefs.setBool(_keyIsLogin, true);
     // Password tidak ikut disimpan di SharedPreferences.

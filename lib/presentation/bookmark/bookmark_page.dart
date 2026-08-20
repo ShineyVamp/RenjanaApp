@@ -45,9 +45,11 @@ class _BookmarkPageState extends State<BookmarkPage> {
 
   List<BookmarkItemModel> get _filteredBookmarks {
     return _bookmarks.where((item) {
-      final matchesTab = _selectedTab == 'SEMUA' ||
+      final matchesTab =
+          _selectedTab == 'SEMUA' ||
           item.itemType.toUpperCase() == _selectedTab;
-      final matchesQuery = _searchQuery.isEmpty ||
+      final matchesQuery =
+          _searchQuery.isEmpty ||
           item.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           item.subtitle.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           item.description.toLowerCase().contains(_searchQuery.toLowerCase());
@@ -67,9 +69,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
         duration: const Duration(milliseconds: 1000),
         behavior: SnackBarBehavior.floating,
         dismissDirection: DismissDirection.horizontal,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
     _loadBookmarks();
@@ -88,10 +88,10 @@ class _BookmarkPageState extends State<BookmarkPage> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredBookmarks;
-    final totalSejarah =
-        _bookmarks.where((b) => b.itemType == 'sejarah').length;
-    final totalBudaya =
-        _bookmarks.where((b) => b.itemType == 'budaya').length;
+    final totalSejarah = _bookmarks
+        .where((b) => b.itemType == 'sejarah')
+        .length;
+    final totalBudaya = _bookmarks.where((b) => b.itemType == 'budaya').length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -101,8 +101,11 @@ class _BookmarkPageState extends State<BookmarkPage> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.primary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
           onPressed: () {
             ScaffoldMessenger.of(context).clearSnackBars();
             Navigator.pop(context);
@@ -166,13 +169,15 @@ class _BookmarkPageState extends State<BookmarkPage> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide:
-                                    const BorderSide(color: AppColors.borderLight),
+                                borderSide: const BorderSide(
+                                  color: AppColors.borderLight,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide:
-                                    const BorderSide(color: AppColors.borderLight),
+                                borderSide: const BorderSide(
+                                  color: AppColors.borderLight,
+                                ),
                               ),
                             ),
                             onChanged: (val) =>
@@ -183,9 +188,15 @@ class _BookmarkPageState extends State<BookmarkPage> {
                           // Tab Filter Chips
                           Row(
                             children: [
-                              _buildTabChip('SEMUA', 'Semua (${_bookmarks.length})'),
+                              _buildTabChip(
+                                'SEMUA',
+                                'Semua (${_bookmarks.length})',
+                              ),
                               const SizedBox(width: 8),
-                              _buildTabChip('SEJARAH', 'Sejarah ($totalSejarah)'),
+                              _buildTabChip(
+                                'SEJARAH',
+                                'Sejarah ($totalSejarah)',
+                              ),
                               const SizedBox(width: 8),
                               _buildTabChip('BUDAYA', 'Budaya ($totalBudaya)'),
                             ],
@@ -276,12 +287,15 @@ class _BookmarkPageState extends State<BookmarkPage> {
             children: [
               // Header Card
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.06),
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -457,14 +471,19 @@ class _BookmarkPageState extends State<BookmarkPage> {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              icon: const Icon(Icons.explore_outlined,
-                  color: Colors.white, size: 18),
+              icon: const Icon(
+                Icons.explore_outlined,
+                color: Colors.white,
+                size: 18,
+              ),
               label: Text(
                 'Mulai Menjelajah',
                 style: GoogleFonts.plusJakartaSans(

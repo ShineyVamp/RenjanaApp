@@ -30,10 +30,7 @@ class TimelineItemWidget extends StatelessWidget {
             top: 8,
             bottom: -10,
             left: 3,
-            child: Container(
-              width: 1.5,
-              color: AppColors.border,
-            ),
+            child: Container(width: 1.5, color: AppColors.border),
           ),
 
         // Timeline Indicator Square

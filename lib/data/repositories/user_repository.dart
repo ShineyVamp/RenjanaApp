@@ -1,4 +1,4 @@
-﻿import '../local/db_helper.dart';
+import '../local/db_helper.dart';
 import '../models/user_model.dart';
 
 class UserRepository {
@@ -27,36 +27,5 @@ class UserRepository {
       return UserSQLModel.fromMap(results.first);
     }
     return null;
-  }
-
-  Future<List<UserSQLModel>> getAllUsers() async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query('user');
-    return results.map((map) => UserSQLModel.fromMap(map)).toList();
-  }
-
-  Future<bool> updateUser(UserSQLModel user) async {
-    final db = await _dbHelper.database;
-    try {
-      final count = await db.update(
-        'user',
-        user.toMap(),
-        where: 'id = ?',
-        whereArgs: [user.id],
-      );
-      return count > 0;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> deleteUser(int id) async {
-    final db = await _dbHelper.database;
-    try {
-      final count = await db.delete('user', where: 'id = ?', whereArgs: [id]);
-      return count > 0;
-    } catch (e) {
-      return false;
-    }
   }
 }

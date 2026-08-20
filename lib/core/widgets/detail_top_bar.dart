@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../extensions/navigation.dart';
 import '../constants/app_colors.dart';
 
@@ -7,6 +7,8 @@ class DetailTopBar extends StatelessWidget {
   final VoidCallback? onBookmarkToggle;
   final VoidCallback? onShare;
   final VoidCallback? onBack;
+  final VoidCallback? onHome;
+  final bool showHomeButton;
 
   const DetailTopBar({
     super.key,
@@ -14,6 +16,8 @@ class DetailTopBar extends StatelessWidget {
     this.onBookmarkToggle,
     this.onShare,
     this.onBack,
+    this.onHome,
+    this.showHomeButton = true,
   });
 
   Widget _buildCircleButton({
@@ -26,10 +30,7 @@ class DetailTopBar extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(9),
-          child: icon,
-        ),
+        child: Padding(padding: const EdgeInsets.all(9), child: icon),
       ),
     );
   }
@@ -38,20 +39,38 @@ class DetailTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildCircleButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 18,
-              ),
-              onTap: onBack ?? () => context.pop(),
+            Row(
+              children: [
+                _buildCircleButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  onTap: onBack ?? () => context.pop(),
+                ),
+                if (showHomeButton) ...[
+                  const SizedBox(width: 10),
+                  _buildCircleButton(
+                    icon: const Icon(
+                      Icons.home_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    // Kembali ke MainPage: halaman detail bisa bertumpuk
+                    // (detail -> detail lainnya), jadi semua ditutup sekaligus.
+                    onTap:
+                        onHome ??
+                        () => Navigator.of(
+                          context,
+                        ).popUntil((route) => route.isFirst),
+                  ),
+                ],
+              ],
             ),
             Row(
               children: [

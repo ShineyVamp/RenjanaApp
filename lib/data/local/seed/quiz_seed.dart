@@ -1,4 +1,7 @@
-import '../models/quiz_model.dart';
+// Bank soal awal yang diisikan ke tabel `quiz` saat database pertama
+// kali dibuat. Bukan sumber data runtime: aplikasi membaca lewat
+// QuizRepository.
+import '../../models/quiz_model.dart';
 
 final List<QuizSQLModel> defaultQuizList = [
   // ==========================================
@@ -7,7 +10,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Perjalanan Revolusi',
-    soal: 'Di kota manakah naskah teks proklamasi kemerdekaan Indonesia dirumuskan?',
+    soal:
+        'Di kota manakah naskah teks proklamasi kemerdekaan Indonesia dirumuskan?',
     daftarJawaban: [
       'Jakarta (Rumah Laksamana Maeda)',
       'Bandung',
@@ -22,13 +26,9 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Perjalanan Revolusi',
-    soal: 'Siapakah tokoh yang mengetik naskah proklamasi kemerdekaan Indonesia setelah disepakati?',
-    daftarJawaban: [
-      'Sayuti Melik',
-      'Sukarni',
-      'B.M. Diah',
-      'Chaerul Saleh',
-    ],
+    soal:
+        'Siapakah tokoh yang mengetik naskah proklamasi kemerdekaan Indonesia setelah disepakati?',
+    daftarJawaban: ['Sayuti Melik', 'Sukarni', 'B.M. Diah', 'Chaerul Saleh'],
     jawabanBenar: 0,
     gambar: null,
     penjelasan:
@@ -37,7 +37,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Perjalanan Revolusi',
-    soal: 'Peristiwa pengamanan Soekarno dan Hatta oleh golongan pemuda ke luar kota dikenal dengan nama...',
+    soal:
+        'Peristiwa pengamanan Soekarno dan Hatta oleh golongan pemuda ke luar kota dikenal dengan nama...',
     daftarJawaban: [
       'Peristiwa Rengasdengklok',
       'Bandung Lautan Api',
@@ -52,7 +53,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Perjalanan Revolusi',
-    soal: 'Di manakah lokasi resmi pembacaan teks proklamasi kemerdekaan Indonesia pada 17 Agustus 1945?',
+    soal:
+        'Di manakah lokasi resmi pembacaan teks proklamasi kemerdekaan Indonesia pada 17 Agustus 1945?',
     daftarJawaban: [
       'Jalan Pegangsaan Timur No. 56, Jakarta',
       'Lapangan Ikada, Jakarta',
@@ -67,7 +69,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Perjalanan Revolusi',
-    soal: 'Siapakah tokoh pahlawan wanita yang menjahit Bendera Pusaka Sang Saka Merah Putih pertama?',
+    soal:
+        'Siapakah tokoh pahlawan wanita yang menjahit Bendera Pusaka Sang Saka Merah Putih pertama?',
     daftarJawaban: [
       'Fatmawati',
       'R.A. Kartini',
@@ -86,7 +89,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Detik-Detik Kemerdekaan',
-    soal: 'Siapakah dua pemuda yang bertugas mengibarkan bendera merah putih saat proklamasi 17 Agustus 1945?',
+    soal:
+        'Siapakah dua pemuda yang bertugas mengibarkan bendera merah putih saat proklamasi 17 Agustus 1945?',
     daftarJawaban: [
       'Latief Hendraningrat dan Suhud Sastro Kusumo',
       'Chaerul Saleh dan Wikana',
@@ -101,7 +105,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'SEJARAH',
     tema: 'Detik-Detik Kemerdekaan',
-    soal: 'Badan bentukan Jepang yang bertugas mempersiapkan kemerdekaan Republik Indonesia adalah...',
+    soal:
+        'Badan bentukan Jepang yang bertugas mempersiapkan kemerdekaan Republik Indonesia adalah...',
     daftarJawaban: [
       'BPUPKI dan PPKI',
       'PETA dan Heiho',
@@ -120,7 +125,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Cagar Budaya & Arsitektur',
-    soal: 'Candi Buddha terbesar di dunia yang terletak di Magelang, Jawa Tengah adalah...',
+    soal:
+        'Candi Buddha terbesar di dunia yang terletak di Magelang, Jawa Tengah adalah...',
     daftarJawaban: [
       'Candi Borobudur',
       'Candi Prambanan',
@@ -135,13 +141,9 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Cagar Budaya & Arsitektur',
-    soal: 'Senjata tradisional khas Jawa yang memiliki lekukan (luk) khas dan diakui UNESCO sebagai warisan budaya adalah...',
-    daftarJawaban: [
-      'Keris',
-      'Rencong',
-      'Mandau',
-      'Kujang',
-    ],
+    soal:
+        'Senjata tradisional khas Jawa yang memiliki lekukan (luk) khas dan diakui UNESCO sebagai warisan budaya adalah...',
+    daftarJawaban: ['Keris', 'Rencong', 'Mandau', 'Kujang'],
     jawabanBenar: 0,
     gambar: 'assets/images/kerisB.jpg',
     penjelasan:
@@ -150,13 +152,9 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Cagar Budaya & Arsitektur',
-    soal: 'Rumah adat khas masyarakat suku Toraja yang beratap melengkung seperti haluan perahu dinamakan...',
-    daftarJawaban: [
-      'Tongkonan',
-      'Rumah Gadang',
-      'Joglo',
-      'Honai',
-    ],
+    soal:
+        'Rumah adat khas masyarakat suku Toraja yang beratap melengkung seperti haluan perahu dinamakan...',
+    daftarJawaban: ['Tongkonan', 'Rumah Gadang', 'Joglo', 'Honai'],
     jawabanBenar: 0,
     gambar: 'assets/images/onboardin1.jpg',
     penjelasan:
@@ -169,13 +167,9 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Tradisi & Mahakarya Leluhur',
-    soal: 'Upacara adat pemakaman masyarakat Toraja yang sangat terkenal hingga mancanegara adalah...',
-    daftarJawaban: [
-      'Rambu Solo',
-      'Ngaben',
-      'Tiwah',
-      'Kasada',
-    ],
+    soal:
+        'Upacara adat pemakaman masyarakat Toraja yang sangat terkenal hingga mancanegara adalah...',
+    daftarJawaban: ['Rambu Solo', 'Ngaben', 'Tiwah', 'Kasada'],
     jawabanBenar: 0,
     gambar: null,
     penjelasan:
@@ -184,7 +178,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'BUDAYA',
     tema: 'Tradisi & Mahakarya Leluhur',
-    soal: 'Kain tradisional khas Nusa Tenggara Timur yang dibuat dengan teknik pintal tangan dan pewarna alami adalah...',
+    soal:
+        'Kain tradisional khas Nusa Tenggara Timur yang dibuat dengan teknik pintal tangan dan pewarna alami adalah...',
     daftarJawaban: [
       'Tenun Ikat',
       'Batik Tulis',
@@ -203,7 +198,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Kekayaan Sulawesi Selatan',
-    soal: 'Perahu layar tradisional kebanggaan suku Bugis-Makassar yang telah diakui UNESCO sebagai warisan budaya takbenda adalah...',
+    soal:
+        'Perahu layar tradisional kebanggaan suku Bugis-Makassar yang telah diakui UNESCO sebagai warisan budaya takbenda adalah...',
     daftarJawaban: [
       'Kapal Pinisi',
       'Perahu Cadik',
@@ -218,7 +214,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Kekayaan Sulawesi Selatan',
-    soal: 'Tarian tradisional khas Sulawesi Selatan yang ditampilkan khusus untuk menyambut tamu-tamu kehormatan adalah...',
+    soal:
+        'Tarian tradisional khas Sulawesi Selatan yang ditampilkan khusus untuk menyambut tamu-tamu kehormatan adalah...',
     daftarJawaban: [
       'Tari Paduppa Bosara',
       'Tari Pendet',
@@ -233,13 +230,9 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Kekayaan Sulawesi Selatan',
-    soal: 'Kuliner sup khas Makassar dengan kuah pekat berempah dan kacang tanah gurih adalah...',
-    daftarJawaban: [
-      'Coto Makassar',
-      'Rawon',
-      'Soto Betawi',
-      'Sop Saudara',
-    ],
+    soal:
+        'Kuliner sup khas Makassar dengan kuah pekat berempah dan kacang tanah gurih adalah...',
+    daftarJawaban: ['Coto Makassar', 'Rawon', 'Soto Betawi', 'Sop Saudara'],
     jawabanBenar: 0,
     gambar: null,
     penjelasan:
@@ -252,7 +245,8 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Pesona Nusantara',
-    soal: 'Danau vulkanik terbesar di Asia Tenggara yang terletak di Provinsi Sumatera Utara adalah...',
+    soal:
+        'Danau vulkanik terbesar di Asia Tenggara yang terletak di Provinsi Sumatera Utara adalah...',
     daftarJawaban: [
       'Danau Toba',
       'Danau Maninjau',
@@ -267,13 +261,9 @@ final List<QuizSQLModel> defaultQuizList = [
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
     tema: 'Pesona Nusantara',
-    soal: 'Alat musik tradisional petik dari Pulau Rote, NTT, yang terbuat dari bambu dan anyaman daun lontar adalah...',
-    daftarJawaban: [
-      'Sasando',
-      'Kolintang',
-      'Angklung',
-      'Gamelan',
-    ],
+    soal:
+        'Alat musik tradisional petik dari Pulau Rote, NTT, yang terbuat dari bambu dan anyaman daun lontar adalah...',
+    daftarJawaban: ['Sasando', 'Kolintang', 'Angklung', 'Gamelan'],
     jawabanBenar: 0,
     gambar: null,
     penjelasan:

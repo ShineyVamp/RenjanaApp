@@ -22,8 +22,13 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
   final ScrollController _scrollController = ScrollController();
   final BudayaRepository _budayaRepository = BudayaRepository();
 
+  /// Banyaknya destinasi yang ditampilkan sekaligus di beranda.
+  static const int _jumlahTampil = 5;
+
   List<BudayaModel> _items = [];
   bool _isLoading = true;
+  bool _isRefreshing = false;
+  int _totalDestinasi = 0;
 
   @override
   void initState() {
@@ -31,13 +36,42 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
     _loadItems();
   }
 
-  Future<void> _loadItems() async {
-    final list = await _budayaRepository.getDestinasiList();
+  Future<void> _loadItems({bool acak = true}) async {
+    final list = await _budayaRepository.getDestinasiList(
+      acak: acak,
+      limit: _jumlahTampil,
+    );
+    final total = await _budayaRepository.getDestinasiCount();
     if (!mounted) return;
     setState(() {
       _items = list;
+      _totalDestinasi = total;
       _isLoading = false;
+      _isRefreshing = false;
     });
+  }
+
+  Future<void> _refreshDestinasi() async {
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+
+    final messenger = ScaffoldMessenger.of(context);
+    await _loadItems(acak: true);
+    if (!mounted) return;
+
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          _totalDestinasi > _jumlahTampil
+              ? 'Menampilkan pilihan destinasi lainnya'
+              : 'Baru ada $_totalDestinasi destinasi, urutannya diacak ulang',
+        ),
+        duration: const Duration(milliseconds: 1200),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.success,
+      ),
+    );
   }
 
   @override
@@ -62,7 +96,34 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
           dividerWidth: 100,
           isCenter: true,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 8),
+
+        // Refresh khusus bagian ini, tidak mengubah sorotan harian di atas.
+        TextButton.icon(
+          onPressed: _isLoading || _isRefreshing ? null : _refreshDestinasi,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          ),
+          icon: _isRefreshing
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                )
+              : const Icon(Icons.refresh_rounded, size: 18),
+          label: Text(
+            'Tampilkan destinasi lain',
+            style: AppTypography.labelBold(
+              color: AppColors.primary,
+              fontSize: 13,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
 
         // Horizontal Scroll Cards
         Padding(
@@ -75,48 +136,48 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
                   ),
                 )
               : _items.isEmpty
-                  ? Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.borderPrimary),
-                      ),
-                      child: Text(
-                        'Belum ada destinasi. Tandai koleksi budaya sebagai '
-                        'destinasi lewat menu admin untuk menampilkannya di sini.',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodyMedium(),
-                      ),
-                    )
-                  : ScrollbarTheme(
-                      data: const ScrollbarThemeData(
-                        thumbColor: WidgetStatePropertyAll(AppColors.primary),
-                      ),
-                      child: Scrollbar(
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.borderPrimary),
+                  ),
+                  child: Text(
+                    'Belum ada destinasi. Tandai koleksi budaya sebagai '
+                    'destinasi lewat menu admin untuk menampilkannya di sini.',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyMedium(),
+                  ),
+                )
+              : ScrollbarTheme(
+                  data: const ScrollbarThemeData(
+                    thumbColor: WidgetStatePropertyAll(AppColors.primary),
+                  ),
+                  child: Scrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: true,
+                    trackVisibility: true,
+                    scrollbarOrientation: ScrollbarOrientation.bottom,
+                    thickness: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SingleChildScrollView(
                         controller: _scrollController,
-                        thumbVisibility: true,
-                        trackVisibility: true,
-                        scrollbarOrientation: ScrollbarOrientation.bottom,
-                        thickness: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: List.generate(_items.length, (index) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    right: index < _items.length - 1 ? 20 : 0,
-                                  ),
-                                  child: _buildDestinationCard(_items[index]),
-                                );
-                              }),
-                            ),
-                          ),
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(_items.length, (index) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                right: index < _items.length - 1 ? 20 : 0,
+                              ),
+                              child: _buildDestinationCard(_items[index]),
+                            );
+                          }),
                         ),
                       ),
                     ),
+                  ),
+                ),
         ),
       ],
     );
@@ -194,7 +255,9 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
                     children: [
                       Text(
                         'Jelajahi lebih lanjut',
-                        style: AppTypography.labelBold(color: AppColors.primary),
+                        style: AppTypography.labelBold(
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       const Icon(

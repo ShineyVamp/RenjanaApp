@@ -54,8 +54,8 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
 
     List<String> currentAnswers =
         isEditing && questionToEdit.daftarJawaban.isNotEmpty
-            ? List<String>.from(questionToEdit.daftarJawaban)
-            : ['', '', '', ''];
+        ? List<String>.from(questionToEdit.daftarJawaban)
+        : ['', '', '', ''];
     while (currentAnswers.length < 4) {
       currentAnswers.add('');
     }
@@ -210,19 +210,20 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                                           fillColor: AppColors.surface,
                                           contentPadding:
                                               const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 10,
-                                          ),
+                                                horizontal: 12,
+                                                vertical: 10,
+                                              ),
                                           border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                             borderSide: const BorderSide(
                                               color: AppColors.border,
                                             ),
                                           ),
                                         ),
-                                        validator: (val) => val == null ||
-                                                val.trim().isEmpty
+                                        validator: (val) =>
+                                            val == null || val.trim().isEmpty
                                             ? 'Pilihan ${labels[i]} wajib diisi'
                                             : null,
                                       ),
@@ -283,8 +284,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -303,23 +303,26 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                                 soal: soalController.text.trim(),
                                 daftarJawaban: answers,
                                 jawabanBenar: selectedCorrectIndex,
-                                gambar: (selectedImage != null &&
+                                gambar:
+                                    (selectedImage != null &&
                                         selectedImage!.trim().isNotEmpty)
                                     ? selectedImage
                                     : null,
                                 penjelasan:
                                     penjelasanController.text.trim().isNotEmpty
-                                        ? penjelasanController.text.trim()
-                                        : null,
+                                    ? penjelasanController.text.trim()
+                                    : null,
                               );
 
                               bool success;
                               if (isEditing) {
-                                success =
-                                    await _quizRepository.updateQuiz(model);
+                                success = await _quizRepository.updateQuiz(
+                                  model,
+                                );
                               } else {
-                                success =
-                                    await _quizRepository.tambahQuiz(model);
+                                success = await _quizRepository.tambahQuiz(
+                                  model,
+                                );
                               }
 
                               if (!mounted) return;
@@ -334,8 +337,8 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                                   content: Text(
                                     success
                                         ? (isEditing
-                                            ? 'Soal berhasil diperbarui!'
-                                            : 'Soal berhasil ditambahkan!')
+                                              ? 'Soal berhasil diperbarui!'
+                                              : 'Soal berhasil ditambahkan!')
                                         : 'Gagal menyimpan soal.',
                                   ),
                                   duration: const Duration(milliseconds: 1500),
@@ -552,7 +555,11 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                        icon: const Icon(
+                          Icons.add,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                         label: Text(
                           'Tambah Soal',
                           style: GoogleFonts.plusJakartaSans(
@@ -632,12 +639,17 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.06),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(4),
@@ -721,8 +733,9 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                 ...List.generate(question.daftarJawaban.length, (optIdx) {
                   final isCorrect = optIdx == question.jawabanBenar;
                   final labels = ['A', 'B', 'C', 'D', 'E'];
-                  final label =
-                      optIdx < labels.length ? labels[optIdx] : '$optIdx';
+                  final label = optIdx < labels.length
+                      ? labels[optIdx]
+                      : '$optIdx';
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
                     child: Row(

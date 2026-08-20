@@ -56,13 +56,15 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
 
   void _setupQuestions() {
     _playItems = widget.questions.map((q) {
-      final String correctText = (q.daftarJawaban.isNotEmpty &&
+      final String correctText =
+          (q.daftarJawaban.isNotEmpty &&
               q.jawabanBenar < q.daftarJawaban.length)
           ? q.daftarJawaban[q.jawabanBenar]
           : (q.daftarJawaban.isNotEmpty ? q.daftarJawaban.first : '');
 
       // Shuffle options
-      final List<String> options = List<String>.from(q.daftarJawaban)..shuffle();
+      final List<String> options = List<String>.from(q.daftarJawaban)
+        ..shuffle();
       final int newCorrectIndex = options.indexOf(correctText);
 
       return PlayQuestionItem(
@@ -271,8 +273,11 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.timer_outlined,
-                      size: 16, color: AppColors.primary),
+                  const Icon(
+                    Icons.timer_outlined,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     _formatDuration(_elapsedSeconds),
@@ -291,8 +296,9 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
             child: LinearProgressIndicator(
               value: progress,
               backgroundColor: AppColors.borderLight,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
               minHeight: 4,
             ),
           ),
@@ -358,7 +364,8 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                     const SizedBox(height: 14),
 
                     // Gambar Opsional (Hanya jika ada)
-                    if (quiz.gambar != null && quiz.gambar!.trim().isNotEmpty) ...[
+                    if (quiz.gambar != null &&
+                        quiz.gambar!.trim().isNotEmpty) ...[
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
@@ -443,7 +450,8 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: borderColor,
-                                width: (isAnswered &&
+                                width:
+                                    (isAnswered &&
                                         (isCorrectChoice || isSelected))
                                     ? 2
                                     : 1,
@@ -465,9 +473,10 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                                     color: (isAnswered && isCorrectChoice)
                                         ? AppColors.success
                                         : (isAnswered && isSelected)
-                                            ? AppColors.error
-                                            : AppColors.primary
-                                                .withValues(alpha: 0.1),
+                                        ? AppColors.error
+                                        : AppColors.primary.withValues(
+                                            alpha: 0.1,
+                                          ),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -476,7 +485,8 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: (isAnswered &&
+                                        color:
+                                            (isAnswered &&
                                                 (isCorrectChoice || isSelected))
                                             ? Colors.white
                                             : AppColors.primary,

@@ -6,7 +6,6 @@ class AppColors {
   // Primary Palette
   static const Color primary = Color(0xFFC9362B);
   static const Color primaryDark = Color(0xFFA9312E);
-  static const Color secondary = Color(0xFFF1E5A1);
 
   // Background & Surface
   static const Color background = Color(0xFFF4F0E7);
@@ -20,7 +19,6 @@ class AppColors {
   static const Color textSecondary = Color(0xFF4A443F);
   static const Color textDeep = Color(0xFF2A2420);
   static const Color textMuted = Color(0x80C9362B);
-  static const Color textLight = Colors.white;
 
   // Borders & Dividers
   static const Color border = Color(0xFFD8CFBF);

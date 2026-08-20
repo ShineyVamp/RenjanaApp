@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
-import '../../data/local/budaya_kategori.dart';
+import '../../core/constants/budaya_kategori.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/repositories/budaya_repository.dart';
 import '../detail/detail_budaya_page.dart';
@@ -59,8 +59,9 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
         ),
         title: Text(
           widget.kategori.nama,
-          style: AppTypography.headingSmall(color: AppColors.textPrimary)
-              .copyWith(fontSize: 20),
+          style: AppTypography.headingSmall(
+            color: AppColors.textPrimary,
+          ).copyWith(fontSize: 20),
         ),
         shape: const Border(
           bottom: BorderSide(color: AppColors.primary, width: 0.8),
@@ -74,20 +75,20 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
                   child: CircularProgressIndicator(color: AppColors.primary),
                 )
               : _items.isEmpty
-                  ? _buildEmptyState()
-                  : RefreshIndicator(
-                      color: AppColors.primary,
-                      onRefresh: _loadItems,
-                      child: ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                        itemCount: _items.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 16),
-                        itemBuilder: (context, index) =>
-                            _buildItemCard(_items[index]),
-                      ),
-                    ),
+              ? _buildEmptyState()
+              : RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: _loadItems,
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                    itemCount: _items.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 16),
+                    itemBuilder: (context, index) =>
+                        _buildItemCard(_items[index]),
+                  ),
+                ),
         ),
       ),
     );
@@ -130,15 +131,19 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
           color: AppColors.surface,
           border: Border.all(color: AppColors.borderPrimary),
         ),
+        // Tanpa CrossAxisAlignment.stretch: di dalam ListView tinggi Row tidak
+        // terbatas, sehingga stretch akan meminta anaknya setinggi tak hingga.
+        // Ukuran gambar dikunci lewat AspectRatio dari lebar 110.
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
               width: 110,
-              height: 110,
-              child: AppImageView(
-                imagePath: item.gambarUtama,
-                fit: BoxFit.cover,
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: AppImageView(
+                  imagePath: item.gambarUtama,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             Expanded(
@@ -147,6 +152,7 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
@@ -156,10 +162,7 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
                             horizontal: 6,
                             vertical: 2,
                           ),
-                          child: Text(
-                            item.kodeTag,
-                            style: AppTypography.tag(),
-                          ),
+                          child: Text(item.kodeTag, style: AppTypography.tag()),
                         ),
                         if (item.isDestinasi) ...[
                           const SizedBox(width: 6),
@@ -182,7 +185,9 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
                       item.judul,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.headingSmall().copyWith(fontSize: 19),
+                      style: AppTypography.headingSmall().copyWith(
+                        fontSize: 19,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(

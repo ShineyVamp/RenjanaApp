@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 
@@ -7,7 +7,6 @@ class AppTextField extends StatelessWidget {
   final String? hintText;
   final String? labelText;
   final bool obscureText;
-  final Widget? prefixIcon;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
@@ -20,7 +19,6 @@ class AppTextField extends StatelessWidget {
     this.hintText,
     this.labelText,
     this.obscureText = false,
-    this.prefixIcon,
     this.suffixIcon,
     this.validator,
     this.onChanged,
@@ -56,7 +54,6 @@ class AppTextField extends StatelessWidget {
             fillColor: AppColors.surface,
             hintText: hintText,
             hintStyle: AppTypography.bodyMedium(color: Colors.black38),
-            prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -68,7 +65,10 @@ class AppTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

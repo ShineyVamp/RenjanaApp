@@ -1,5 +1,7 @@
-import 'dart:math';
-import '../models/sejarah_model.dart';
+// Data awal sejarah yang diisikan ke tabel `sejarah` saat database
+// pertama kali dibuat. Bukan sumber data runtime: setelah tersimpan,
+// aplikasi selalu membaca lewat SejarahRepository.
+import '../../models/sejarah_model.dart';
 
 final List<SejarahModel> defaultSejarahList = [
   const SejarahModel(
@@ -42,10 +44,6 @@ final List<SejarahModel> defaultSejarahList = [
         hasImage: true,
       ),
     ],
-    relatedItems: [
-      RelatedItemModel(inv: 'INV. 1945-R-01', title: 'Radio Pemancar Berita Proklamasi'),
-      RelatedItemModel(inv: 'INV. 1945-B-01', title: 'Bendera Pusaka Jahitan Fatmawati'),
-    ],
   ),
   const SejarahModel(
     kodeTag: 'HIS-150845-1',
@@ -78,10 +76,6 @@ final List<SejarahModel> defaultSejarahList = [
         hasImage: false,
       ),
     ],
-    relatedItems: [
-      RelatedItemModel(inv: 'INV. 1945-D-01', title: 'Dokumen Deklarasi Pemuda'),
-      RelatedItemModel(inv: 'INV. 1945-R-02', title: 'Radio Tabung Gelombang Pendek'),
-    ],
   ),
   const SejarahModel(
     kodeTag: 'HIS-160845-1',
@@ -102,9 +96,6 @@ final List<SejarahModel> defaultSejarahList = [
         imgPath: 'assets/images/rengasdengklok.jpg',
         hasImage: true,
       ),
-    ],
-    relatedItems: [
-      RelatedItemModel(inv: 'INV. 1945-K-01', title: 'Bilik Rumah Rengasdengklok'),
     ],
   ),
   const SejarahModel(
@@ -127,9 +118,6 @@ final List<SejarahModel> defaultSejarahList = [
         hasImage: true,
       ),
     ],
-    relatedItems: [
-      RelatedItemModel(inv: 'INV. 1945-M-01', title: 'Mesin Tik Sayuti Melik'),
-    ],
   ),
   const SejarahModel(
     kodeTag: 'HIS-200845-1',
@@ -145,13 +133,11 @@ final List<SejarahModel> defaultSejarahList = [
       TimelineItemModel(
         date: '20 AGUSTUS 1945 · 09:00 WIB',
         title: 'Maklumat BKR',
-        desc: 'Seruan pembentukan pertahanan sipil dan pos-pos keamanan rakyat.',
+        desc:
+            'Seruan pembentukan pertahanan sipil dan pos-pos keamanan rakyat.',
         imgPath: 'assets/images/onboardin1.jpg',
         hasImage: true,
       ),
-    ],
-    relatedItems: [
-      RelatedItemModel(inv: 'INV. 1945-P-01', title: 'Lencana Kehormatan PETA'),
     ],
   ),
   const SejarahModel(
@@ -173,41 +159,5 @@ final List<SejarahModel> defaultSejarahList = [
         hasImage: true,
       ),
     ],
-    relatedItems: [
-      RelatedItemModel(inv: 'INV. 1928-S-01', title: 'Buku Putusan Kongres Pemuda'),
-    ],
   ),
 ];
-
-SejarahModel getSejarahHariIni() {
-  final now = DateTime.now();
-  final dayStr = now.day.toString().padLeft(2, '0');
-  final monthStr = now.month.toString().padLeft(2, '0');
-  final todayPrefix = '$dayStr$monthStr'; // format ddMM
-
-  try {
-    return defaultSejarahList.firstWhere(
-      (s) => s.tanggalKey.startsWith(todayPrefix) && s.urutan == 1,
-    );
-  } catch (_) {
-    return defaultSejarahList.first;
-  }
-}
-
-List<SejarahModel> getRandomSejarahList({int count = 5, SejarahModel? exclude}) {
-  final pool = List<SejarahModel>.from(
-    defaultSejarahList.where((s) => exclude == null || s.kodeTag != exclude.kodeTag),
-  )..shuffle();
-
-  final List<SejarahModel> result = [];
-  final random = Random();
-  while (result.length < count) {
-    if (pool.isNotEmpty) {
-      final index = result.length < pool.length ? result.length : random.nextInt(pool.length);
-      result.add(pool[index]);
-    } else {
-      result.add(defaultSejarahList.first);
-    }
-  }
-  return result;
-}

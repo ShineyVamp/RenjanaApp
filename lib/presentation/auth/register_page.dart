@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
@@ -47,7 +47,8 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       _hasText = value.isNotEmpty;
       _hasMinLength = value.length >= 8;
-      _hasComplexChars = value.contains(RegExp(r'[A-Z]')) &&
+      _hasComplexChars =
+          value.contains(RegExp(r'[A-Z]')) &&
           value.contains(RegExp(r'[a-z]')) &&
           value.contains(RegExp(r'[0-9]'));
     });
@@ -102,7 +103,9 @@ class _RegisterPageState extends State<RegisterPage> {
           Text(
             text,
             style: AppTypography.bodySmall(
-              color: isSatisfied ? AppColors.textPrimary : AppColors.textSecondary,
+              color: isSatisfied
+                  ? AppColors.textPrimary
+                  : AppColors.textSecondary,
             ),
           ),
         ],
@@ -131,11 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       Text('Daftar Akun', style: AppTypography.headingMedium()),
                       const SizedBox(height: 6),
-                      Container(
-                        width: 80,
-                        height: 2,
-                        color: AppColors.primary,
-                      ),
+                      Container(width: 80, height: 2, color: AppColors.primary),
                       const SizedBox(height: 10),
                       Text(
                         'Lengkapi data di bawah ini\nuntuk mulai menjelajah nusantara.',

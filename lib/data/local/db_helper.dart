@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'budaya_data.dart';
-import 'quiz_data.dart';
-import 'sejarah_data.dart';
+import 'seed/budaya_seed.dart';
+import 'seed/quiz_seed.dart';
+import 'seed/sejarah_seed.dart';
 
 /// Target pemetaan satu baris budaya saat migrasi kategori.
 class _BudayaKategoriTarget {
@@ -25,7 +25,7 @@ class DbHelper {
   factory DbHelper() => _instance;
   DbHelper._internal();
 
-  static const int _dbVersion = 6;
+  static const int _dbVersion = 7;
 
   static Database? _database;
 
@@ -72,8 +72,9 @@ class DbHelper {
     // global sehingga tabel harus dibangun ulang.
     try {
       final bookmarkInfo = await db.rawQuery('PRAGMA table_info(bookmark)');
-      final hasUserEmail =
-          bookmarkInfo.any((col) => col['name'] == 'userEmail');
+      final hasUserEmail = bookmarkInfo.any(
+        (col) => col['name'] == 'userEmail',
+      );
       if (bookmarkInfo.isNotEmpty && !hasUserEmail) {
         await db.transaction((txn) async {
           await txn.execute('ALTER TABLE bookmark RENAME TO bookmark_legacy');
@@ -122,6 +123,62 @@ class DbHelper {
     try {
       await db.execute('DROP TABLE IF EXISTS content');
     } catch (_) {}
+
+    // v7: kolom relatedItems dibuang karena tidak pernah ditampilkan di UI.
+    // Kolom dilepas dengan membangun ulang tabel agar tetap jalan di perangkat
+    // dengan SQLite lama yang belum mendukung ALTER TABLE DROP COLUMN.
+    await _dropKolomRelatedItems(db, 'sejarah', _sejarahTableSql, const [
+      'id',
+      'kodeTag',
+      'tanggalKey',
+      'urutan',
+      'judul',
+      'subtitle',
+      'ringkasan',
+      'gambarUtama',
+      'alurPeristiwa',
+    ]);
+    await _dropKolomRelatedItems(db, 'budaya', _budayaTableSql, const [
+      'id',
+      'kodeTag',
+      'jenis',
+      'urutan',
+      'judul',
+      'kategoriLabel',
+      'tagline',
+      'deskripsi',
+      'gambarUtama',
+      'maknaSpiritual',
+      'gambarMaknaSpiritual',
+      'konteksBudaya',
+      'gambarKonteksBudaya',
+    ]);
+  }
+
+  Future<void> _dropKolomRelatedItems(
+    Database db,
+    String tabel,
+    String createSql,
+    List<String> kolom,
+  ) async {
+    try {
+      final info = await db.rawQuery('PRAGMA table_info($tabel)');
+      final punyaRelatedItems = info.any(
+        (col) => col['name'] == 'relatedItems',
+      );
+      if (!punyaRelatedItems) return;
+
+      final daftarKolom = kolom.join(', ');
+      await db.transaction((txn) async {
+        await txn.execute('ALTER TABLE $tabel RENAME TO ${tabel}_lama');
+        await txn.execute(createSql);
+        await txn.execute(
+          'INSERT INTO $tabel ($daftarKolom) '
+          'SELECT $daftarKolom FROM ${tabel}_lama',
+        );
+        await txn.execute('DROP TABLE ${tabel}_lama');
+      });
+    } catch (_) {}
   }
 
   /// Pemetaan ID tag budaya bawaan versi lama ke skema kategori baru.
@@ -152,7 +209,8 @@ class DbHelper {
     ),
   };
 
-  static const String _bookmarkTableSql = '''CREATE TABLE IF NOT EXISTS bookmark (
+  static const String _bookmarkTableSql =
+      '''CREATE TABLE IF NOT EXISTS bookmark (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       userEmail TEXT NOT NULL DEFAULT '',
       itemType TEXT,
@@ -161,16 +219,15 @@ class DbHelper {
       UNIQUE(userEmail, kodeTag)
     )''';
 
-  Future<void> _createTables(Database db) async {
-    await db.execute('''CREATE TABLE IF NOT EXISTS user (
+  static const String _userTableSql = '''CREATE TABLE IF NOT EXISTS user (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nama TEXT,
       email TEXT UNIQUE,
       noHp TEXT,
       password TEXT
-    )''');
+    )''';
 
-    await db.execute('''CREATE TABLE IF NOT EXISTS quiz (
+  static const String _quizTableSql = '''CREATE TABLE IF NOT EXISTS quiz (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       kategori TEXT,
       tema TEXT,
@@ -179,9 +236,9 @@ class DbHelper {
       jawabanBenar INTEGER,
       gambar TEXT,
       penjelasan TEXT
-    )''');
+    )''';
 
-    await db.execute('''CREATE TABLE IF NOT EXISTS sejarah (
+  static const String _sejarahTableSql = '''CREATE TABLE IF NOT EXISTS sejarah (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       kodeTag TEXT UNIQUE,
       tanggalKey TEXT,
@@ -190,11 +247,10 @@ class DbHelper {
       subtitle TEXT,
       ringkasan TEXT,
       gambarUtama TEXT,
-      alurPeristiwa TEXT,
-      relatedItems TEXT
-    )''');
+      alurPeristiwa TEXT
+    )''';
 
-    await db.execute('''CREATE TABLE IF NOT EXISTS budaya (
+  static const String _budayaTableSql = '''CREATE TABLE IF NOT EXISTS budaya (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       kodeTag TEXT UNIQUE,
       jenis TEXT,
@@ -207,10 +263,14 @@ class DbHelper {
       maknaSpiritual TEXT,
       gambarMaknaSpiritual TEXT,
       konteksBudaya TEXT,
-      gambarKonteksBudaya TEXT,
-      relatedItems TEXT
-    )''');
+      gambarKonteksBudaya TEXT
+    )''';
 
+  Future<void> _createTables(Database db) async {
+    await db.execute(_userTableSql);
+    await db.execute(_quizTableSql);
+    await db.execute(_sejarahTableSql);
+    await db.execute(_budayaTableSql);
     await db.execute(_bookmarkTableSql);
   }
 
@@ -221,19 +281,15 @@ class DbHelper {
     );
     if (quizCount == null || quizCount <= 2) {
       for (final q in defaultQuizList) {
-        await db.insert(
-          'quiz',
-          {
-            'kategori': q.kategori,
-            'tema': q.tema,
-            'soal': q.soal,
-            'daftarJawaban': jsonEncode(q.daftarJawaban),
-            'jawabanBenar': q.jawabanBenar,
-            'gambar': q.gambar,
-            'penjelasan': q.penjelasan,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await db.insert('quiz', {
+          'kategori': q.kategori,
+          'tema': q.tema,
+          'soal': q.soal,
+          'daftarJawaban': jsonEncode(q.daftarJawaban),
+          'jawabanBenar': q.jawabanBenar,
+          'gambar': q.gambar,
+          'penjelasan': q.penjelasan,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     }
 
@@ -253,9 +309,6 @@ class DbHelper {
           'gambarUtama': s.gambarUtama,
           'alurPeristiwa': jsonEncode(
             s.alurPeristiwa.map((item) => item.toMap()).toList(),
-          ),
-          'relatedItems': jsonEncode(
-            s.relatedItems.map((item) => item.toMap()).toList(),
           ),
         });
       }
@@ -280,9 +333,6 @@ class DbHelper {
           'gambarMaknaSpiritual': b.gambarMaknaSpiritual,
           'konteksBudaya': b.konteksBudaya,
           'gambarKonteksBudaya': b.gambarKonteksBudaya,
-          'relatedItems': jsonEncode(
-            b.relatedItems.map((item) => item.toMap()).toList(),
-          ),
         });
       }
     }

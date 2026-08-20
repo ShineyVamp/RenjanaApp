@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import '../local/db_helper.dart';
-import '../local/sejarah_data.dart';
+import '../local/seed/sejarah_seed.dart';
 import '../models/sejarah_model.dart';
 
 class SejarahRepository {
@@ -23,20 +23,9 @@ class SejarahRepository {
           final decoded = jsonDecode(map['alurPeristiwa'] as String);
           if (decoded is List) {
             alur = decoded
-                .map((i) => TimelineItemModel.fromMap(i as Map<String, dynamic>))
-                .toList();
-          }
-        } catch (_) {}
-      }
-
-      List<RelatedItemModel> related = [];
-      if (map['relatedItems'] != null &&
-          map['relatedItems'].toString().isNotEmpty) {
-        try {
-          final decoded = jsonDecode(map['relatedItems'] as String);
-          if (decoded is List) {
-            related = decoded
-                .map((i) => RelatedItemModel.fromMap(i as Map<String, dynamic>))
+                .map(
+                  (i) => TimelineItemModel.fromMap(i as Map<String, dynamic>),
+                )
                 .toList();
           }
         } catch (_) {}
@@ -50,9 +39,9 @@ class SejarahRepository {
         judul: map['judul'] as String? ?? '',
         subtitle: map['subtitle'] as String? ?? '',
         ringkasan: map['ringkasan'] as String? ?? '',
-        gambarUtama: map['gambarUtama'] as String? ?? 'assets/images/1308history.png',
+        gambarUtama:
+            map['gambarUtama'] as String? ?? 'assets/images/1308history.png',
         alurPeristiwa: alur,
-        relatedItems: related,
       );
     }).toList();
   }
@@ -95,8 +84,9 @@ class SejarahRepository {
     final random = Random();
     while (result.length < count) {
       if (pool.isNotEmpty) {
-        final index =
-            result.length < pool.length ? result.length : random.nextInt(pool.length);
+        final index = result.length < pool.length
+            ? result.length
+            : random.nextInt(pool.length);
         result.add(pool[index]);
       } else if (list.isNotEmpty) {
         result.add(list.first);
@@ -119,9 +109,6 @@ class SejarahRepository {
       'gambarUtama': model.gambarUtama,
       'alurPeristiwa': jsonEncode(
         model.alurPeristiwa.map((i) => i.toMap()).toList(),
-      ),
-      'relatedItems': jsonEncode(
-        model.relatedItems.map((i) => i.toMap()).toList(),
       ),
     });
   }
@@ -146,9 +133,6 @@ class SejarahRepository {
         'gambarUtama': model.gambarUtama,
         'alurPeristiwa': jsonEncode(
           model.alurPeristiwa.map((i) => i.toMap()).toList(),
-        ),
-        'relatedItems': jsonEncode(
-          model.relatedItems.map((i) => i.toMap()).toList(),
         ),
       },
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',

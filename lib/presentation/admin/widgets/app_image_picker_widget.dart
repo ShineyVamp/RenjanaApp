@@ -87,9 +87,7 @@ class AppImagePickerWidget extends StatelessWidget {
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () {
               Navigator.pop(ctx);
               openAppSettings();
@@ -238,11 +236,11 @@ class AppImagePickerWidget extends StatelessWidget {
                               itemCount: defaultAssets.length,
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                                childAspectRatio: 1,
-                              ),
+                                    crossAxisCount: 3,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    childAspectRatio: 1,
+                                  ),
                               itemBuilder: (ctx, index) {
                                 final assetPath = defaultAssets[index];
                                 final isSelected =
@@ -273,8 +271,9 @@ class AppImagePickerWidget extends StatelessWidget {
                                       fit: StackFit.expand,
                                       children: [
                                         ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                           child: Image.asset(
                                             assetPath,
                                             fit: BoxFit.cover,
@@ -310,7 +309,9 @@ class AppImagePickerWidget extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Masukkan Path File atau Aset Lokal',
-                                    style: AppTypography.labelBold(fontSize: 13),
+                                    style: AppTypography.labelBold(
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   TextField(
@@ -338,13 +339,14 @@ class AppImagePickerWidget extends StatelessWidget {
                                           vertical: 12,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                       ),
                                       onPressed: () {
-                                        final path =
-                                            customPathController.text.trim();
+                                        final path = customPathController.text
+                                            .trim();
                                         if (path.isNotEmpty) {
                                           onImageSelected(path);
                                         }
@@ -387,10 +389,7 @@ class AppImagePickerWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              label,
-              style: AppTypography.labelBold(fontSize: 13),
-            ),
+            Text(label, style: AppTypography.labelBold(fontSize: 13)),
             if (isRequired) ...[
               const SizedBox(width: 4),
               const Text(

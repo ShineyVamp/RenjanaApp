@@ -28,10 +28,7 @@ class _SplashPageState extends State<SplashPage> {
     if (PreferenceHandler.isLogin) {
       final user = PreferenceHandler.user;
       final isAdmin = PreferenceHandler.isAdmin;
-      context.pushAndRemoveAll(MainPage(
-        currentUser: user,
-        isAdmin: isAdmin,
-      ));
+      context.pushAndRemoveAll(MainPage(currentUser: user, isAdmin: isAdmin));
     } else {
       context.pushAndRemoveAll(const OnboardingPage());
     }

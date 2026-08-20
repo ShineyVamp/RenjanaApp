@@ -59,9 +59,4 @@ class QuizSQLModel {
       penjelasan: map['penjelasan'] as String?,
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory QuizSQLModel.fromJson(String source) =>
-      QuizSQLModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

@@ -4,7 +4,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/extensions/navigation.dart';
 import '../../../../core/widgets/app_image.dart';
 import '../../../../core/widgets/section_header.dart';
-import '../../../../data/local/budaya_kategori.dart';
+import '../../../../core/constants/budaya_kategori.dart';
 import '../../../../data/models/budaya_model.dart';
 import '../../../../data/repositories/budaya_repository.dart';
 import '../../koleksi/koleksi_kategori_page.dart';
@@ -90,20 +90,19 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
                         controller: _scrollController,
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: List.generate(
-                            budayaKategoriList.length,
-                            (index) {
-                              final kategori = budayaKategoriList[index];
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                  right: index < budayaKategoriList.length - 1
-                                      ? 20
-                                      : 0,
-                                ),
-                                child: _buildCategoryCard(kategori),
-                              );
-                            },
-                          ),
+                          children: List.generate(budayaKategoriList.length, (
+                            index,
+                          ) {
+                            final kategori = budayaKategoriList[index];
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                right: index < budayaKategoriList.length - 1
+                                    ? 20
+                                    : 0,
+                              ),
+                              child: _buildCategoryCard(kategori),
+                            );
+                          }),
                         ),
                       ),
                     ),
@@ -179,7 +178,9 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
                     children: [
                       Text(
                         'Jelajahi lebih lanjut',
-                        style: AppTypography.labelBold(color: AppColors.primary),
+                        style: AppTypography.labelBold(
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       const Icon(

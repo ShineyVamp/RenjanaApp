@@ -25,17 +25,6 @@ class QuizRepository {
     return results.map((map) => QuizSQLModel.fromMap(map)).toList();
   }
 
-  Future<List<QuizSQLModel>> getQuizByKategori(String kategori) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query(
-      'quiz',
-      where: 'kategori = ?',
-      whereArgs: [kategori],
-      orderBy: 'id DESC',
-    );
-    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
-  }
-
   Future<List<QuizSQLModel>> getQuizByTema(String tema) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> results = await db.query(
@@ -102,7 +91,11 @@ class QuizRepository {
   Future<bool> deleteQuizzesByTema(String tema) async {
     final db = await _dbHelper.database;
     try {
-      final count = await db.delete('quiz', where: 'tema = ?', whereArgs: [tema]);
+      final count = await db.delete(
+        'quiz',
+        where: 'tema = ?',
+        whereArgs: [tema],
+      );
       return count > 0;
     } catch (e) {
       return false;

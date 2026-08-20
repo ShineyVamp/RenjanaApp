@@ -7,15 +7,14 @@ import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
-import '../../data/local/budaya_data.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/budaya_repository.dart';
 
 class DetailBudayaPage extends StatefulWidget {
-  final BudayaModel? budaya;
+  final BudayaModel budaya;
 
-  const DetailBudayaPage({super.key, this.budaya});
+  const DetailBudayaPage({super.key, required this.budaya});
 
   @override
   State<DetailBudayaPage> createState() => _DetailBudayaPageState();
@@ -36,7 +35,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
   }
 
   Future<void> _checkBookmarkStatus() async {
-    final data = widget.budaya ?? defaultBudayaList.first;
+    final data = widget.budaya;
     final bookmarked = await _bookmarkRepository.isBookmarked(data.kodeTag);
     if (!mounted) return;
     setState(() {
@@ -63,7 +62,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.budaya ?? defaultBudayaList.first;
+    final data = widget.budaya;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -130,7 +129,9 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                           ? 'Berhasil disimpan ke Bookmark'
                                           : 'Berhasil dihapus dari Bookmark',
                                     ),
-                                    duration: const Duration(milliseconds: 1200),
+                                    duration: const Duration(
+                                      milliseconds: 1200,
+                                    ),
                                     behavior: SnackBarBehavior.floating,
                                     backgroundColor: AppColors.success,
                                   ),
@@ -285,8 +286,12 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         const SizedBox(height: 16),
                         ScrollbarTheme(
                           data: const ScrollbarThemeData(
-                            thumbColor: WidgetStatePropertyAll(AppColors.primaryDark),
-                            trackColor: WidgetStatePropertyAll(AppColors.scrollTrack),
+                            thumbColor: WidgetStatePropertyAll(
+                              AppColors.primaryDark,
+                            ),
+                            trackColor: WidgetStatePropertyAll(
+                              AppColors.scrollTrack,
+                            ),
                           ),
                           child: Scrollbar(
                             controller: _scrollRelated,
@@ -303,14 +308,16 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(bottom: 20),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: List.generate(
                                       _otherBudayaList.length,
                                       (index) {
                                         final other = _otherBudayaList[index];
                                         return Padding(
                                           padding: EdgeInsets.only(
-                                            right: index <
+                                            right:
+                                                index <
                                                     _otherBudayaList.length - 1
                                                 ? 14
                                                 : 0,
@@ -318,9 +325,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                           child: GestureDetector(
                                             onTap: () {
                                               context.push(
-                                                DetailBudayaPage(
-                                                  budaya: other,
-                                                ),
+                                                DetailBudayaPage(budaya: other),
                                               );
                                             },
                                             child: SizedBox(
@@ -331,7 +336,9 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                                 children: [
                                                   ClipRRect(
                                                     borderRadius:
-                                                        BorderRadius.circular(6),
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                     child: AspectRatio(
                                                       aspectRatio: 1,
                                                       child: Container(
@@ -349,23 +356,28 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                                   Text(
                                                     other.kodeTag,
                                                     style: AppTypography.tag(
-                                                      color: AppColors.primaryDark,
+                                                      color:
+                                                          AppColors.primaryDark,
                                                     ),
                                                   ),
                                                   const SizedBox(height: 2),
                                                   Text(
                                                     other.judul,
                                                     maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: AppTypography
-                                                        .editorialSubheading(
-                                                      color: AppColors.textPrimary,
-                                                    ).copyWith(
-                                                      fontSize: 13.5,
-                                                      fontWeight: FontWeight.w700,
-                                                      fontStyle: FontStyle.normal,
-                                                      height: 1.25,
-                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style:
+                                                        AppTypography.editorialSubheading(
+                                                          color: AppColors
+                                                              .textPrimary,
+                                                        ).copyWith(
+                                                          fontSize: 13.5,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontStyle:
+                                                              FontStyle.normal,
+                                                          height: 1.25,
+                                                        ),
                                                   ),
                                                 ],
                                               ),
