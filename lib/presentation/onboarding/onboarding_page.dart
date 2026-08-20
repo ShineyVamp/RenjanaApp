@@ -152,7 +152,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Color(0x80F4F0E7),
+                  AppColors.backgroundSoft,
                   AppColors.background,
                 ],
                 stops: [0.3, 0.6, 0.85],

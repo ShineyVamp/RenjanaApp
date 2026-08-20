@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
+import '../../../data/local/budaya_kategori.dart';
 import '../../../data/models/budaya_model.dart';
 import '../../../data/models/sejarah_model.dart';
 import '../../../data/repositories/budaya_repository.dart';
@@ -510,7 +511,10 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               );
 
                               if (isEditing) {
-                                await _sejarahRepository.updateSejarah(model);
+                                await _sejarahRepository.updateSejarah(
+                                  model,
+                                  previousKodeTag: sejarahToEdit.kodeTag,
+                                );
                               } else {
                                 await _sejarahRepository.tambahSejarah(model);
                               }
@@ -679,20 +683,35 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
   // ---------------------------------------------------------------------------
   void _showBudayaFormDialog({BudayaModel? budayaToEdit}) {
     final isEditing = budayaToEdit != null;
-    final kodeTagController = TextEditingController(
-      text: isEditing ? budayaToEdit.kodeTag : 'BUD-SNJT-1',
-    );
-    final jenisController = TextEditingController(
-      text: isEditing ? budayaToEdit.jenis : 'SNJT',
-    );
+
+    // Kategori dibatasi pada daftar resmi di budayaKategoriList.
+    String selectedJenis = (isEditing
+            ? kategoriByKode(budayaToEdit.jenis)
+            : null)
+        ?.kode ??
+        budayaKategoriList.first.kode;
+    bool isDestinasi = isEditing ? budayaToEdit.isDestinasi : false;
+
     final urutanController = TextEditingController(
       text: isEditing ? budayaToEdit.urutan.toString() : '1',
     );
+    final kodeTagController = TextEditingController(
+      text: isEditing
+          ? budayaToEdit.kodeTag
+          : buatKodeTagBudaya(jenis: selectedJenis, urutan: 1),
+    );
+
+    // ID tag selalu diturunkan dari kategori + urutan + status destinasi.
+    void syncKodeTag() {
+      kodeTagController.text = buatKodeTagBudaya(
+        jenis: selectedJenis,
+        urutan: int.tryParse(urutanController.text.trim()) ?? 1,
+        isDestinasi: isDestinasi,
+      );
+    }
+
     final judulController = TextEditingController(
       text: isEditing ? budayaToEdit.judul : '',
-    );
-    final kategoriLabelController = TextEditingController(
-      text: isEditing ? budayaToEdit.kategoriLabel : 'SENJATA TRADISIONAL',
     );
     final taglineController = TextEditingController(
       text: isEditing ? budayaToEdit.tagline : '',
@@ -767,22 +786,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         const Divider(color: AppColors.primary),
                         const SizedBox(height: 12),
 
-                        // ID Tag (BUD-JENIS-urutan)
-                        Text(
-                          'ID Tag (Format: BUD-<JENIS>-<urutan>)',
-                          style: AppTypography.labelBold(fontSize: 13),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: kodeTagController,
-                          decoration: _inputDecoration('Contoh: BUD-SNJT-1'),
-                          validator: (val) => val == null || val.trim().isEmpty
-                              ? 'Kode tag wajib diisi'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Jenis & Urutan
+                        // Kategori & Urutan menentukan ID Tag
                         Row(
                           children: [
                             Expanded(
@@ -791,17 +795,36 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Jenis (SNJT/ADT/TRN/MSK)',
+                                    'Kategori Budaya',
                                     style: AppTypography.labelBold(fontSize: 13),
                                   ),
                                   const SizedBox(height: 6),
-                                  TextFormField(
-                                    controller: jenisController,
-                                    decoration: _inputDecoration('SNJT'),
-                                    validator: (val) =>
-                                        val == null || val.trim().isEmpty
-                                            ? 'Wajib diisi'
-                                            : null,
+                                  DropdownButtonFormField<String>(
+                                    initialValue: selectedJenis,
+                                    isExpanded: true,
+                                    decoration: _inputDecoration(''),
+                                    items: budayaKategoriList
+                                        .map(
+                                          (k) => DropdownMenuItem<String>(
+                                            value: k.kode,
+                                            child: Text(
+                                              k.nama,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.plusJakartaSans(
+                                                fontSize: 13,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (val) {
+                                      if (val == null) return;
+                                      setModalState(() {
+                                        selectedJenis = val;
+                                        syncKodeTag();
+                                      });
+                                    },
                                   ),
                                 ],
                               ),
@@ -821,6 +844,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                     controller: urutanController,
                                     keyboardType: TextInputType.number,
                                     decoration: _inputDecoration('1'),
+                                    onChanged: (_) =>
+                                        setModalState(syncKodeTag),
                                     validator: (val) =>
                                         val == null || val.trim().isEmpty
                                             ? 'Wajib'
@@ -830,6 +855,47 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 4),
+
+                        // Penanda destinasi wisata (suffix -D pada ID Tag)
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          activeThumbColor: AppColors.primary,
+                          value: isDestinasi,
+                          title: Text(
+                            'Juga tempat wisata (Destinasi)',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          subtitle: Text(
+                            'Menambahkan akhiran -D pada ID Tag dan menampilkan '
+                            'item ini di bagian Pilihan Destinasi.',
+                            style: AppTypography.bodySmall(),
+                          ),
+                          onChanged: (val) {
+                            setModalState(() {
+                              isDestinasi = val;
+                              syncKodeTag();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+
+                        // ID Tag otomatis (BUD-<KATEGORI>-<urutan>[-D])
+                        Text(
+                          'ID Tag (otomatis)',
+                          style: AppTypography.labelBold(fontSize: 13),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: kodeTagController,
+                          readOnly: true,
+                          decoration: _inputDecoration('BUD-SNJT-1'),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         const SizedBox(height: 12),
 
@@ -850,15 +916,31 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Kategori Label
+                        // Kategori Label (mengikuti kategori terpilih)
                         Text(
-                          'Kategori Label',
+                          'Kategori Label (otomatis)',
                           style: AppTypography.labelBold(fontSize: 13),
                         ),
                         const SizedBox(height: 6),
-                        TextFormField(
-                          controller: kategoriLabelController,
-                          decoration: _inputDecoration('SENJATA TRADISIONAL'),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Text(
+                            kategoriByKode(selectedJenis)?.label ?? selectedJenis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 12),
 
@@ -981,17 +1063,23 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                             onPressed: () async {
                               if (!formKey.currentState!.validate()) return;
 
+                              final urutan = int.tryParse(
+                                    urutanController.text.trim(),
+                                  ) ??
+                                  1;
                               final model = BudayaModel(
                                 id: isEditing ? budayaToEdit.id : null,
-                                kodeTag: kodeTagController.text.trim(),
-                                jenis: jenisController.text.trim(),
-                                urutan: int.tryParse(
-                                      urutanController.text.trim(),
-                                    ) ??
-                                    1,
+                                kodeTag: buatKodeTagBudaya(
+                                  jenis: selectedJenis,
+                                  urutan: urutan,
+                                  isDestinasi: isDestinasi,
+                                ),
+                                jenis: selectedJenis,
+                                urutan: urutan,
                                 judul: judulController.text.trim(),
-                                kategoriLabel: kategoriLabelController.text
-                                    .trim(),
+                                kategoriLabel:
+                                    kategoriByKode(selectedJenis)?.label ??
+                                        selectedJenis,
                                 tagline: taglineController.text.trim(),
                                 deskripsi: deskripsiController.text.trim(),
                                 gambarUtama: selectedImage,
@@ -1013,7 +1101,10 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               );
 
                               if (isEditing) {
-                                await _budayaRepository.updateBudaya(model);
+                                await _budayaRepository.updateBudaya(
+                                  model,
+                                  previousKodeTag: budayaToEdit.kodeTag,
+                                );
                               } else {
                                 await _budayaRepository.tambahBudaya(model);
                               }

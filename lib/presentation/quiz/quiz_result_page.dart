@@ -62,7 +62,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
       feedbackTitle = 'Sempurna!';
       feedbackDesc =
           'Semua jawaban Anda benar! Anda adalah penjelajah nusantara sejati.';
-      feedbackColor = const Color(0xFFD4AF37); // Gold
+      feedbackColor = AppColors.gold; // Gold
       feedbackIcon = Icons.workspace_premium_rounded;
     } else if (scorePercent >= 70) {
       feedbackTitle = 'Hebat Sekali!';
@@ -74,7 +74,7 @@ class _QuizResultPageState extends State<QuizResultPage> {
       feedbackTitle = 'Cukup Bagus!';
       feedbackDesc =
           'Anda sudah memiliki dasar yang baik. Pelajari lagi materi untuk hasil maksimal.';
-      feedbackColor = const Color(0xFFE5A00D);
+      feedbackColor = AppColors.warning;
       feedbackIcon = Icons.lightbulb_outline_rounded;
     } else {
       feedbackTitle = 'Jangan Menyerah!';

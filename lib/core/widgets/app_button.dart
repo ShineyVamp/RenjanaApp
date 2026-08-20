@@ -40,18 +40,6 @@ class AppButton extends StatelessWidget {
     this.textColor,
   }) : type = AppButtonType.outlined;
 
-  const AppButton.compact({
-    super.key,
-    required this.text,
-    required this.onPressed,
-    this.width,
-    this.height = 44,
-    this.borderRadius = 4,
-    this.icon,
-    this.backgroundColor,
-    this.textColor,
-  }) : type = AppButtonType.primary;
-
   @override
   Widget build(BuildContext context) {
     final effectiveBg = backgroundColor ??

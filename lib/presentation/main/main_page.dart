@@ -25,16 +25,9 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
   bool get _isAdmin {
-    if (widget.isAdmin == true) return true;
     final user = widget.currentUser ?? PreferenceHandler.user;
-    if (user != null) {
-      final name = user.nama.toLowerCase().trim();
-      final email = user.email.toLowerCase().trim();
-      return name == 'admin1' ||
-          name.contains('admin') ||
-          email.contains('admin');
-    }
-    return PreferenceHandler.isAdmin;
+    if (user != null) return user.isAdminAccount;
+    return widget.isAdmin ?? PreferenceHandler.isAdmin;
   }
 
   String get _userName {
