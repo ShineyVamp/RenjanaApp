@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:renjana/presentation/main/main_page.dart';
 import 'package:renjana/services/preference_handler.dart';
@@ -19,21 +19,17 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    isLogin();
+    _checkLoginAndNavigate();
   }
 
-  void isLogin() async {
-    if (PreferenceHandler.isLogin) {
-      context.pushAndRemoveAll(MainPage());
-    } else {
-      _navigateToNext();
-    }
-  }
-
-  void _navigateToNext() async {
+  Future<void> _checkLoginAndNavigate() async {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    context.pushAndRemoveAll(const OnboardingPage());
+    if (PreferenceHandler.isLogin) {
+      context.pushAndRemoveAll(const MainPage());
+    } else {
+      context.pushAndRemoveAll(const OnboardingPage());
+    }
   }
 
   @override
