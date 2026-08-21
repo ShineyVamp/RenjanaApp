@@ -4,6 +4,7 @@ import '../../models/sejarah_model.dart';
 final List<SejarahModel> defaultSejarahList = [
   const SejarahModel(
     kodeTag: 'HIS-170845-1',
+    provinsi: 'DKI Jakarta',
     tanggalKey: '170845',
     urutan: 1,
     judul: 'Detik Proklamasi',
@@ -45,6 +46,7 @@ final List<SejarahModel> defaultSejarahList = [
   ),
   const SejarahModel(
     kodeTag: 'HIS-150845-1',
+    provinsi: 'DKI Jakarta',
     tanggalKey: '150845',
     urutan: 1,
     judul: 'Runtuhnya Tirani',
@@ -77,6 +79,7 @@ final List<SejarahModel> defaultSejarahList = [
   ),
   const SejarahModel(
     kodeTag: 'HIS-160845-1',
+    provinsi: 'Jawa Barat',
     tanggalKey: '160845',
     urutan: 1,
     judul: 'Penculikan Rengasdengklok',
@@ -98,6 +101,7 @@ final List<SejarahModel> defaultSejarahList = [
   ),
   const SejarahModel(
     kodeTag: 'HIS-160845-2',
+    provinsi: 'DKI Jakarta',
     tanggalKey: '160845',
     urutan: 2,
     judul: 'Malam Perumusan Naskah',
@@ -119,6 +123,7 @@ final List<SejarahModel> defaultSejarahList = [
   ),
   const SejarahModel(
     kodeTag: 'HIS-200845-1',
+    provinsi: 'DKI Jakarta',
     tanggalKey: '200845',
     urutan: 1,
     judul: 'Garda Kedaulatan',
@@ -140,6 +145,7 @@ final List<SejarahModel> defaultSejarahList = [
   ),
   const SejarahModel(
     kodeTag: 'HIS-281028-1',
+    provinsi: 'DKI Jakarta',
     tanggalKey: '281028',
     urutan: 1,
     judul: 'Ikrar Sumpah Pemuda',

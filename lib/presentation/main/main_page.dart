@@ -8,6 +8,8 @@ import '../../data/models/user_model.dart';
 import '../../services/preference_handler.dart';
 import '../admin/widgets/admin_drawer.dart';
 import '../home/home_page.dart';
+import '../jelajah/jelajah_page.dart';
+import '../peta/peta_page.dart';
 import '../quiz/quiz_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -66,16 +68,8 @@ class _MainPageState extends State<MainPage> {
         isAdmin: _isAdmin,
         onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      HomePage(
-        userName: _userName,
-        isAdmin: _isAdmin,
-        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-      ),
-      HomePage(
-        userName: _userName,
-        isAdmin: _isAdmin,
-        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-      ),
+      JelajahPage(onBukaPeta: () => setState(() => _selectedIndex = 2)),
+      const PetaPage(),
       const QuizPage(),
       const ProfilePage(),
     ];

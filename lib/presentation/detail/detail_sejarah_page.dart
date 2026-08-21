@@ -10,6 +10,7 @@ import '../../core/widgets/detail_top_bar.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
+import '../../services/riwayat_handler.dart';
 import 'widgets/timeline_item_widget.dart';
 
 class DetailSejarahPage extends StatefulWidget {
@@ -33,6 +34,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     super.initState();
     _checkBookmarkStatus();
     _loadOtherSejarah();
+    RiwayatHandler.catatDibuka('sejarah', widget.sejarah.kodeTag);
   }
 
   Future<void> _checkBookmarkStatus() async {

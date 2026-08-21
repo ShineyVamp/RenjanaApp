@@ -4,6 +4,7 @@ import '../../models/budaya_model.dart';
 final List<BudayaModel> defaultBudayaList = [
   const BudayaModel(
     kodeTag: 'BUD-SNJT-1',
+    provinsi: 'DI Yogyakarta',
     jenis: 'SNJT',
     urutan: 1,
     judul: 'Q-RIS',
@@ -28,6 +29,7 @@ final List<BudayaModel> defaultBudayaList = [
   ),
   const BudayaModel(
     kodeTag: 'BUD-SRK-1-D',
+    provinsi: 'Jawa Tengah',
     jenis: 'SRK',
     urutan: 1,
     judul: 'BOROBUDUR',
@@ -50,6 +52,7 @@ final List<BudayaModel> defaultBudayaList = [
   ),
   const BudayaModel(
     kodeTag: 'BUD-SNJT-2',
+    provinsi: 'Sulawesi Selatan',
     jenis: 'SNJT',
     urutan: 2,
     judul: 'BADIK SULAWESI',
@@ -72,6 +75,7 @@ final List<BudayaModel> defaultBudayaList = [
   ),
   const BudayaModel(
     kodeTag: 'BUD-TRN-1',
+    provinsi: 'Aceh',
     jenis: 'TRN',
     urutan: 1,
     judul: 'TARI SAMAN ACEH',
@@ -92,6 +96,7 @@ final List<BudayaModel> defaultBudayaList = [
   ),
   const BudayaModel(
     kodeTag: 'BUD-RMH-1-D',
+    provinsi: 'Sulawesi Selatan',
     jenis: 'RMH',
     urutan: 1,
     judul: 'TONGKONAN TORAJA',
@@ -111,6 +116,7 @@ final List<BudayaModel> defaultBudayaList = [
   ),
   const BudayaModel(
     kodeTag: 'BUD-MSK-1',
+    provinsi: 'Jawa Tengah',
     jenis: 'MSK',
     urutan: 1,
     judul: 'GAMELAN JAWA',

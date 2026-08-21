@@ -30,6 +30,8 @@ class BudayaRepository {
         gambarMaknaSpiritual: map['gambarMaknaSpiritual'] as String?,
         konteksBudaya: map['konteksBudaya'] as String?,
         gambarKonteksBudaya: map['gambarKonteksBudaya'] as String?,
+        provinsi: map['provinsi'] as String?,
+        detailKategori: BudayaModel.detailDariJson(map['detailKategori']),
       );
     }).toList();
   }
@@ -150,6 +152,8 @@ class BudayaRepository {
       'gambarMaknaSpiritual': model.gambarMaknaSpiritual,
       'konteksBudaya': model.konteksBudaya,
       'gambarKonteksBudaya': model.gambarKonteksBudaya,
+      'provinsi': model.provinsi,
+      'detailKategori': model.detailKategoriJson,
     });
   }
 
@@ -173,6 +177,8 @@ class BudayaRepository {
         'gambarMaknaSpiritual': model.gambarMaknaSpiritual,
         'konteksBudaya': model.konteksBudaya,
         'gambarKonteksBudaya': model.gambarKonteksBudaya,
+        'provinsi': model.provinsi,
+        'detailKategori': model.detailKategoriJson,
       },
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',
       whereArgs: [model.id ?? oldKodeTag],

@@ -10,6 +10,7 @@ import '../../core/widgets/detail_top_bar.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/budaya_repository.dart';
+import '../../services/riwayat_handler.dart';
 
 class DetailBudayaPage extends StatefulWidget {
   final BudayaModel budaya;
@@ -32,6 +33,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
     super.initState();
     _checkBookmarkStatus();
     _loadOtherBudaya();
+    RiwayatHandler.catatDibuka('budaya', widget.budaya.kodeTag);
   }
 
   Future<void> _checkBookmarkStatus() async {
