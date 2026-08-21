@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renjana/core/constants/app_typography.dart';
 import '../constants/app_colors.dart';
@@ -19,7 +19,8 @@ class DetailSectionBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      width: double.infinity,
       padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
