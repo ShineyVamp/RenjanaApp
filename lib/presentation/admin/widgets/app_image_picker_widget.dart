@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/widgets/app_image.dart';
@@ -379,6 +380,7 @@ class AppImagePickerWidget extends StatelessWidget {
     );
   }
 
+  // kode utama
   @override
   Widget build(BuildContext context) {
     final hasImage =
@@ -469,60 +471,54 @@ class AppImagePickerWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      onPressed: () => _showImagePickerSheet(context),
+                      icon: const Icon(
+                        Icons.cloud_upload_outlined,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        hasImage ? 'Ganti Gambar' : 'Pilih Gambar',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    if (hasImage && !isRequired) ...[
+                      const SizedBox(width: 10),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 6,
                           ),
-                          onPressed: () => _showImagePickerSheet(context),
-                          icon: const Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            hasImage ? 'Ganti Gambar' : 'Pilih Gambar',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () => onImageSelected(null),
+                        child: Text(
+                          'Hapus',
+                          style: AppTypography.buttonText(
+                            color: AppColors.primary,
                           ),
                         ),
-                        if (hasImage && !isRequired) ...[
-                          const SizedBox(width: 10),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 6,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: () => onImageSelected(null),
-                            child: Text(
-                              'Hapus',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.error,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                      ),
+                    ],
                   ],
                 ),
               ),
