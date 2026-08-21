@@ -29,48 +29,137 @@ class _QuizPageState extends State<QuizPage> {
     'assets/images/onboardin1.jpg',
   ];
 
+  // grid rekomendasi: 3 baris ke bawah, 3 kolom ke samping
+  static const int _maxRecommendations = 9;
+  static const int _recommendationRows = 3;
+  static const double _recommendationCardWidth = 350;
+  static const double _recommendationCardHeight = 140;
+
+  final ScrollController _scrollRekomendasi = ScrollController();
+
+  // tempat naruh rekomendasi kuis biar gak ilang kalo di refresh
+  List<String> _recommendedThemes = [];
+
   @override
   void initState() {
     super.initState();
     _loadData();
   }
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _scrollRekomendasi.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData({bool showLoader = true}) async {
+    if (showLoader) setState(() => _isLoading = true);
     final list = await _quizRepository.getAllQuizzes();
     if (!mounted) return;
     setState(() {
       _allQuizzes = list;
       _isLoading = false;
+      _syncRecommendedThemes();
     });
   }
 
-  // Soal dikelompokkan per tema untuk daftar rekomendasi.
+  // semua nama tema yang punya soal
+  List<String> get _allThemes {
+    final set = <String>{};
+    for (final q in _allQuizzes) {
+      final tema = q.tema.trim();
+      if (tema.isNotEmpty) set.add(tema);
+    }
+    return set.toList();
+  }
+
+  List<String> _pickRandomThemes() {
+    final pool = _allThemes..shuffle();
+    return pool.take(_maxRecommendations).toList();
+  }
+
+  void _syncRecommendedThemes() {
+    final tersedia = _allThemes.toSet();
+    _recommendedThemes = _recommendedThemes.where(tersedia.contains).toList();
+    if (_recommendedThemes.isEmpty) {
+      _recommendedThemes = _pickRandomThemes();
+    }
+  }
+
+  void _shuffleRecommendations() {
+    setState(() => _recommendedThemes = _pickRandomThemes());
+    if (_scrollRekomendasi.hasClients) {
+      _scrollRekomendasi.jumpTo(0);
+    }
+  }
+
+  // Soal dikelompokkan per tema, lalu diambil sesuai tema yang sedang terpilih.
   List<_ThemeRecommendation> get _themeRecommendations {
     final Map<String, List<QuizSQLModel>> grouped = {};
     for (final q in _allQuizzes) {
-      if (q.tema.trim().isEmpty) continue;
-      grouped.putIfAbsent(q.tema, () => []).add(q);
+      final tema = q.tema.trim();
+      if (tema.isEmpty) continue;
+      grouped.putIfAbsent(tema, () => []).add(q);
     }
 
-    return grouped.entries.map((e) {
-      final first = e.value.first;
-      String? coverImage = first.gambar;
-      for (final q in e.value) {
+    final result = <_ThemeRecommendation>[];
+    for (final tema in _recommendedThemes) {
+      final soalList = grouped[tema];
+      if (soalList == null || soalList.isEmpty) continue;
+
+      final first = soalList.first;
+      String coverImage = first.gambar ?? '';
+      for (final q in soalList) {
         if (q.gambar != null && q.gambar!.trim().isNotEmpty) {
-          coverImage = q.gambar;
+          coverImage = q.gambar!;
           break;
         }
       }
-      return _ThemeRecommendation(
-        tema: e.key,
-        kategori: first.kategori,
-        coverImage: coverImage ?? 'assets/images/rengasdengklok.jpg',
-        questionCount: e.value.length,
-        sampleQuestion: first.soal,
-        questions: e.value,
+      result.add(
+        _ThemeRecommendation(
+          tema: tema,
+          kategori: first.kategori,
+          coverImage: coverImage,
+          questionCount: soalList.length,
+          sampleQuestion: first.soal,
+          questions: soalList,
+        ),
       );
-    }).toList();
+    }
+    return result;
+  }
+
+  // Kartu dipecah per kolom berisi 3 baris; kolom berikutnya diakses
+  // dengan menggeser ke samping.
+  List<Widget> _buildRecommendationColumns(List<_ThemeRecommendation> items) {
+    final columns = <Widget>[];
+    for (int start = 0; start < items.length; start += _recommendationRows) {
+      final chunk = items.skip(start).take(_recommendationRows).toList();
+      final isLastColumn = start + _recommendationRows >= items.length;
+
+      columns.add(
+        Padding(
+          padding: EdgeInsets.only(right: isLastColumn ? 0 : 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(chunk.length, (i) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: i < chunk.length - 1 ? 16 : 0),
+                child: SizedBox(
+                  width: _recommendationCardWidth,
+                  height: _recommendationCardHeight,
+                  child: _QuizRecommendationCard(
+                    recommendation: chunk[i],
+                    onTap: () => _startThemeQuiz(chunk[i]),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      );
+    }
+    return columns;
   }
 
   void _showCategoryQuizModal(String categoryName) async {
@@ -351,6 +440,10 @@ class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
     final recommendations = _themeRecommendations;
+    final totalTema = _allThemes.length;
+    final labelTema = totalTema > recommendations.length
+        ? '${recommendations.length} dari $totalTema Tema'
+        : '${recommendations.length} Tema';
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 800),
@@ -383,7 +476,9 @@ class _QuizPageState extends State<QuizPage> {
               )
             : RefreshIndicator(
                 color: AppColors.primary,
-                onRefresh: _loadData,
+                // loader halaman dimatikan supaya grid rekomendasi tidak
+                // ikut hilang-muncul saat tarik-refresh
+                onRefresh: () => _loadData(showLoader: false),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
@@ -438,22 +533,42 @@ class _QuizPageState extends State<QuizPage> {
 
                       // section rekomendasi per tema
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Rekomendasi Kuis',
-                            style: GoogleFonts.dmSerifDisplay(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                          Expanded(
+                            child: Text(
+                              'Rekomendasi Kuis',
+                              style: GoogleFonts.dmSerifDisplay(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Text(
-                            '${recommendations.length} Tema',
+                            labelTema,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+
+                          // acak ulang isi grid, tidak ikut RefreshIndicator halaman
+                          IconButton(
+                            onPressed: recommendations.isEmpty
+                                ? null
+                                : _shuffleRecommendations,
+                            icon: const Icon(Icons.refresh_rounded, size: 20),
+                            color: AppColors.primary,
+                            tooltip: 'Acak ulang rekomendasi',
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
                             ),
                           ),
                         ],
@@ -479,16 +594,32 @@ class _QuizPageState extends State<QuizPage> {
                           ),
                         )
                       else
-                        Column(
-                          children: recommendations.map((rec) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: _QuizRecommendationCard(
-                                recommendation: rec,
-                                onTap: () => _startThemeQuiz(rec),
+                        ScrollbarTheme(
+                          data: const ScrollbarThemeData(
+                            thumbColor: WidgetStatePropertyAll(
+                              AppColors.primary,
+                            ),
+                          ),
+                          child: Scrollbar(
+                            controller: _scrollRekomendasi,
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            scrollbarOrientation: ScrollbarOrientation.bottom,
+                            thickness: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: SingleChildScrollView(
+                                controller: _scrollRekomendasi,
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: _buildRecommendationColumns(
+                                    recommendations,
+                                  ),
+                                ),
                               ),
-                            );
-                          }).toList(),
+                            ),
+                          ),
                         ),
                       const SizedBox(height: 24),
                     ],
@@ -625,101 +756,101 @@ class _QuizRecommendationCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // gambar tema
-                ClipRRect(
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(12),
-                  ),
-                  child: SizedBox(
-                    width: 115,
-                    child: AppImageView(
-                      imagePath: recommendation.coverImage,
-                      fit: BoxFit.cover,
-                    ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // gambar tema
+              ClipRRect(
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(12),
+                ),
+                child: SizedBox(
+                  width: 130,
+                  child: AppImageView(
+                    imagePath: recommendation.coverImage,
+                    fit: BoxFit.cover,
                   ),
                 ),
+              ),
 
-                // deskripsi tema
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              recommendation.tema,
-                              style: GoogleFonts.dmSerifDisplay(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                                height: 1.2,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+              // deskripsi tema
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            recommendation.tema,
+                            style: GoogleFonts.dmSerifDisplay(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              height: 1.2,
                             ),
-                            const SizedBox(height: 4),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
 
-                            Text(
-                              recommendation.sampleQuestion,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                                height: 1.3,
-                              ),
+                          Text(
+                            recommendation.sampleQuestion,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                              height: 1.3,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${recommendation.questionCount} SOAL',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                                letterSpacing: 0.8,
-                              ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${recommendation.questionCount} SOAL',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                              letterSpacing: 0.8,
                             ),
-                            Row(
-                              children: [
-                                Text(
-                                  'Mulai',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 16,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'Mulai',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -42,6 +42,7 @@ class SejarahRepository {
         gambarUtama:
             map['gambarUtama'] as String? ?? 'assets/images/1308history.png',
         alurPeristiwa: alur,
+        provinsi: map['provinsi'] as String?,
       );
     }).toList();
   }
@@ -110,6 +111,7 @@ class SejarahRepository {
       'alurPeristiwa': jsonEncode(
         model.alurPeristiwa.map((i) => i.toMap()).toList(),
       ),
+      'provinsi': model.provinsi,
     });
   }
 
@@ -134,6 +136,7 @@ class SejarahRepository {
         'alurPeristiwa': jsonEncode(
           model.alurPeristiwa.map((i) => i.toMap()).toList(),
         ),
+        'provinsi': model.provinsi,
       },
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',
       whereArgs: [model.id ?? oldKodeTag],

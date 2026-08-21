@@ -45,6 +45,9 @@ class SejarahModel {
   final String gambarUtama;
   final List<TimelineItemModel> alurPeristiwa;
 
+  // Nama provinsi asal, mengikuti penulisan di wilayah_nusantara.dart.
+  final String? provinsi;
+
   const SejarahModel({
     this.id,
     required this.kodeTag,
@@ -55,5 +58,6 @@ class SejarahModel {
     required this.ringkasan,
     required this.gambarUtama,
     this.alurPeristiwa = const [],
+    this.provinsi,
   });
 }

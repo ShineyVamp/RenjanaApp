@@ -25,7 +25,7 @@ class DbHelper {
   factory DbHelper() => _instance;
   DbHelper._internal();
 
-  static const int _dbVersion = 7;
+  static const int _dbVersion = 8;
 
   static Database? _database;
 
@@ -151,7 +151,64 @@ class DbHelper {
       'konteksBudaya',
       'gambarKonteksBudaya',
     ]);
+
+    // v8: asal daerah pada kedua arsip, dan field khas kategori pada budaya
+    await _tambahKolom(db, 'sejarah', 'provinsi');
+    await _tambahKolom(db, 'budaya', 'provinsi');
+    await _tambahKolom(db, 'budaya', 'detailKategori');
+
+    // v8: isi provinsi untuk data bawaan yang sudah terlanjur tersimpan
+    await _isiProvinsiBawaan(db, 'budaya', _provinsiBudayaBawaan);
+    await _isiProvinsiBawaan(db, 'sejarah', _provinsiSejarahBawaan);
   }
+
+  // Menambah satu kolom TEXT bila belum ada.
+  Future<void> _tambahKolom(Database db, String tabel, String kolom) async {
+    try {
+      final info = await db.rawQuery('PRAGMA table_info($tabel)');
+      final sudahAda = info.any((col) => col['name'] == kolom);
+      if (!sudahAda) {
+        await db.execute('ALTER TABLE $tabel ADD COLUMN $kolom TEXT');
+      }
+    } catch (_) {}
+  }
+
+  // Hanya mengisi baris yang provinsinya masih kosong, supaya suntingan admin
+  // tidak tertimpa saat aplikasi diperbarui lagi.
+  Future<void> _isiProvinsiBawaan(
+    Database db,
+    String tabel,
+    Map<String, String> pemetaan,
+  ) async {
+    try {
+      for (final entry in pemetaan.entries) {
+        await db.update(
+          tabel,
+          {'provinsi': entry.value},
+          where: 'kodeTag = ? AND (provinsi IS NULL OR provinsi = ?)',
+          whereArgs: [entry.key, ''],
+        );
+      }
+    } catch (_) {}
+  }
+
+  static const Map<String, String> _provinsiBudayaBawaan = {
+    'BUD-SNJT-1': 'DI Yogyakarta',
+    'BUD-SRK-1-D': 'Jawa Tengah',
+    'BUD-SNJT-2': 'Sulawesi Selatan',
+    'BUD-TRN-1': 'Aceh',
+    'BUD-RMH-1-D': 'Sulawesi Selatan',
+    'BUD-MSK-1': 'Jawa Tengah',
+  };
+
+  static const Map<String, String> _provinsiSejarahBawaan = {
+    'HIS-170845-1': 'DKI Jakarta',
+    'HIS-150845-1': 'DKI Jakarta',
+    'HIS-160845-1': 'Jawa Barat',
+    'HIS-160845-2': 'DKI Jakarta',
+    'HIS-200845-1': 'DKI Jakarta',
+    'HIS-281028-1': 'DKI Jakarta',
+  };
 
   Future<void> _dropKolomRelatedItems(
     Database db,
@@ -245,7 +302,8 @@ class DbHelper {
       subtitle TEXT,
       ringkasan TEXT,
       gambarUtama TEXT,
-      alurPeristiwa TEXT
+      alurPeristiwa TEXT,
+      provinsi TEXT
     )''';
 
   static const String _budayaTableSql = '''CREATE TABLE IF NOT EXISTS budaya (
@@ -261,7 +319,9 @@ class DbHelper {
       maknaSpiritual TEXT,
       gambarMaknaSpiritual TEXT,
       konteksBudaya TEXT,
-      gambarKonteksBudaya TEXT
+      gambarKonteksBudaya TEXT,
+      provinsi TEXT,
+      detailKategori TEXT
     )''';
 
   Future<void> _createTables(Database db) async {
@@ -308,6 +368,7 @@ class DbHelper {
           'alurPeristiwa': jsonEncode(
             s.alurPeristiwa.map((item) => item.toMap()).toList(),
           ),
+          'provinsi': s.provinsi,
         });
       }
     }
@@ -331,6 +392,8 @@ class DbHelper {
           'gambarMaknaSpiritual': b.gambarMaknaSpiritual,
           'konteksBudaya': b.konteksBudaya,
           'gambarKonteksBudaya': b.gambarKonteksBudaya,
+          'provinsi': b.provinsi,
+          'detailKategori': b.detailKategoriJson,
         });
       }
     }
