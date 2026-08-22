@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/pembersih_dialog.dart';
 import '../../../data/models/quiz_model.dart';
 import '../../../data/repositories/quiz_repository.dart';
 import 'widgets/app_image_picker_widget.dart';
@@ -11,10 +12,15 @@ class AdminQuizThemeDetailPage extends StatefulWidget {
   final String tema;
   final String kategori;
 
+  // Penanda sub-kategori tema, ikut disimpan pada soal yang ditambah atau
+  // disunting di halaman ini.
+  final String subKategori;
+
   const AdminQuizThemeDetailPage({
     super.key,
     required this.tema,
     required this.kategori,
+    this.subKategori = '',
   });
 
   @override
@@ -77,297 +83,311 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (modalContext) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(modalContext).viewInsets.bottom,
-                top: 20,
-                left: 20,
-                right: 20,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(modalContext).size.height * 0.88,
+        return PembersihDialog(
+          onTutup: () => buangController([
+            soalController,
+            penjelasanController,
+            ...answerControllers,
+          ]),
+          child: StatefulBuilder(
+            builder: (ctx, setModalState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(modalContext).viewInsets.bottom,
+                  top: 20,
+                  left: 20,
+                  right: 20,
                 ),
-                child: Form(
-                  key: formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // header modal
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              isEditing ? 'Edit Soal' : 'Tambah Soal Baru',
-                              style: GoogleFonts.dmSerifDisplay(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(modalContext).size.height * 0.88,
+                  ),
+                  child: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // header modal
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isEditing ? 'Edit Soal' : 'Tambah Soal Baru',
+                                style: GoogleFonts.dmSerifDisplay(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close_rounded),
-                              onPressed: () => Navigator.pop(modalContext),
-                            ),
-                          ],
-                        ),
-                        const Divider(color: AppColors.primary),
-                        const SizedBox(height: 12),
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: () => Navigator.pop(modalContext),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: AppColors.primary),
+                          const SizedBox(height: 12),
 
-                        // info tema
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Tema: ${widget.tema} (${widget.kategori})',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                          // info tema
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-
-                        // input pertanyaan
-                        Text(
-                          'Pertanyaan / Soal Kuis',
-                          style: AppTypography.labelBold(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: soalController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            hintText: 'Masukkan pertanyaan soal kuis...',
-                            filled: true,
-                            fillColor: AppColors.surface,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                color: AppColors.border,
+                            ),
+                            child: Text(
+                              'Tema: ${widget.tema} (${widget.kategori})',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
                               ),
                             ),
                           ),
-                          validator: (val) => val == null || val.trim().isEmpty
-                              ? 'Pertanyaan tidak boleh kosong'
-                              : null,
-                        ),
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 14),
 
-                        // input pilihan jawaban
-                        Text(
-                          'Pilihan Jawaban (Pilih radio untuk kunci jawaban benar)',
-                          style: AppTypography.labelBold(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
+                          // input pertanyaan
+                          Text(
+                            'Pertanyaan / Soal Kuis',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: soalController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: 'Masukkan pertanyaan soal kuis...',
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Pertanyaan tidak boleh kosong'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
 
-                        RadioGroup<int>(
-                          groupValue: selectedCorrectIndex,
-                          onChanged: (val) {
-                            setModalState(() {
-                              selectedCorrectIndex = val ?? 0;
-                            });
-                          },
-                          child: Column(
-                            children: List.generate(4, (i) {
-                              final labels = ['A', 'B', 'C', 'D'];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Row(
-                                  children: [
-                                    Radio<int>(
-                                      value: i,
-                                      activeColor: AppColors.primary,
-                                    ),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: answerControllers[i],
-                                        decoration: InputDecoration(
-                                          labelText: 'Pilihan ${labels[i]}',
-                                          filled: true,
-                                          fillColor: AppColors.surface,
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 10,
+                          // input pilihan jawaban
+                          Text(
+                            'Pilihan Jawaban (Pilih radio untuk kunci jawaban benar)',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          RadioGroup<int>(
+                            groupValue: selectedCorrectIndex,
+                            onChanged: (val) {
+                              setModalState(() {
+                                selectedCorrectIndex = val ?? 0;
+                              });
+                            },
+                            child: Column(
+                              children: List.generate(4, (i) {
+                                final labels = ['A', 'B', 'C', 'D'];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Radio<int>(
+                                        value: i,
+                                        activeColor: AppColors.primary,
+                                      ),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: answerControllers[i],
+                                          decoration: InputDecoration(
+                                            labelText: 'Pilihan ${labels[i]}',
+                                            filled: true,
+                                            fillColor: AppColors.surface,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 10,
+                                                ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: const BorderSide(
+                                                color: AppColors.border,
                                               ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            borderSide: const BorderSide(
-                                              color: AppColors.border,
                                             ),
                                           ),
+                                          validator: (val) =>
+                                              val == null || val.trim().isEmpty
+                                              ? 'Pilihan ${labels[i]} wajib diisi'
+                                              : null,
                                         ),
-                                        validator: (val) =>
-                                            val == null || val.trim().isEmpty
-                                            ? 'Pilihan ${labels[i]} wajib diisi'
-                                            : null,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // input penjelasan
-                        Text(
-                          'Penjelasan / Pembahasan Soal (Opsional)',
-                          style: AppTypography.labelBold(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: penjelasanController,
-                          maxLines: 2,
-                          decoration: InputDecoration(
-                            hintText:
-                                'Masukkan penjelasan mengapa jawaban tersebut benar...',
-                            filled: true,
-                            fillColor: AppColors.surface,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                color: AppColors.border,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // pemilih gambar, opsional
-                        AppImagePickerWidget(
-                          label: 'Gambar Soal (Opsional / Tambahan)',
-                          isRequired: false,
-                          currentImagePath: selectedImage,
-                          onImageSelected: (path) {
-                            setModalState(() => selectedImage = path);
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        // tombol simpan
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: () async {
-                              if (!formKey.currentState!.validate()) return;
-
-                              final answers = answerControllers
-                                  .map((c) => c.text.trim())
-                                  .toList();
-
-                              final model = QuizSQLModel(
-                                id: isEditing ? questionToEdit.id : null,
-                                kategori: widget.kategori,
-                                tema: widget.tema,
-                                soal: soalController.text.trim(),
-                                daftarJawaban: answers,
-                                jawabanBenar: selectedCorrectIndex,
-                                gambar:
-                                    (selectedImage != null &&
-                                        selectedImage!.trim().isNotEmpty)
-                                    ? selectedImage
-                                    : null,
-                                penjelasan:
-                                    penjelasanController.text.trim().isNotEmpty
-                                    ? penjelasanController.text.trim()
-                                    : null,
-                              );
-
-                              bool success;
-                              if (isEditing) {
-                                success = await _quizRepository.updateQuiz(
-                                  model,
-                                );
-                              } else {
-                                success = await _quizRepository.tambahQuiz(
-                                  model,
-                                );
-                              }
-
-                              if (!mounted) return;
-                              if (modalContext.mounted) {
-                                Navigator.pop(modalContext);
-                              }
-
-                              final messenger = ScaffoldMessenger.of(context);
-                              messenger.clearSnackBars();
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    success
-                                        ? (isEditing
-                                              ? 'Soal berhasil diperbarui!'
-                                              : 'Soal berhasil ditambahkan!')
-                                        : 'Gagal menyimpan soal.',
+                                    ],
                                   ),
-                                  duration: const Duration(milliseconds: 1500),
-                                  behavior: SnackBarBehavior.floating,
-                                  backgroundColor: success
-                                      ? AppColors.success
-                                      : AppColors.error,
-                                ),
-                              );
+                                );
+                              }),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
 
-                              _loadQuestions();
-                            },
-                            child: Text(
-                              isEditing ? 'Simpan Perubahan' : 'Tambah Soal',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                          // input penjelasan
+                          Text(
+                            'Penjelasan / Pembahasan Soal (Opsional)',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: penjelasanController,
+                            maxLines: 2,
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Masukkan penjelasan mengapa jawaban tersebut benar...',
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                          const SizedBox(height: 16),
+
+                          // pemilih gambar, opsional
+                          AppImagePickerWidget(
+                            label: 'Gambar Soal (Opsional / Tambahan)',
+                            isRequired: false,
+                            currentImagePath: selectedImage,
+                            onImageSelected: (path) {
+                              setModalState(() => selectedImage = path);
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          // tombol simpan
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                if (!formKey.currentState!.validate()) return;
+
+                                final answers = answerControllers
+                                    .map((c) => c.text.trim())
+                                    .toList();
+
+                                final model = QuizSQLModel(
+                                  id: isEditing ? questionToEdit.id : null,
+                                  kategori: widget.kategori,
+                                  subKategori: widget.subKategori,
+                                  tema: widget.tema,
+                                  soal: soalController.text.trim(),
+                                  daftarJawaban: answers,
+                                  jawabanBenar: selectedCorrectIndex,
+                                  gambar:
+                                      (selectedImage != null &&
+                                          selectedImage!.trim().isNotEmpty)
+                                      ? selectedImage
+                                      : null,
+                                  penjelasan:
+                                      penjelasanController.text
+                                          .trim()
+                                          .isNotEmpty
+                                      ? penjelasanController.text.trim()
+                                      : null,
+                                );
+
+                                bool success;
+                                if (isEditing) {
+                                  success = await _quizRepository.updateQuiz(
+                                    model,
+                                  );
+                                } else {
+                                  success = await _quizRepository.tambahQuiz(
+                                    model,
+                                  );
+                                }
+
+                                if (!mounted) return;
+                                if (modalContext.mounted) {
+                                  Navigator.pop(modalContext);
+                                }
+
+                                final messenger = ScaffoldMessenger.of(context);
+                                messenger.clearSnackBars();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? (isEditing
+                                                ? 'Soal berhasil diperbarui!'
+                                                : 'Soal berhasil ditambahkan!')
+                                          : 'Gagal menyimpan soal.',
+                                    ),
+                                    duration: const Duration(
+                                      milliseconds: 1500,
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: success
+                                        ? AppColors.success
+                                        : AppColors.error,
+                                  ),
+                                );
+
+                                _loadQuestions();
+                              },
+                              child: Text(
+                                isEditing ? 'Simpan Perubahan' : 'Tambah Soal',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );

@@ -36,6 +36,17 @@ class QuizRepository {
     return results.map((map) => QuizSQLModel.fromMap(map)).toList();
   }
 
+  Future<List<QuizSQLModel>> getQuizByKategori(String kategori) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> results = await db.query(
+      'quiz',
+      where: 'UPPER(kategori) = ?',
+      whereArgs: [kategori.toUpperCase()],
+      orderBy: 'id DESC',
+    );
+    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+  }
+
   Future<List<QuizSQLModel>> getRandomQuizzesByCategory(
     String kategori,
     int limit,
@@ -106,6 +117,7 @@ class QuizRepository {
     required String oldTema,
     required String newTema,
     required String newKategori,
+    required String newSubKategori,
     String? newCoverImage,
   }) async {
     final db = await _dbHelper.database;
@@ -113,6 +125,7 @@ class QuizRepository {
       final Map<String, dynamic> values = {
         'tema': newTema,
         'kategori': newKategori,
+        'subKategori': newSubKategori,
       };
       if (newCoverImage != null) {
         values['gambar'] = newCoverImage;

@@ -4,13 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/constants/wilayah_nusantara.dart';
-import '../../core/extensions/navigation.dart';
-import '../../core/widgets/app_image.dart';
+import '../../core/widgets/header_halaman.dart';
+import '../../core/widgets/kartu_hasil.dart';
 import '../../data/models/hasil_jelajah_model.dart';
 import '../../data/repositories/jelajah_repository.dart';
-import '../../services/riwayat_handler.dart';
-import '../detail/detail_budaya_page.dart';
-import '../detail/detail_sejarah_page.dart';
+import '../../data/repositories/riwayat_repository.dart';
+import '../navigasi_arsip.dart';
 
 class JelajahPage extends StatefulWidget {
   // Membuka tab Peta dari kartu "Telusuri lewat peta".
@@ -24,6 +23,7 @@ class JelajahPage extends StatefulWidget {
 
 class _JelajahPageState extends State<JelajahPage> {
   final JelajahRepository _repository = JelajahRepository();
+  final RiwayatRepository _riwayatRepository = RiwayatRepository();
   final TextEditingController _controller = TextEditingController();
 
   String _query = '';
@@ -47,13 +47,19 @@ class _JelajahPageState extends State<JelajahPage> {
   }
 
   Future<void> _muatRiwayat() async {
+    final refs = await _riwayatRepository.dibuka(
+      batas: RiwayatRepository.batasDibuka,
+    );
+    final dicari = await _riwayatRepository.pencarian(
+      batas: RiwayatRepository.batasPencarian,
+    );
     final dibuka = await _repository.ambilDariRiwayat(
-      RiwayatHandler.dibuka,
-      batas: RiwayatHandler.batasDibuka,
+      refs,
+      batas: RiwayatRepository.batasDibuka,
     );
     if (!mounted) return;
     setState(() {
-      _terakhirDicari = RiwayatHandler.pencarian;
+      _terakhirDicari = dicari;
       _terakhirDibuka = dibuka;
     });
   }
@@ -73,8 +79,7 @@ class _JelajahPageState extends State<JelajahPage> {
     }
 
     final hasil = await _repository.cari(kataKunci);
-    // Ketikan cepat bisa menyelesaikan pencarian tidak berurutan, jadi hasil
-    // yang sudah basi dibuang.
+    // buang hasil yang bukan milik kata kunci terakhir
     if (!mounted || kataKunci != _query) return;
     setState(() {
       _hasil = hasil;
@@ -82,13 +87,16 @@ class _JelajahPageState extends State<JelajahPage> {
     });
   }
 
-  // Riwayat dicatat saat pencarian dikirim, bukan tiap ketikan.
+  // Mengirim pencarian dan mencatatnya ke riwayat.
   Future<void> _simpanKeRiwayat() async {
     final kunci = _query.trim();
     if (kunci.isEmpty) return;
-    await RiwayatHandler.catatPencarian(kunci);
+    await _riwayatRepository.catatPencarian(kunci);
+    final dicari = await _riwayatRepository.pencarian(
+      batas: RiwayatRepository.batasPencarian,
+    );
     if (!mounted) return;
-    setState(() => _terakhirDicari = RiwayatHandler.pencarian);
+    setState(() => _terakhirDicari = dicari);
   }
 
   void _pakaiKataKunci(String kataKunci) {
@@ -106,11 +114,7 @@ class _JelajahPageState extends State<JelajahPage> {
     await _simpanKeRiwayat();
     if (!mounted) return;
 
-    await context.push(
-      item.jenis == JenisArsip.sejarah
-          ? DetailSejarahPage(sejarah: item.sejarah!)
-          : DetailBudayaPage(budaya: item.budaya!),
-    );
+    await bukaHasilJelajah(context, item);
     if (!mounted) return;
     await _muatRiwayat();
   }
@@ -141,86 +145,61 @@ class _JelajahPageState extends State<JelajahPage> {
 
   // section header: judul + kotak pencarian
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
+    return HeaderHalaman(
+      judul: 'Jelajah',
+      bawah: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.borderPrimary),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Jelajah',
-            style: GoogleFonts.dmSerifDisplay(
-              fontSize: 32,
-              color: AppColors.textPrimary,
-              height: 1.1,
+        child: Row(
+          children: [
+            const Icon(
+              Icons.search_rounded,
+              size: 18,
+              color: AppColors.primary,
             ),
-          ),
-          SizedBox(height: 10),
-          Container(
-            width: 80,
-            height: 2.5,
-            color: AppColors.primary,
-            margin: const EdgeInsets.only(top: 5, bottom: 14),
-          ),
-          Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border.all(color: AppColors.borderPrimary),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.search_rounded,
-                  size: 18,
-                  color: AppColors.primary,
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                onChanged: _jalankanPencarian,
+                onSubmitted: (_) => _simpanKeRiwayat(),
+                textInputAction: TextInputAction.search,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    onChanged: _jalankanPencarian,
-                    onSubmitted: (_) => _simpanKeRiwayat(),
-                    textInputAction: TextInputAction.search,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      hintText: 'Cari keris, Borobudur, proklamasi…',
-                      hintStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary.withValues(alpha: 0.6),
-                      ),
-                    ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: 'Cari keris, Borobudur, proklamasi…',
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
                   ),
                 ),
-                if (_adaQuery)
-                  GestureDetector(
-                    onTap: _bersihkanQuery,
-                    behavior: HitTestBehavior.opaque,
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 6),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        ],
+            if (_adaQuery)
+              GestureDetector(
+                onTap: _bersihkanQuery,
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 6),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -230,7 +209,18 @@ class _JelajahPageState extends State<JelajahPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabelSeksi('TERAKHIR DICARI'),
+        _buildLabelSeksi(
+          'TERAKHIR DICARI',
+          onHapus: _terakhirDicari.isEmpty
+              ? null
+              : () => _konfirmasiHapus(
+                  judul: 'Hapus riwayat pencarian?',
+                  pesan:
+                      'Semua kata kunci yang pernah dicari akan dihapus dari '
+                      'akun ini.',
+                  aksi: _riwayatRepository.hapusPencarian,
+                ),
+        ),
         const SizedBox(height: 10),
         if (_terakhirDicari.isEmpty)
           const _PesanInfo(
@@ -327,7 +317,18 @@ class _JelajahPageState extends State<JelajahPage> {
 
         _buildPemisah(),
 
-        _buildLabelSeksi('TERAKHIR DIBUKA'),
+        _buildLabelSeksi(
+          'TERAKHIR DIBUKA',
+          onHapus: _terakhirDibuka.isEmpty
+              ? null
+              : () => _konfirmasiHapus(
+                  judul: 'Hapus riwayat arsip?',
+                  pesan:
+                      'Daftar arsip yang pernah dibuka akan dikosongkan. '
+                      'Arsipnya sendiri tidak terhapus.',
+                  aksi: _riwayatRepository.hapusDibuka,
+                ),
+        ),
         const SizedBox(height: 12),
         if (_terakhirDibuka.isEmpty)
           const _PesanInfo(
@@ -340,7 +341,7 @@ class _JelajahPageState extends State<JelajahPage> {
                 .map(
                   (item) => Padding(
                     padding: const EdgeInsets.only(bottom: 14),
-                    child: _KartuHasil(
+                    child: KartuHasil(
                       item: item,
                       onTap: () => _bukaArsip(item),
                     ),
@@ -409,15 +410,16 @@ class _JelajahPageState extends State<JelajahPage> {
         ..._hasil.map(
           (item) => Padding(
             padding: const EdgeInsets.only(bottom: 14),
-            child: _KartuHasil(item: item, onTap: () => _bukaArsip(item)),
+            child: KartuHasil(item: item, onTap: () => _bukaArsip(item)),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLabelSeksi(String teks) {
-    return Text(
+  // [onHapus] diisi untuk seksi yang isinya riwayat dan bisa dikosongkan.
+  Widget _buildLabelSeksi(String teks, {VoidCallback? onHapus}) {
+    final label = Text(
       teks,
       style: GoogleFonts.plusJakartaSans(
         fontSize: 10.5,
@@ -426,6 +428,83 @@ class _JelajahPageState extends State<JelajahPage> {
         color: AppColors.primary,
       ),
     );
+
+    if (onHapus == null) return label;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        label,
+        GestureDetector(
+          onTap: onHapus,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.delete_outline_rounded,
+                  size: 15,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  'Hapus',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Konfirmasi sebelum satu jenis riwayat dikosongkan.
+  Future<void> _konfirmasiHapus({
+    required String judul,
+    required String pesan,
+    required Future<void> Function() aksi,
+  }) async {
+    final setuju = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(judul, style: AppTypography.headingSmall()),
+        content: Text(pesan, style: AppTypography.bodyMedium()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(
+              'Batal',
+              style: AppTypography.labelBold(
+                fontSize: 13,
+              ).copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: Text(
+              'Hapus',
+              style: AppTypography.labelBold(
+                fontSize: 13,
+              ).copyWith(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (setuju != true) return;
+    await aksi();
+    if (!mounted) return;
+    await _muatRiwayat();
   }
 
   Widget _buildPemisah() {
@@ -468,120 +547,6 @@ class _PesanInfo extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _KartuHasil extends StatelessWidget {
-  final HasilJelajah item;
-  final VoidCallback onTap;
-
-  const _KartuHasil({required this.item, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.borderPrimary),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 104,
-              height: 140,
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppImageView(imagePath: item.gambar, fit: BoxFit.cover),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        _Lencana(teks: item.kodeTag, warna: AppColors.primary),
-                        if (item.isDestinasi) ...[
-                          const SizedBox(width: 6),
-                          const _Lencana(
-                            teks: 'DESTINASI',
-                            warna: AppColors.accentBudaya,
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.judul,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.dmSerifDisplay(
-                        fontSize: 19,
-                        color: AppColors.textPrimary,
-                        height: 1.15,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.sub,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        height: 1.4,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.meta.toUpperCase(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Lencana extends StatelessWidget {
-  final String teks;
-  final Color warna;
-
-  const _Lencana({required this.teks, required this.warna});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      color: warna,
-      child: Text(
-        teks,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.7,
-          color: Colors.white,
-        ),
       ),
     );
   }

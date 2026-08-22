@@ -1,6 +1,5 @@
-// Katalog kategori budaya, dipakai beranda, halaman kategori, dan form admin.
-// Tiap kategori membawa daftar field khasnya sendiri; halaman detail dan form
-// admin dibangkitkan dari daftar itu, jadi menambah kategori cukup di file ini.
+// Katalog kategori budaya beserta daftar field khas tiap kategori.
+// Dipakai beranda, halaman kategori, halaman detail, dan form admin.
 
 enum TipeField {
   teks, // satu baris

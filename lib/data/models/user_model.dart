@@ -14,12 +14,17 @@ class UserSQLModel {
   final String noHp;
   final String password;
 
+  // Path foto profil di penyimpanan perangkat. Null berarti memakai
+  // placeholder huruf depan nama.
+  final String? fotoProfil;
+
   UserSQLModel({
     this.id,
     required this.nama,
     required this.email,
     required this.noHp,
     required this.password,
+    this.fotoProfil,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +34,7 @@ class UserSQLModel {
       'email': email,
       'noHp': noHp,
       'password': password,
+      'fotoProfil': fotoProfil,
     };
   }
 
@@ -38,6 +44,8 @@ class UserSQLModel {
     String? email,
     String? noHp,
     String? password,
+    String? fotoProfil,
+    bool hapusFoto = false,
   }) {
     return UserSQLModel(
       id: id ?? this.id,
@@ -45,7 +53,14 @@ class UserSQLModel {
       email: email ?? this.email,
       noHp: noHp ?? this.noHp,
       password: password ?? this.password,
+      fotoProfil: hapusFoto ? null : (fotoProfil ?? this.fotoProfil),
     );
+  }
+
+  // Huruf pertama nama, dipakai saat foto profil belum ada.
+  String get inisial {
+    final bersih = nama.trim();
+    return bersih.isEmpty ? '?' : bersih[0].toUpperCase();
   }
 
   // Salinan tanpa password, dipakai saat menyimpan sesi.
@@ -60,6 +75,7 @@ class UserSQLModel {
       email: map['email'] as String? ?? '',
       noHp: map['noHp'] as String? ?? '',
       password: map['password'] as String? ?? '',
+      fotoProfil: map['fotoProfil'] as String?,
     );
   }
 
