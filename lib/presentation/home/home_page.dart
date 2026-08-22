@@ -175,7 +175,7 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // section sapaan & tanggal
               Padding(

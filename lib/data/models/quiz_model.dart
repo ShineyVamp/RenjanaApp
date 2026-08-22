@@ -3,6 +3,11 @@ import 'dart:convert';
 class QuizSQLModel {
   int? id;
   final String kategori;
+
+  // Penanda yang lebih sempit di dalam kategori: kode kategori budaya untuk
+  // BUDAYA, nama provinsi untuk KEDAERAHAN, kosong untuk SEJARAH. Nilainya
+  // seragam untuk seluruh soal dalam satu tema.
+  final String subKategori;
   final String tema;
   final String soal;
   final List<String> daftarJawaban;
@@ -13,6 +18,7 @@ class QuizSQLModel {
   QuizSQLModel({
     this.id,
     required this.kategori,
+    this.subKategori = '',
     required this.tema,
     required this.soal,
     required this.daftarJawaban,
@@ -25,6 +31,7 @@ class QuizSQLModel {
     return <String, dynamic>{
       'id': id,
       'kategori': kategori,
+      'subKategori': subKategori,
       'tema': tema,
       'soal': soal,
       'daftarJawaban': jsonEncode(daftarJawaban),
@@ -51,6 +58,7 @@ class QuizSQLModel {
     return QuizSQLModel(
       id: map['id'] != null ? map['id'] as int : null,
       kategori: map['kategori'] as String? ?? '',
+      subKategori: map['subKategori'] as String? ?? '',
       tema: map['tema'] as String? ?? '',
       soal: map['soal'] as String? ?? '',
       daftarJawaban: parsedJawaban,

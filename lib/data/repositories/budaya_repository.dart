@@ -36,13 +36,13 @@ class BudayaRepository {
     }).toList();
   }
 
-  // Sorotan "Budaya Hari Ini". Acak, tapi benihnya tanggal hari ini supaya
-  // pilihannya tetap sama sampai besok.
+  // Sorotan "Budaya Hari Ini", diacak dengan benih tanggal hari ini sehingga
+  // pilihannya tetap sama sepanjang hari.
   Future<BudayaModel> getBudayaHariIni() async {
     final list = await getAllBudaya();
     if (list.isEmpty) return defaultBudayaList.first;
 
-    // diurutkan dulu agar tidak bergantung urutan baris database
+    // urutkan berdasarkan kodeTag, bukan urutan baris database
     final pool = List<BudayaModel>.from(list)
       ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
     final now = DateTime.now();
@@ -139,47 +139,17 @@ class BudayaRepository {
 
   Future<int> tambahBudaya(BudayaModel model) async {
     final db = await _dbHelper.database;
-    return await db.insert('budaya', {
-      'kodeTag': model.kodeTag,
-      'jenis': model.jenis,
-      'urutan': model.urutan,
-      'judul': model.judul,
-      'kategoriLabel': model.kategoriLabel,
-      'tagline': model.tagline,
-      'deskripsi': model.deskripsi,
-      'gambarUtama': model.gambarUtama,
-      'maknaSpiritual': model.maknaSpiritual,
-      'gambarMaknaSpiritual': model.gambarMaknaSpiritual,
-      'konteksBudaya': model.konteksBudaya,
-      'gambarKonteksBudaya': model.gambarKonteksBudaya,
-      'provinsi': model.provinsi,
-      'detailKategori': model.detailKategoriJson,
-    });
+    return await db.insert('budaya', model.toKolom());
   }
 
-  // [previousKodeTag] diisi bila ID tag ikut berubah, supaya bookmark lama
-  // ikut dipindahkan.
+  // [previousKodeTag] diisi bila ID tag ikut berubah; bookmark lama ikut
+  // dipindahkan ke ID tag baru.
   Future<int> updateBudaya(BudayaModel model, {String? previousKodeTag}) async {
     final db = await _dbHelper.database;
     final oldKodeTag = previousKodeTag ?? model.kodeTag;
     final count = await db.update(
       'budaya',
-      {
-        'kodeTag': model.kodeTag,
-        'jenis': model.jenis,
-        'urutan': model.urutan,
-        'judul': model.judul,
-        'kategoriLabel': model.kategoriLabel,
-        'tagline': model.tagline,
-        'deskripsi': model.deskripsi,
-        'gambarUtama': model.gambarUtama,
-        'maknaSpiritual': model.maknaSpiritual,
-        'gambarMaknaSpiritual': model.gambarMaknaSpiritual,
-        'konteksBudaya': model.konteksBudaya,
-        'gambarKonteksBudaya': model.gambarKonteksBudaya,
-        'provinsi': model.provinsi,
-        'detailKategori': model.detailKategoriJson,
-      },
+      model.toKolom(),
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',
       whereArgs: [model.id ?? oldKodeTag],
     );
@@ -201,7 +171,7 @@ class BudayaRepository {
       where: 'kodeTag = ?',
       whereArgs: [kodeTag],
     );
-    // bersihkan bookmark yang menunjuk item yang sudah dihapus
+    // hapus bookmark yang menunjuk item ini
     await db.delete('bookmark', where: 'kodeTag = ?', whereArgs: [kodeTag]);
     return count;
   }

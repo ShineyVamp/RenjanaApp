@@ -6,6 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/constants/wilayah_nusantara.dart';
+import '../../core/extensions/navigation.dart';
+import '../../core/widgets/header_halaman.dart';
+import '../wilayah/detail_provinsi_page.dart';
+import '../wilayah/detail_pulau_page.dart';
 import 'widgets/peta_painter.dart';
 
 class PetaPage extends StatefulWidget {
@@ -29,8 +33,8 @@ class _PetaPageState extends State<PetaPage>
   Size _ukuran = Size.zero;
   GugusPulau? _pulauAktif;
 
-  // Dipertahankan setelah kembali ke tampilan nasional supaya panel provinsi
-  // sempat beranimasi turun sebelum hilang.
+  // Pulau yang terakhir dibuka, tetap dipegang selama panel provinsi
+  // beranimasi turun.
   GugusPulau? _pulauPanel;
   String? _provinsiAktif;
 
@@ -165,8 +169,10 @@ class _PetaPageState extends State<PetaPage>
     _animasikanKe(_matriksNasional(), durasiMs: 750);
   }
 
-  // Alur berhenti di level provinsi. Halaman arsip provinsi dibuat menyusul —
-  // navigasinya cukup ditambahkan di sini.
+  Future<void> _bukaDetailPulau(GugusPulau pulau) async {
+    await context.push(DetailPulauPage(pulau: pulau));
+  }
+
   void _bukaProvinsi(Provinsi provinsi) {
     setState(() => _provinsiAktif = provinsi.nama);
 
@@ -184,18 +190,7 @@ class _PetaPageState extends State<PetaPage>
       durasiMs: 600,
     );
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          '${provinsi.nama} dipilih. Halaman arsip provinsi belum tersedia.',
-        ),
-        backgroundColor: AppColors.primaryDark,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 1800),
-      ),
-    );
+    context.push(DetailProvinsiPage(provinsi: provinsi));
   }
 
   void _ubahSkala(double faktor) {
@@ -206,8 +201,7 @@ class _PetaPageState extends State<PetaPage>
     final pusat = Offset(_ukuran.width / 2, _ukuran.height / 2);
     final rasio = target / sekarang;
 
-    // Dikalikan dari kiri supaya titik jangkarnya tengah layar, bukan tengah
-    // kanvas peta yang ikut bergeser saat di-pan.
+    // dikalikan dari kiri, dengan titik jangkar tengah layar
     final perbesaran = Matrix4.identity()
       ..translateByDouble(pusat.dx, pusat.dy, 0, 1)
       ..scaleByDouble(rasio, rasio, 1, 1)
@@ -255,34 +249,17 @@ class _PetaPageState extends State<PetaPage>
 
   // section header halaman
   Widget _buildHeaderHalaman() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(15, 6, 20, 10),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
+    return HeaderHalaman(
+      judul: 'Peta',
+      garisBawah: false,
+      aksi: Text(
+        '$jumlahProvinsi PROVINSI',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 9.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
+          color: AppColors.primaryDark,
         ),
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Peta',
-            style: GoogleFonts.dmSerifDisplay(
-              fontSize: 26,
-              height: 1,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            '$jumlahProvinsi PROVINSI',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2,
-              color: AppColors.primaryDark,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -607,6 +584,47 @@ class _PetaPageState extends State<PetaPage>
                         ),
                       ),
                       const SizedBox(height: 10),
+
+                      // pintasan ke halaman detail pulau
+                      GestureDetector(
+                        onTap: () => _bukaDetailPulau(pulau),
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            border: Border.all(color: AppColors.borderPrimary),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.travel_explore_rounded,
+                                size: 18,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Lihat detail Pulau ${pulau.nama}',
+                                  style: AppTypography.labelBold(
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 18,
+                                color: AppColors.primary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       ...List.generate(pulau.provinsi.length, (i) {
                         final provinsi = pulau.provinsi[i];
                         final terakhir = i == pulau.provinsi.length - 1;

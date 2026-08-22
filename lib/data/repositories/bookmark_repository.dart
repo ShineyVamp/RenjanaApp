@@ -29,8 +29,7 @@ class BookmarkRepository {
     }
   }
 
-  // Bookmark versi lama tersimpan tanpa pemilik, diklaim sekali untuk akun
-  // yang sedang login.
+  // Mengklaim bookmark versi lama yang tersimpan tanpa pemilik.
   Future<Database> _db() async {
     final db = await _dbHelper.database;
     if (!_legacyClaimed) {

@@ -3,14 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/constants/budaya_kategori.dart';
+import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
+import '../../core/widgets/asal_daerah_block.dart';
+import '../../core/widgets/detail_list_block.dart';
 import '../../core/widgets/detail_section_block.dart';
+import '../../core/widgets/detail_spec_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/budaya_repository.dart';
-import '../../services/riwayat_handler.dart';
+import '../../data/repositories/riwayat_repository.dart';
+import '../wilayah/detail_provinsi_page.dart';
 
 class DetailBudayaPage extends StatefulWidget {
   final BudayaModel budaya;
@@ -33,7 +39,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
     super.initState();
     _checkBookmarkStatus();
     _loadOtherBudaya();
-    RiwayatHandler.catatDibuka('budaya', widget.budaya.kodeTag);
+    RiwayatRepository().catatDibuka('budaya', widget.budaya.kodeTag);
   }
 
   Future<void> _checkBookmarkStatus() async {
@@ -60,6 +66,53 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
   void dispose() {
     _scrollRelated.dispose();
     super.dispose();
+  }
+
+  void _bukaProvinsi(String? namaProvinsi) {
+    final provinsi = provinsiDariNama(namaProvinsi);
+    if (provinsi == null) return;
+    context.push(DetailProvinsiPage(provinsi: provinsi));
+  }
+
+  // Section khas kategori, dibangkitkan dari daftar field di katalog.
+  // Keterangan pendek dikumpulkan jadi satu kotak data di atas, sisanya
+  // mengikuti urutan field pada katalog.
+  List<Widget> _buildSectionKategori(BudayaModel data) {
+    final daftarField = fieldKategori(data.jenis);
+    if (daftarField.isEmpty) return const [];
+
+    final ringkas = <SpecItem>[];
+    final panjang = <Widget>[];
+
+    for (final field in daftarField) {
+      if (!data.adaDetail(field.kunci)) continue;
+
+      switch (field.tipe) {
+        case TipeField.teks:
+          ringkas.add(SpecItem(field.label, data.teksDetail(field.kunci)));
+        case TipeField.teksPanjang:
+          panjang.add(
+            DetailSectionBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              title: field.label,
+              content: data.teksDetail(field.kunci),
+            ),
+          );
+        case TipeField.daftar:
+          panjang.add(
+            DetailListBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              title: field.label,
+              items: data.daftarDetail(field.kunci),
+            ),
+          );
+      }
+    }
+
+    return [
+      if (ringkas.isNotEmpty) DetailSpecBlock(items: ringkas),
+      ...panjang,
+    ];
   }
 
   @override
@@ -213,6 +266,9 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                     ],
                   ),
 
+                  // section field khas kategori
+                  ..._buildSectionKategori(data),
+
                   // section makna spiritual
                   if (data.maknaSpiritual != null &&
                       data.maknaSpiritual!.isNotEmpty) ...[
@@ -262,6 +318,12 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         ),
                       ),
                   ],
+
+                  // section asal daerah
+                  AsalDaerahBlock(
+                    namaProvinsi: data.provinsi,
+                    onLihatProvinsi: () => _bukaProvinsi(data.provinsi),
+                  ),
 
                   const SizedBox(height: 20),
 

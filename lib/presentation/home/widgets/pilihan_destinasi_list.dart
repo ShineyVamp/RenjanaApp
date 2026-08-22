@@ -97,7 +97,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
         ),
         const SizedBox(height: 8),
 
-        // tombol acak ulang, hanya bagian ini yang dimuat ulang
+        // tombol acak ulang daftar
         TextButton.icon(
           onPressed: _isLoading || _isRefreshing ? null : _refreshDestinasi,
           style: TextButton.styleFrom(

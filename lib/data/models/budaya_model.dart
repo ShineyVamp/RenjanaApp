@@ -79,7 +79,26 @@ class BudayaModel {
   String get detailKategoriJson =>
       detailKategori.isEmpty ? '' : jsonEncode(detailKategori);
 
-  // Dibaca defensif: data lama bisa null, kosong, atau rusak.
+  // Peta kolom tabel budaya, dipakai seed, migrasi, dan repository.
+  // Kolom `id` tidak ikut, diatur SQLite.
+  Map<String, Object?> toKolom() => {
+    'kodeTag': kodeTag,
+    'jenis': jenis,
+    'urutan': urutan,
+    'judul': judul,
+    'kategoriLabel': kategoriLabel,
+    'tagline': tagline,
+    'deskripsi': deskripsi,
+    'gambarUtama': gambarUtama,
+    'maknaSpiritual': maknaSpiritual,
+    'gambarMaknaSpiritual': gambarMaknaSpiritual,
+    'konteksBudaya': konteksBudaya,
+    'gambarKonteksBudaya': gambarKonteksBudaya,
+    'provinsi': provinsi,
+    'detailKategori': detailKategoriJson,
+  };
+
+  // Membaca kolom detailKategori; nilai null, kosong, atau rusak jadi {}.
   static Map<String, dynamic> detailDariJson(Object? mentah) {
     if (mentah == null) return const {};
     final teks = mentah.toString().trim();

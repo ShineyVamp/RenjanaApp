@@ -380,7 +380,7 @@ class AppImagePickerWidget extends StatelessWidget {
     );
   }
 
-  // kode utama
+  // tampilan pemilih gambar
   @override
   Widget build(BuildContext context) {
     final hasImage =

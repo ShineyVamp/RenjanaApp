@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
+import '../../../core/constants/kuis_kategori.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/pembersih_dialog.dart';
 import '../../../data/models/quiz_model.dart';
 import '../../../data/repositories/quiz_repository.dart';
 import 'admin_quiz_theme_detail_page.dart';
@@ -23,7 +25,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
   String _selectedCategory = 'SEMUA';
   String _searchQuery = '';
 
-  final List<String> _categories = ['SEMUA', 'SEJARAH', 'BUDAYA', 'KEDAERAHAN'];
+  final List<String> _categories = const ['SEMUA', ...kuisKategoriList];
 
   @override
   void initState() {
@@ -60,6 +62,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
       return _AdminThemeGroup(
         tema: e.key,
         kategori: first.kategori,
+        subKategori: first.subKategori,
         coverImage: coverImage,
         questions: e.value,
       );
@@ -72,14 +75,83 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
       final matchesQuery =
           _searchQuery.isEmpty ||
           g.tema.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          g.kategori.toLowerCase().contains(_searchQuery.toLowerCase());
+          g.kategori.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          labelSubKategori(
+            g.kategori,
+            g.subKategori,
+          ).toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesQuery;
     }).toList();
   }
 
+  // Dropdown penanda sub-kategori pada kedua dialog tema. Isinya mengikuti
+  // kategori terpilih, dan tidak muncul untuk Sejarah.
+  Widget _buildDropdownSubKategori({
+    required String kategori,
+    required String nilai,
+    required ValueChanged<String> onChanged,
+  }) {
+    if (!kategoriPunyaSubKategori(kategori)) return const SizedBox.shrink();
+
+    final opsi = opsiSubKategori(kategori);
+    final terpilih = opsi.any((o) => o.nilai == nilai) ? nilai : '';
+    final label = kategori.toUpperCase() == kategoriBudaya
+        ? 'Kategori Budaya'
+        : 'Provinsi Asal';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.labelBold(
+            fontSize: 13,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          // key mengikuti kategori terpilih; daftar opsinya berbeda tiap kategori
+          key: ValueKey('subKategori-$kategori'),
+          initialValue: terpilih,
+          isExpanded: true,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.surface,
+            helperText: 'Menentukan kelompok tema ini di halaman kategori kuis',
+            helperStyle: AppTypography.bodySmall().copyWith(fontSize: 11),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+          ),
+          items: [
+            const DropdownMenuItem(
+              value: '',
+              child: Text('Tanpa penanda ($subKategoriLainnya)'),
+            ),
+            ...opsi.map(
+              (o) => DropdownMenuItem(
+                value: o.nilai,
+                child: Text(o.label, overflow: TextOverflow.ellipsis),
+              ),
+            ),
+          ],
+          onChanged: (val) => onChanged(val ?? ''),
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
   void _showAddThemeDialog() {
-    final kategoriController = TextEditingController(text: 'SEJARAH');
+    final kategoriController = TextEditingController(text: kategoriSejarah);
     final temaController = TextEditingController();
+    String subKategori = '';
     final soalController = TextEditingController();
     final penjelasanController = TextEditingController();
 
@@ -100,18 +172,396 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (modalContext) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(modalContext).viewInsets.bottom,
-                top: 20,
-                left: 20,
-                right: 20,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(modalContext).size.height * 0.88,
+        return PembersihDialog(
+          onTutup: () => buangController([
+            kategoriController,
+            temaController,
+            soalController,
+            penjelasanController,
+            ...answerControllers,
+          ]),
+          child: StatefulBuilder(
+            builder: (ctx, setModalState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(modalContext).viewInsets.bottom,
+                  top: 20,
+                  left: 20,
+                  right: 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(modalContext).size.height * 0.88,
+                  ),
+                  child: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Tambah Tema & Kuis Baru',
+                                style: GoogleFonts.dmSerifDisplay(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: () => Navigator.pop(modalContext),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: AppColors.primary),
+                          const SizedBox(height: 12),
+
+                          // pilihan kategori
+                          Text(
+                            'Kategori',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            initialValue:
+                                kuisKategoriList.contains(
+                                  kategoriController.text,
+                                )
+                                ? kategoriController.text
+                                : kategoriSejarah,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                            ),
+                            items: kuisKategoriList
+                                .map(
+                                  (kat) => DropdownMenuItem(
+                                    value: kat,
+                                    child: Text(kat),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (val) {
+                              if (val == null) return;
+                              setModalState(() {
+                                kategoriController.text = val;
+                                // kosongkan penanda saat kategori berganti
+                                subKategori = '';
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // penanda sub-kategori
+                          _buildDropdownSubKategori(
+                            kategori: kategoriController.text,
+                            nilai: subKategori,
+                            onChanged: (val) =>
+                                setModalState(() => subKategori = val),
+                          ),
+
+                          // input nama tema
+                          Text(
+                            'Nama Tema Kuis',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: temaController,
+                            decoration: InputDecoration(
+                              hintText: 'Contoh: Perjalanan Revolusi',
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Nama tema tidak boleh kosong'
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // input soal pertama
+                          Text(
+                            'Soal Pertama',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: soalController,
+                            maxLines: 2,
+                            decoration: InputDecoration(
+                              hintText: 'Masukkan pertanyaan soal kuis...',
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Soal tidak boleh kosong'
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // input pilihan jawaban
+                          Text(
+                            'Pilihan Jawaban (Pilih radio untuk jawaban benar)',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          RadioGroup<int>(
+                            groupValue: selectedCorrectIndex,
+                            onChanged: (val) {
+                              setModalState(() {
+                                selectedCorrectIndex = val ?? 0;
+                              });
+                            },
+                            child: Column(
+                              children: List.generate(4, (i) {
+                                final labels = ['A', 'B', 'C', 'D'];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Radio<int>(
+                                        value: i,
+                                        activeColor: AppColors.primary,
+                                      ),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: answerControllers[i],
+                                          decoration: InputDecoration(
+                                            labelText: 'Pilihan ${labels[i]}',
+                                            filled: true,
+                                            fillColor: AppColors.surface,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 10,
+                                                ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: const BorderSide(
+                                                color: AppColors.border,
+                                              ),
+                                            ),
+                                          ),
+                                          validator: (val) =>
+                                              val == null || val.trim().isEmpty
+                                              ? 'Pilihan ${labels[i]} wajib diisi'
+                                              : null,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input penjelasan
+                          Text(
+                            'Penjelasan / Pembahasan Soal (Opsional)',
+                            style: AppTypography.labelBold(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: penjelasanController,
+                            maxLines: 2,
+                            decoration: InputDecoration(
+                              hintText: 'Penjelasan mengapa jawaban benar...',
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // pemilih gambar
+                          AppImagePickerWidget(
+                            label: 'Gambar Cover / Soal (Opsional)',
+                            isRequired: false,
+                            currentImagePath: selectedImage,
+                            onImageSelected: (path) {
+                              setModalState(() => selectedImage = path);
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          // tombol simpan
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                if (!formKey.currentState!.validate()) return;
+
+                                final answers = answerControllers
+                                    .map((c) => c.text.trim())
+                                    .toList();
+
+                                final model = QuizSQLModel(
+                                  kategori: kategoriController.text.trim(),
+                                  subKategori: subKategori,
+                                  tema: temaController.text.trim(),
+                                  soal: soalController.text.trim(),
+                                  daftarJawaban: answers,
+                                  jawabanBenar: selectedCorrectIndex,
+                                  gambar: selectedImage,
+                                  penjelasan:
+                                      penjelasanController.text
+                                          .trim()
+                                          .isNotEmpty
+                                      ? penjelasanController.text.trim()
+                                      : null,
+                                );
+
+                                final success = await _quizRepository
+                                    .tambahQuiz(model);
+
+                                if (!mounted) return;
+                                if (modalContext.mounted) {
+                                  Navigator.pop(modalContext);
+                                }
+
+                                final messenger = ScaffoldMessenger.of(context);
+                                messenger.clearSnackBars();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Tema dan kuis berhasil dibuat!'
+                                          : 'Gagal membuat kuis.',
+                                    ),
+                                    duration: const Duration(
+                                      milliseconds: 1500,
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: success
+                                        ? AppColors.success
+                                        : AppColors.error,
+                                  ),
+                                );
+
+                                _loadQuizzes();
+                              },
+                              child: Text(
+                                'Buat Tema Kuis',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditThemeDialog(_AdminThemeGroup group) {
+    final kategoriController = TextEditingController(
+      text: group.kategori.toUpperCase(),
+    );
+    final temaController = TextEditingController(text: group.tema);
+    String subKategori = group.subKategori;
+    String? selectedImage = group.coverImage;
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (modalContext) {
+        return PembersihDialog(
+          onTutup: () => buangController([kategoriController, temaController]),
+          child: StatefulBuilder(
+            builder: (ctx, setModalState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(modalContext).viewInsets.bottom,
+                  top: 20,
+                  left: 20,
+                  right: 20,
                 ),
                 child: Form(
                   key: formKey,
@@ -124,7 +574,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Tambah Tema & Kuis Baru',
+                              'Edit Tema & Cover',
                               style: GoogleFonts.dmSerifDisplay(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
@@ -151,13 +601,11 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
                           initialValue:
-                              [
-                                'SEJARAH',
-                                'BUDAYA',
-                                'KEDAERAHAN',
-                              ].contains(kategoriController.text)
-                              ? kategoriController.text
-                              : 'SEJARAH',
+                              kuisKategoriList.contains(
+                                kategoriController.text.toUpperCase(),
+                              )
+                              ? kategoriController.text.toUpperCase()
+                              : kategoriSejarah,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.surface,
@@ -172,7 +620,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               ),
                             ),
                           ),
-                          items: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
+                          items: kuisKategoriList
                               .map(
                                 (kat) => DropdownMenuItem(
                                   value: kat,
@@ -181,14 +629,23 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               )
                               .toList(),
                           onChanged: (val) {
-                            if (val != null) {
-                              setModalState(() {
-                                kategoriController.text = val;
-                              });
-                            }
+                            if (val == null) return;
+                            setModalState(() {
+                              kategoriController.text = val;
+                              // kosongkan penanda saat kategori berganti
+                              subKategori = '';
+                            });
                           },
                         ),
                         const SizedBox(height: 14),
+
+                        // penanda sub-kategori
+                        _buildDropdownSubKategori(
+                          kategori: kategoriController.text,
+                          nilai: subKategori,
+                          onChanged: (val) =>
+                              setModalState(() => subKategori = val),
+                        ),
 
                         // input nama tema
                         Text(
@@ -220,137 +677,11 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               ? 'Nama tema tidak boleh kosong'
                               : null,
                         ),
-                        const SizedBox(height: 14),
-
-                        // input soal pertama
-                        Text(
-                          'Soal Pertama',
-                          style: AppTypography.labelBold(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: soalController,
-                          maxLines: 2,
-                          decoration: InputDecoration(
-                            hintText: 'Masukkan pertanyaan soal kuis...',
-                            filled: true,
-                            fillColor: AppColors.surface,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                color: AppColors.border,
-                              ),
-                            ),
-                          ),
-                          validator: (val) => val == null || val.trim().isEmpty
-                              ? 'Soal tidak boleh kosong'
-                              : null,
-                        ),
-                        const SizedBox(height: 14),
-
-                        // input pilihan jawaban
-                        Text(
-                          'Pilihan Jawaban (Pilih radio untuk jawaban benar)',
-                          style: AppTypography.labelBold(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        RadioGroup<int>(
-                          groupValue: selectedCorrectIndex,
-                          onChanged: (val) {
-                            setModalState(() {
-                              selectedCorrectIndex = val ?? 0;
-                            });
-                          },
-                          child: Column(
-                            children: List.generate(4, (i) {
-                              final labels = ['A', 'B', 'C', 'D'];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Row(
-                                  children: [
-                                    Radio<int>(
-                                      value: i,
-                                      activeColor: AppColors.primary,
-                                    ),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: answerControllers[i],
-                                        decoration: InputDecoration(
-                                          labelText: 'Pilihan ${labels[i]}',
-                                          filled: true,
-                                          fillColor: AppColors.surface,
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 10,
-                                              ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            borderSide: const BorderSide(
-                                              color: AppColors.border,
-                                            ),
-                                          ),
-                                        ),
-                                        validator: (val) =>
-                                            val == null || val.trim().isEmpty
-                                            ? 'Pilihan ${labels[i]} wajib diisi'
-                                            : null,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // input penjelasan
-                        Text(
-                          'Penjelasan / Pembahasan Soal (Opsional)',
-                          style: AppTypography.labelBold(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: penjelasanController,
-                          maxLines: 2,
-                          decoration: InputDecoration(
-                            hintText: 'Penjelasan mengapa jawaban benar...',
-                            filled: true,
-                            fillColor: AppColors.surface,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                color: AppColors.border,
-                              ),
-                            ),
-                          ),
-                        ),
                         const SizedBox(height: 16),
 
-                        // pemilih gambar
+                        // pemilih gambar sampul
                         AppImagePickerWidget(
-                          label: 'Gambar Cover / Soal (Opsional)',
+                          label: 'Gambar Cover Tema Kuis',
                           isRequired: false,
                           currentImagePath: selectedImage,
                           onImageSelected: (path) {
@@ -373,26 +704,18 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                             onPressed: () async {
                               if (!formKey.currentState!.validate()) return;
 
-                              final answers = answerControllers
-                                  .map((c) => c.text.trim())
-                                  .toList();
+                              final newTema = temaController.text.trim();
+                              final newKategori = kategoriController.text
+                                  .trim();
 
-                              final model = QuizSQLModel(
-                                kategori: kategoriController.text.trim(),
-                                tema: temaController.text.trim(),
-                                soal: soalController.text.trim(),
-                                daftarJawaban: answers,
-                                jawabanBenar: selectedCorrectIndex,
-                                gambar: selectedImage,
-                                penjelasan:
-                                    penjelasanController.text.trim().isNotEmpty
-                                    ? penjelasanController.text.trim()
-                                    : null,
-                              );
-
-                              final success = await _quizRepository.tambahQuiz(
-                                model,
-                              );
+                              final success = await _quizRepository
+                                  .updateThemeInfo(
+                                    oldTema: group.tema,
+                                    newTema: newTema,
+                                    newKategori: newKategori,
+                                    newSubKategori: subKategori,
+                                    newCoverImage: selectedImage,
+                                  );
 
                               if (!mounted) return;
                               if (modalContext.mounted) {
@@ -405,8 +728,8 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                                 SnackBar(
                                   content: Text(
                                     success
-                                        ? 'Tema dan kuis berhasil dibuat!'
-                                        : 'Gagal membuat kuis.',
+                                        ? 'Tema kuis & cover berhasil diperbarui!'
+                                        : 'Gagal memperbarui tema.',
                                   ),
                                   duration: const Duration(milliseconds: 1500),
                                   behavior: SnackBarBehavior.floating,
@@ -419,7 +742,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               _loadQuizzes();
                             },
                             child: Text(
-                              'Buat Tema Kuis',
+                              'Simpan Perubahan Tema',
                               style: GoogleFonts.plusJakartaSans(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -432,224 +755,9 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                     ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showEditThemeDialog(_AdminThemeGroup group) {
-    final kategoriController = TextEditingController(
-      text: group.kategori.toUpperCase(),
-    );
-    final temaController = TextEditingController(text: group.tema);
-    String? selectedImage = group.coverImage;
-    final formKey = GlobalKey<FormState>();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (modalContext) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(modalContext).viewInsets.bottom,
-                top: 20,
-                left: 20,
-                right: 20,
-              ),
-              child: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Edit Tema & Cover',
-                            style: GoogleFonts.dmSerifDisplay(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () => Navigator.pop(modalContext),
-                          ),
-                        ],
-                      ),
-                      const Divider(color: AppColors.primary),
-                      const SizedBox(height: 12),
-
-                      // pilihan kategori
-                      Text(
-                        'Kategori',
-                        style: AppTypography.labelBold(
-                          fontSize: 13,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        initialValue:
-                            [
-                              'SEJARAH',
-                              'BUDAYA',
-                              'KEDAERAHAN',
-                            ].contains(kategoriController.text.toUpperCase())
-                            ? kategoriController.text.toUpperCase()
-                            : 'SEJARAH',
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: AppColors.surface,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                              color: AppColors.border,
-                            ),
-                          ),
-                        ),
-                        items: ['SEJARAH', 'BUDAYA', 'KEDAERAHAN']
-                            .map(
-                              (kat) => DropdownMenuItem(
-                                value: kat,
-                                child: Text(kat),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setModalState(() {
-                              kategoriController.text = val;
-                            });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // input nama tema
-                      Text(
-                        'Nama Tema Kuis',
-                        style: AppTypography.labelBold(
-                          fontSize: 13,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: temaController,
-                        decoration: InputDecoration(
-                          hintText: 'Contoh: Perjalanan Revolusi',
-                          filled: true,
-                          fillColor: AppColors.surface,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                              color: AppColors.border,
-                            ),
-                          ),
-                        ),
-                        validator: (val) => val == null || val.trim().isEmpty
-                            ? 'Nama tema tidak boleh kosong'
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // pemilih gambar sampul
-                      AppImagePickerWidget(
-                        label: 'Gambar Cover Tema Kuis',
-                        isRequired: false,
-                        currentImagePath: selectedImage,
-                        onImageSelected: (path) {
-                          setModalState(() => selectedImage = path);
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      // tombol simpan
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: () async {
-                            if (!formKey.currentState!.validate()) return;
-
-                            final newTema = temaController.text.trim();
-                            final newKategori = kategoriController.text.trim();
-
-                            final success = await _quizRepository
-                                .updateThemeInfo(
-                                  oldTema: group.tema,
-                                  newTema: newTema,
-                                  newKategori: newKategori,
-                                  newCoverImage: selectedImage,
-                                );
-
-                            if (!mounted) return;
-                            if (modalContext.mounted) {
-                              Navigator.pop(modalContext);
-                            }
-
-                            final messenger = ScaffoldMessenger.of(context);
-                            messenger.clearSnackBars();
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  success
-                                      ? 'Tema kuis & cover berhasil diperbarui!'
-                                      : 'Gagal memperbarui tema.',
-                                ),
-                                duration: const Duration(milliseconds: 1500),
-                                behavior: SnackBarBehavior.floating,
-                                backgroundColor: success
-                                    ? AppColors.success
-                                    : AppColors.error,
-                              ),
-                            );
-
-                            _loadQuizzes();
-                          },
-                          child: Text(
-                            'Simpan Perubahan Tema',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
@@ -944,12 +1052,19 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '${group.questions.length} Soal',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                Flexible(
+                  child: Text(
+                    kategoriPunyaSubKategori(group.kategori)
+                        ? '${group.questions.length} Soal · '
+                              '${labelSubKategori(group.kategori, group.subKategori)}'
+                        : '${group.questions.length} Soal',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -1040,6 +1155,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                   AdminQuizThemeDetailPage(
                     tema: group.tema,
                     kategori: group.kategori,
+                    subKategori: group.subKategori,
                   ),
                 );
                 _loadQuizzes();
@@ -1108,12 +1224,14 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
 class _AdminThemeGroup {
   final String tema;
   final String kategori;
+  final String subKategori;
   final String? coverImage;
   final List<QuizSQLModel> questions;
 
   _AdminThemeGroup({
     required this.tema,
     required this.kategori,
+    this.subKategori = '',
     this.coverImage,
     required this.questions,
   });

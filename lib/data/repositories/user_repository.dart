@@ -28,4 +28,27 @@ class UserRepository {
     }
     return null;
   }
+
+  Future<UserSQLModel?> getUserByEmail(String email) async {
+    final db = await _dbHelper.database;
+    final results = await db.query(
+      'user',
+      where: 'email = ?',
+      whereArgs: [email.trim()],
+      limit: 1,
+    );
+    if (results.isEmpty) return null;
+    return UserSQLModel.fromMap(results.first);
+  }
+
+  // [path] null berarti foto dilepas dan kembali ke placeholder inisial.
+  Future<int> perbaruiFotoProfil(String email, String? path) async {
+    final db = await _dbHelper.database;
+    return await db.update(
+      'user',
+      {'fotoProfil': path},
+      where: 'email = ?',
+      whereArgs: [email.trim()],
+    );
+  }
 }

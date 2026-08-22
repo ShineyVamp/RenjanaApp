@@ -3,14 +3,17 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
+import '../../core/widgets/asal_daerah_block.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
-import '../../services/riwayat_handler.dart';
+import '../../data/repositories/riwayat_repository.dart';
+import '../wilayah/detail_provinsi_page.dart';
 import 'widgets/timeline_item_widget.dart';
 
 class DetailSejarahPage extends StatefulWidget {
@@ -34,7 +37,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     super.initState();
     _checkBookmarkStatus();
     _loadOtherSejarah();
-    RiwayatHandler.catatDibuka('sejarah', widget.sejarah.kodeTag);
+    RiwayatRepository().catatDibuka('sejarah', widget.sejarah.kodeTag);
   }
 
   Future<void> _checkBookmarkStatus() async {
@@ -61,6 +64,12 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
   void dispose() {
     _scrollRelated.dispose();
     super.dispose();
+  }
+
+  void _bukaProvinsi(String? namaProvinsi) {
+    final provinsi = provinsiDariNama(namaProvinsi);
+    if (provinsi == null) return;
+    context.push(DetailProvinsiPage(provinsi: provinsi));
   }
 
   @override
@@ -228,6 +237,12 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                     ),
                   ),
                 ],
+
+                // section asal daerah
+                AsalDaerahBlock(
+                  namaProvinsi: data.provinsi,
+                  onLihatProvinsi: () => _bukaProvinsi(data.provinsi),
+                ),
 
                 const SizedBox(height: 28),
 

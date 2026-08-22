@@ -112,7 +112,7 @@ class PetaPainter extends CustomPainter {
   final Path pathIndonesia;
   final Path pathTetangga;
 
-  // Ketebalan garis dibagi skala supaya tetap tipis saat peta diperbesar.
+  // Ketebalan garis dibagi skala peta, hasilnya tebal yang tetap di layar.
   final double skalaTampilan;
 
   const PetaPainter({

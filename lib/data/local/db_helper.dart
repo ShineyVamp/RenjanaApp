@@ -25,7 +25,7 @@ class DbHelper {
   factory DbHelper() => _instance;
   DbHelper._internal();
 
-  static const int _dbVersion = 8;
+  static const int _dbVersion = 11;
 
   static Database? _database;
 
@@ -67,8 +67,7 @@ class DbHelper {
       }
     } catch (_) {}
 
-    // v6: bookmark dipisah per user, tabel dibangun ulang karena UNIQUE
-    // pada skema lama masih global.
+    // v6: bookmark dipisah per user, tabel dibangun ulang
     try {
       final bookmarkInfo = await db.rawQuery('PRAGMA table_info(bookmark)');
       final hasUserEmail = bookmarkInfo.any(
@@ -103,7 +102,7 @@ class DbHelper {
           where: 'kodeTag = ?',
           whereArgs: [entry.key],
         );
-        // bookmark menyimpan kodeTag, ikut disesuaikan agar tidak putus
+        // bookmark menyimpan kodeTag, ikut disesuaikan
         await db.rawUpdate(
           'UPDATE OR IGNORE bookmark SET kodeTag = ? WHERE kodeTag = ?',
           [target.kodeTag, entry.key],
@@ -123,8 +122,7 @@ class DbHelper {
       await db.execute('DROP TABLE IF EXISTS content');
     } catch (_) {}
 
-    // v7: kolom relatedItems dibuang lewat rebuild tabel, karena SQLite lama
-    // belum mendukung ALTER TABLE DROP COLUMN
+    // v7: kolom relatedItems dibuang lewat pembangunan ulang tabel
     await _dropKolomRelatedItems(db, 'sejarah', _sejarahTableSql, const [
       'id',
       'kodeTag',
@@ -160,6 +158,51 @@ class DbHelper {
     // v8: isi provinsi untuk data bawaan yang sudah terlanjur tersimpan
     await _isiProvinsiBawaan(db, 'budaya', _provinsiBudayaBawaan);
     await _isiProvinsiBawaan(db, 'sejarah', _provinsiSejarahBawaan);
+
+    // v8: isi bawaan untuk kategori budaya baru
+    await _sisipkanBudayaBaru(db);
+
+    // v9: foto profil pengguna
+    await _tambahKolom(db, 'user', 'fotoProfil');
+
+    // v11: penanda sub-kategori tema kuis
+    await _tambahKolom(db, 'quiz', 'subKategori');
+    await _isiSubKategoriBawaan(db);
+  }
+
+  // Mengisi penanda sub-kategori tema kuis bawaan, hanya pada baris yang
+  // penandanya masih kosong.
+  Future<void> _isiSubKategoriBawaan(Database db) async {
+    try {
+      for (final entri in _subKategoriKuisBawaan.entries) {
+        await db.update(
+          'quiz',
+          {'subKategori': entri.value},
+          where: 'tema = ? AND (subKategori IS NULL OR subKategori = ?)',
+          whereArgs: [entri.key, ''],
+        );
+      }
+    } catch (_) {}
+  }
+
+  // Menyisipkan item bawaan yang kodeTag-nya belum ada di database.
+  Future<void> _sisipkanBudayaBaru(Database db) async {
+    try {
+      final baris = await db.query('budaya', columns: ['kodeTag']);
+      final sudahAda = baris
+          .map((r) => r['kodeTag'] as String?)
+          .whereType<String>()
+          .toSet();
+
+      for (final b in defaultBudayaList) {
+        if (sudahAda.contains(b.kodeTag)) continue;
+        await db.insert(
+          'budaya',
+          b.toKolom(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+    } catch (_) {}
   }
 
   // Menambah satu kolom TEXT bila belum ada.
@@ -173,8 +216,7 @@ class DbHelper {
     } catch (_) {}
   }
 
-  // Hanya mengisi baris yang provinsinya masih kosong, supaya suntingan admin
-  // tidak tertimpa saat aplikasi diperbarui lagi.
+  // Mengisi kolom provinsi, hanya pada baris yang provinsinya masih kosong.
   Future<void> _isiProvinsiBawaan(
     Database db,
     String tabel,
@@ -208,6 +250,14 @@ class DbHelper {
     'HIS-160845-2': 'DKI Jakarta',
     'HIS-200845-1': 'DKI Jakarta',
     'HIS-281028-1': 'DKI Jakarta',
+  };
+
+  // Penanda sub-kategori untuk tema kuis bawaan. Tema yang isinya menjangkau
+  // banyak daerah tidak didaftarkan di sini dan masuk kelompok "Lainnya".
+  static const Map<String, String> _subKategoriKuisBawaan = {
+    'Cagar Budaya & Arsitektur': 'SIT',
+    'Tradisi & Mahakarya Leluhur': 'UPC',
+    'Kekayaan Sulawesi Selatan': 'Sulawesi Selatan',
   };
 
   Future<void> _dropKolomRelatedItems(
@@ -279,12 +329,22 @@ class DbHelper {
       nama TEXT,
       email TEXT UNIQUE,
       noHp TEXT,
-      password TEXT
+      password TEXT,
+      fotoProfil TEXT
+    )''';
+
+  static const String _riwayatTableSql = '''CREATE TABLE IF NOT EXISTS riwayat (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userEmail TEXT,
+      jenis TEXT,
+      nilai TEXT,
+      dicatatPada INTEGER
     )''';
 
   static const String _quizTableSql = '''CREATE TABLE IF NOT EXISTS quiz (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       kategori TEXT,
+      subKategori TEXT,
       tema TEXT,
       soal TEXT UNIQUE,
       daftarJawaban TEXT,
@@ -330,6 +390,7 @@ class DbHelper {
     await db.execute(_sejarahTableSql);
     await db.execute(_budayaTableSql);
     await db.execute(_bookmarkTableSql);
+    await db.execute(_riwayatTableSql);
   }
 
   Future<void> _seedInitialData(Database db) async {
@@ -339,15 +400,11 @@ class DbHelper {
     );
     if (quizCount == null || quizCount <= 2) {
       for (final q in defaultQuizList) {
-        await db.insert('quiz', {
-          'kategori': q.kategori,
-          'tema': q.tema,
-          'soal': q.soal,
-          'daftarJawaban': jsonEncode(q.daftarJawaban),
-          'jawabanBenar': q.jawabanBenar,
-          'gambar': q.gambar,
-          'penjelasan': q.penjelasan,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await db.insert(
+          'quiz',
+          q.toMap()..remove('id'),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
     }
 
@@ -379,22 +436,7 @@ class DbHelper {
     );
     if (budayaCount == 0) {
       for (final b in defaultBudayaList) {
-        await db.insert('budaya', {
-          'kodeTag': b.kodeTag,
-          'jenis': b.jenis,
-          'urutan': b.urutan,
-          'judul': b.judul,
-          'kategoriLabel': b.kategoriLabel,
-          'tagline': b.tagline,
-          'deskripsi': b.deskripsi,
-          'gambarUtama': b.gambarUtama,
-          'maknaSpiritual': b.maknaSpiritual,
-          'gambarMaknaSpiritual': b.gambarMaknaSpiritual,
-          'konteksBudaya': b.konteksBudaya,
-          'gambarKonteksBudaya': b.gambarKonteksBudaya,
-          'provinsi': b.provinsi,
-          'detailKategori': b.detailKategoriJson,
-        });
+        await db.insert('budaya', b.toKolom());
       }
     }
   }

@@ -6,7 +6,7 @@ import 'app_colors.dart';
 class AppTypography {
   AppTypography._();
 
-  // DM Serif Display Styles (buat headings & branding)
+  // DM Serif Display: judul besar dan branding
   static TextStyle headingLarge({Color color = AppColors.textPrimary}) =>
       GoogleFonts.dmSerifDisplay(
         fontSize: 42,
@@ -35,7 +35,7 @@ class AppTypography {
         color: color,
       );
 
-  // Playfair Display Styles (buat editorial/detail section titles)
+  // Playfair Display: judul section halaman detail
   static TextStyle editorialHeading({Color color = AppColors.textPrimary}) =>
       GoogleFonts.playfairDisplay(
         fontSize: 22,
@@ -47,7 +47,7 @@ class AppTypography {
     Color color = AppColors.textSecondary,
   }) => GoogleFonts.playfairDisplay(fontSize: 14, height: 1.4, color: color);
 
-  // Plus Jakarta Sans Styles (buat UI, body, buttons, dan captions)
+  // Plus Jakarta Sans: teks isi, tombol, label, dan keterangan
   static TextStyle bodyLarge({Color color = AppColors.textSecondary}) =>
       GoogleFonts.plusJakartaSans(fontSize: 16, height: 1.5, color: color);
 

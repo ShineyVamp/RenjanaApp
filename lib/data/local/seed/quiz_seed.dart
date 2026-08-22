@@ -116,6 +116,7 @@ final List<QuizSQLModel> defaultQuizList = [
   // Budaya - Cagar Budaya & Arsitektur
   QuizSQLModel(
     kategori: 'BUDAYA',
+    subKategori: 'SIT',
     tema: 'Cagar Budaya & Arsitektur',
     soal:
         'Candi Buddha terbesar di dunia yang terletak di Magelang, Jawa Tengah adalah...',
@@ -132,6 +133,7 @@ final List<QuizSQLModel> defaultQuizList = [
   ),
   QuizSQLModel(
     kategori: 'BUDAYA',
+    subKategori: 'SIT',
     tema: 'Cagar Budaya & Arsitektur',
     soal:
         'Senjata tradisional khas Jawa yang memiliki lekukan (luk) khas dan diakui UNESCO sebagai warisan budaya adalah...',
@@ -143,6 +145,7 @@ final List<QuizSQLModel> defaultQuizList = [
   ),
   QuizSQLModel(
     kategori: 'BUDAYA',
+    subKategori: 'SIT',
     tema: 'Cagar Budaya & Arsitektur',
     soal:
         'Rumah adat khas masyarakat suku Toraja yang beratap melengkung seperti haluan perahu dinamakan...',
@@ -156,6 +159,7 @@ final List<QuizSQLModel> defaultQuizList = [
   // Budaya - Tradisi & Mahakarya Leluhur
   QuizSQLModel(
     kategori: 'BUDAYA',
+    subKategori: 'UPC',
     tema: 'Tradisi & Mahakarya Leluhur',
     soal:
         'Upacara adat pemakaman masyarakat Toraja yang sangat terkenal hingga mancanegara adalah...',
@@ -167,6 +171,7 @@ final List<QuizSQLModel> defaultQuizList = [
   ),
   QuizSQLModel(
     kategori: 'BUDAYA',
+    subKategori: 'UPC',
     tema: 'Tradisi & Mahakarya Leluhur',
     soal:
         'Kain tradisional khas Nusa Tenggara Timur yang dibuat dengan teknik pintal tangan dan pewarna alami adalah...',
@@ -185,6 +190,7 @@ final List<QuizSQLModel> defaultQuizList = [
   // Kedaerahan - Kekayaan Sulawesi Selatan
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
+    subKategori: 'Sulawesi Selatan',
     tema: 'Kekayaan Sulawesi Selatan',
     soal:
         'Perahu layar tradisional kebanggaan suku Bugis-Makassar yang telah diakui UNESCO sebagai warisan budaya takbenda adalah...',
@@ -201,6 +207,7 @@ final List<QuizSQLModel> defaultQuizList = [
   ),
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
+    subKategori: 'Sulawesi Selatan',
     tema: 'Kekayaan Sulawesi Selatan',
     soal:
         'Tarian tradisional khas Sulawesi Selatan yang ditampilkan khusus untuk menyambut tamu-tamu kehormatan adalah...',
@@ -217,6 +224,7 @@ final List<QuizSQLModel> defaultQuizList = [
   ),
   QuizSQLModel(
     kategori: 'KEDAERAHAN',
+    subKategori: 'Sulawesi Selatan',
     tema: 'Kekayaan Sulawesi Selatan',
     soal:
         'Kuliner sup khas Makassar dengan kuah pekat berempah dan kacang tanah gurih adalah...',
