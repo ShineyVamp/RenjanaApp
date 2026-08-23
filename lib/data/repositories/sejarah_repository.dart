@@ -34,6 +34,7 @@ class SejarahRepository {
       return SejarahModel(
         id: map['id'] as int?,
         kodeTag: map['kodeTag'] as String? ?? 'HIS-01',
+        kontributor: map['kontributor'] as String?,
         tanggalKey: map['tanggalKey'] as String? ?? '170845',
         urutan: map['urutan'] as int? ?? 1,
         judul: map['judul'] as String? ?? '',
@@ -112,6 +113,7 @@ class SejarahRepository {
         model.alurPeristiwa.map((i) => i.toMap()).toList(),
       ),
       'provinsi': model.provinsi,
+      'kontributor': model.kontributor,
     });
   }
 
@@ -137,6 +139,7 @@ class SejarahRepository {
           model.alurPeristiwa.map((i) => i.toMap()).toList(),
         ),
         'provinsi': model.provinsi,
+        'kontributor': model.kontributor,
       },
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',
       whereArgs: [model.id ?? oldKodeTag],

@@ -48,6 +48,9 @@ class SejarahModel {
   // Nama provinsi asal, mengikuti penulisan di wilayah_nusantara.dart.
   final String? provinsi;
 
+  // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.
+  final String? kontributor;
+
   const SejarahModel({
     this.id,
     required this.kodeTag,
@@ -59,5 +62,6 @@ class SejarahModel {
     required this.gambarUtama,
     this.alurPeristiwa = const [],
     this.provinsi,
+    this.kontributor,
   });
 }

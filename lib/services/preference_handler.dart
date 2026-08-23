@@ -13,6 +13,7 @@ class PreferenceHandler {
   static const _keyIsAdmin = "isAdmin";
   static const _keyUserName = "userName";
   static const _keyUserEmail = "userEmail";
+  static const _keyUserId = "userId";
 
   static Future<void> saveUser(UserSQLModel user) async {
     await _prefs.setBool(_keyIsLogin, true);
@@ -22,6 +23,7 @@ class PreferenceHandler {
     await _prefs.setBool(_keyIsAdmin, user.isAdminAccount);
     await _prefs.setString(_keyUserName, user.nama);
     await _prefs.setString(_keyUserEmail, user.email);
+    await _prefs.setInt(_keyUserId, user.id ?? 0);
   }
 
   static bool get isLogin {
@@ -44,6 +46,14 @@ class PreferenceHandler {
     return _prefs.getString(_keyUserEmail) ?? '';
   }
 
+  // Pemilik seluruh data per akun. Dipakai sebagai kunci di database supaya
+  // penggantian username maupun email tidak memutus capaian.
+  static int get userId {
+    final tersimpan = _prefs.getInt(_keyUserId) ?? 0;
+    if (tersimpan > 0) return tersimpan;
+    return user?.id ?? 0;
+  }
+
   static UserSQLModel? get user {
     final raw = _prefs.getString(_keyUserData);
     if (raw == null || raw.trim().isEmpty) return null;
@@ -61,5 +71,6 @@ class PreferenceHandler {
     await _prefs.remove(_keyIsAdmin);
     await _prefs.remove(_keyUserName);
     await _prefs.remove(_keyUserEmail);
+    await _prefs.remove(_keyUserId);
   }
 }

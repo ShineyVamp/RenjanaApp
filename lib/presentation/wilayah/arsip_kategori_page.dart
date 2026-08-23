@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_typography.dart';
 import '../../core/constants/wilayah_nusantara.dart';
-import '../../core/extensions/navigation.dart';
 import '../../core/widgets/kartu_hasil.dart';
 import '../../core/widgets/kotak_pencarian.dart';
 import '../../core/widgets/pesan_kosong.dart';
+import '../../core/widgets/app_bar_halaman.dart';
 import '../../data/models/hasil_jelajah_model.dart';
 import '../../data/repositories/wilayah_repository.dart';
 import '../navigasi_arsip.dart';
 import 'kategori_arsip.dart';
+import '../../core/constants/app_typography.dart';
 
 // Daftar penuh satu kategori arsip dalam satu provinsi.
 class ArsipKategoriPage extends StatefulWidget {
@@ -67,29 +66,7 @@ class _ArsipKategoriPageState extends State<ArsipKategoriPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          labelKategoriArsip(widget.kunciKategori),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.headingSmall().copyWith(fontSize: 18),
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
-      ),
+      appBar: AppBarHalaman(judul: labelKategoriArsip(widget.kunciKategori)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -102,11 +79,10 @@ class _ArsipKategoriPageState extends State<ArsipKategoriPage> {
                   children: [
                     Text(
                       widget.provinsi.nama.toUpperCase(),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppTypography.eyebrow(
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.4,
                         color: AppColors.primaryDark,
+                        letterSpacing: 1.4,
                       ),
                     ),
                     const SizedBox(height: 10),

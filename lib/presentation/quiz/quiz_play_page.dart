@@ -5,7 +5,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
+import '../../data/models/hasil_kuis_model.dart';
 import '../../data/models/quiz_model.dart';
+import '../../data/repositories/hasil_kuis_repository.dart';
 import 'quiz_result_page.dart';
 
 class PlayQuestionItem {
@@ -42,6 +44,7 @@ class QuizPlayPage extends StatefulWidget {
 }
 
 class _QuizPlayPageState extends State<QuizPlayPage> {
+  final HasilKuisRepository _hasilKuisRepository = HasilKuisRepository();
   late List<PlayQuestionItem> _playItems;
   int _currentIndex = 0;
   Timer? _timer;
@@ -115,7 +118,21 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
     }
   }
 
-  void _finishQuiz() {
+  // Nilai yang sama di seluruh soal, atau string kosong bila soalnya campuran
+  // seperti pada kuis acak sekategori.
+  String _nilaiSeragam(String Function(QuizSQLModel) ambil) {
+    if (_playItems.isEmpty) return '';
+    final pertama = ambil(_playItems.first.original).trim();
+    if (pertama.isEmpty) return '';
+    for (final item in _playItems) {
+      if (ambil(item.original).trim() != pertama) return '';
+    }
+    return pertama;
+  }
+
+  // Rekor lama dibaca sebelum percobaan ini disimpan, supaya halaman hasil
+  // bisa membandingkan keduanya.
+  Future<void> _finishQuiz() async {
     _timer?.cancel();
     int correct = 0;
     int incorrect = 0;
@@ -127,10 +144,31 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
       }
     }
 
+    final tema = _nilaiSeragam((q) => q.tema);
+    final rekorLama = tema.isEmpty
+        ? null
+        : await _hasilKuisRepository.rekorTema(tema);
+
+    await _hasilKuisRepository.simpan(
+      HasilKuis(
+        kategori: widget.category,
+        subKategori: _nilaiSeragam((q) => q.subKategori),
+        tema: tema,
+        jumlahSoal: _playItems.length,
+        benar: correct,
+        salah: incorrect,
+        detik: _elapsedSeconds,
+        selesaiPada: DateTime.now(),
+      ),
+    );
+
+    if (!mounted) return;
     context.pushReplacement(
       QuizResultPage(
         title: widget.title,
         category: widget.category,
+        tema: tema,
+        rekorSebelumnya: rekorLama,
         playItems: _playItems,
         correctCount: correct,
         incorrectCount: incorrect,

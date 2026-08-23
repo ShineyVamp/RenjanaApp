@@ -59,9 +59,32 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => _isLoading = true);
 
+    final nama = _namaController.text.trim();
+    final email = _emailController.text.trim();
+
+    // Username dan email harus belum dipakai akun lain.
+    final namaDipakai = await _userRepository.usernameDipakai(nama);
+    final emailDipakai = await _userRepository.emailDipakai(email);
+    if (!mounted) return;
+
+    if (namaDipakai || emailDipakai) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            namaDipakai
+                ? 'Username "$nama" sudah dipakai. Pilih yang lain.'
+                : 'Email tersebut sudah terdaftar.',
+          ),
+          backgroundColor: AppColors.primaryDark,
+        ),
+      );
+      return;
+    }
+
     final user = UserSQLModel(
-      nama: _namaController.text.trim(),
-      email: _emailController.text.trim(),
+      nama: nama,
+      email: email,
       noHp: _noHpController.text.trim(),
       password: _passwordController.text.trim(),
     );
@@ -82,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Email sudah terdaftar atau terjadi kesalahan.'),
+          content: Text('Username atau email sudah dipakai akun lain.'),
           backgroundColor: AppColors.primaryDark,
         ),
       );
@@ -146,11 +169,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 28),
 
-                // input nama
+                // input username
                 AppTextField(
                   controller: _namaController,
-                  labelText: 'Nama Lengkap',
-                  hintText: 'Masukkan Nama Lengkap Anda',
+                  labelText: 'Username',
+                  hintText: 'Nama tampilan Anda, harus unik',
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
                       return 'Nama wajib diisi';

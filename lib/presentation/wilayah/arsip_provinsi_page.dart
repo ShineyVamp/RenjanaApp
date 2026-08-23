@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
+import '../../core/widgets/app_bar_halaman.dart';
 import '../../core/widgets/grid_horizontal.dart';
 import '../../core/widgets/kartu_hasil.dart';
 import '../../core/widgets/kotak_pencarian.dart';
@@ -30,7 +32,7 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
 
   // banyaknya kartu yang tampil di grid sebelum dibuka lengkap
   static const int _batasGrid = 9;
-  static const double _lebarKartu = 320;
+  static const double _lebarKartu = 350;
 
   // tinggi kartu, cukup untuk judul dan subjudul dua baris
   static const double _tinggiKartu = 170;
@@ -90,29 +92,7 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Arsip ${widget.provinsi.nama}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.headingSmall().copyWith(fontSize: 18),
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
-      ),
+      appBar: AppBarHalaman(judul: 'Arsip ${widget.provinsi.nama}'),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -156,9 +136,7 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
   Widget _buildPenyaring(List<String> kunciTersedia) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
+      decoration: AppDekorasi.barisDaftar,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -204,6 +182,7 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: terpilih ? AppColors.primary : AppColors.surface,
+            borderRadius: AppDekorasi.radiusKecil,
             border: Border.all(
               color: terpilih ? AppColors.primary : AppColors.border,
             ),

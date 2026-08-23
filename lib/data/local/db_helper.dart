@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import '../../core/constants/katalog_kategori.dart';
 import 'seed/budaya_seed.dart';
 import 'seed/quiz_seed.dart';
 import 'seed/sejarah_seed.dart';
@@ -25,7 +26,11 @@ class DbHelper {
   factory DbHelper() => _instance;
   DbHelper._internal();
 
-  static const int _dbVersion = 11;
+  // Wajib dinaikkan bukan hanya saat skema berubah, tetapi juga setiap kali
+  // isi berkas seed bertambah. Penyisipan konten bawaan menumpang pada
+  // onUpgrade, yang hanya jalan bila angka ini lebih besar dari versi yang
+  // tersimpan di perangkat.
+  static const int _dbVersion = 18;
 
   static Database? _database;
 
@@ -159,15 +164,134 @@ class DbHelper {
     await _isiProvinsiBawaan(db, 'budaya', _provinsiBudayaBawaan);
     await _isiProvinsiBawaan(db, 'sejarah', _provinsiSejarahBawaan);
 
-    // v8: isi bawaan untuk kategori budaya baru
-    await _sisipkanBudayaBaru(db);
-
     // v9: foto profil pengguna
     await _tambahKolom(db, 'user', 'fotoProfil');
 
     // v11: penanda sub-kategori tema kuis
     await _tambahKolom(db, 'quiz', 'subKategori');
     await _isiSubKategoriBawaan(db);
+
+    // v14: kepemilikan data pindah dari email ke id akun
+    await _siapkanKolomPemilik(db);
+    await _isiPemilikDariEmail(db);
+    await _pindahkanArsipDibaca(db);
+    await _siapkanIndeksUnikUser(db);
+
+    // v15: indeks riwayat kuis
+    await _siapkanIndeksKuisRiwayat(db);
+
+    // v16: rekap dan rekor kuis dipisah dari riwayatnya
+    await _bangunRekapKuis(db);
+
+    // v17: usulan konten dari pengguna, beserta nama pengusul pada arsipnya
+    await _tambahKolom(db, 'sejarah', 'kontributor');
+    await _tambahKolom(db, 'budaya', 'kontributor');
+    await _siapkanIndeksUsulan(db);
+
+    // Penyisipan konten bawaan, selalu dijalankan terakhir agar seluruh kolom
+    // yang dibutuhkan sudah ada. Ketiganya memeriksa isi database dulu,
+    // sehingga aman dipanggil berulang.
+    await _sisipkanKategoriBawaan(db);
+    await _sisipkanBudayaBaru(db);
+    await _sisipkanKuisBaru(db);
+  }
+
+  // Menyisipkan kategori bawaan yang kodenya belum ada. Nama, urutan, dan
+  // daftar field yang sudah diubah admin tidak ditimpa.
+  Future<void> _sisipkanKategoriBawaan(Database db) async {
+    try {
+      for (final ranah in ranahKategori) {
+        for (final item in kategoriBawaan(ranah)) {
+          await db.insert(
+            'kategori',
+            item.toKolom(),
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Mengisi userId dari userEmail yang sudah tersimpan. Baris tanpa pemilik
+  // atau yang emailnya tidak cocok akun mana pun dibiarkan kosong.
+  Future<void> _isiPemilikDariEmail(Database db) async {
+    for (final tabel in _tabelMilikAkun) {
+      try {
+        await db.execute(
+          'UPDATE $tabel SET userId = ('
+          'SELECT id FROM user WHERE LOWER(user.email) = LOWER($tabel.userEmail)'
+          ') WHERE userId IS NULL',
+        );
+      } catch (_) {}
+    }
+  }
+
+  // Riwayat arsip yang sudah ada dipindahkan ke tabel permanen, supaya capaian
+  // pengguna lama tidak dimulai dari nol.
+  Future<void> _pindahkanArsipDibaca(Database db) async {
+    try {
+      await db.execute(_arsipDibacaTableSql);
+      await db.execute(
+        'INSERT OR IGNORE INTO arsip_dibaca (userId, ref, dibacaPada) '
+        'SELECT userId, nilai, dicatatPada FROM riwayat '
+        "WHERE jenis = 'arsip' AND userId IS NOT NULL",
+      );
+    } catch (_) {}
+  }
+
+  // Menyusun rekap dan rekor dari riwayat yang sudah ada, sekali saja. Setelah
+  // ini keduanya dipelihara oleh HasilKuisRepository setiap kuis disimpan.
+  Future<void> _bangunRekapKuis(Database db) async {
+    try {
+      await db.execute(_kuisRekapTableSql);
+      await db.execute(_kuisRekorTableSql);
+
+      final sudah = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM kuis_rekap'),
+      );
+      if ((sudah ?? 0) > 0) return;
+
+      await db.execute(
+        'INSERT OR REPLACE INTO kuis_rekap '
+        '(userId, percobaan, totalSoal, totalBenar) '
+        'SELECT userId, COUNT(*), COALESCE(SUM(jumlahSoal), 0), '
+        'COALESCE(SUM(benar), 0) FROM kuis_riwayat '
+        'WHERE userId IS NOT NULL GROUP BY userId',
+      );
+
+      // peringkat gabungan: benar terbanyak dulu, lalu waktu tercepat
+      await db.execute(
+        'INSERT OR REPLACE INTO kuis_rekor '
+        '(userId, tema, kategori, subKategori, jumlahSoal, benar, salah, '
+        'detik, selesaiPada) '
+        'SELECT userId, tema, kategori, subKategori, jumlahSoal, benar, '
+        'salah, detik, selesaiPada FROM ('
+        'SELECT *, MAX(benar * 100000 - detik) AS peringkat '
+        'FROM kuis_riwayat '
+        "WHERE userId IS NOT NULL AND tema <> '' AND jumlahSoal > 0 "
+        'GROUP BY userId, LOWER(tema))',
+      );
+    } catch (_) {}
+  }
+
+  // Menyisipkan soal bawaan yang teksnya belum ada di database.
+  Future<void> _sisipkanKuisBaru(Database db) async {
+    try {
+      final baris = await db.query('quiz', columns: ['soal']);
+      final sudahAda = baris
+          .map((r) => r['soal'] as String?)
+          .whereType<String>()
+          .toSet();
+
+      for (final q in defaultQuizList) {
+        if (sudahAda.contains(q.soal)) continue;
+        await db.insert(
+          'quiz',
+          q.toMap()..remove('id'),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+    } catch (_) {}
   }
 
   // Mengisi penanda sub-kategori tema kuis bawaan, hanya pada baris yang
@@ -205,13 +329,18 @@ class DbHelper {
     } catch (_) {}
   }
 
-  // Menambah satu kolom TEXT bila belum ada.
-  Future<void> _tambahKolom(Database db, String tabel, String kolom) async {
+  // Menambah satu kolom bila belum ada.
+  Future<void> _tambahKolom(
+    Database db,
+    String tabel,
+    String kolom, {
+    String tipe = 'TEXT',
+  }) async {
     try {
       final info = await db.rawQuery('PRAGMA table_info($tabel)');
       final sudahAda = info.any((col) => col['name'] == kolom);
       if (!sudahAda) {
-        await db.execute('ALTER TABLE $tabel ADD COLUMN $kolom TEXT');
+        await db.execute('ALTER TABLE $tabel ADD COLUMN $kolom $tipe');
       }
     } catch (_) {}
   }
@@ -341,6 +470,131 @@ class DbHelper {
       dicatatPada INTEGER
     )''';
 
+  // Catatan permanen arsip yang pernah dibaca. Terpisah dari tabel `riwayat`
+  // supaya menghapus daftar "terakhir dibuka" tidak ikut menghapus capaian.
+  static const String _arsipDibacaTableSql =
+      '''CREATE TABLE IF NOT EXISTS arsip_dibaca (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      ref TEXT,
+      dibacaPada INTEGER,
+      UNIQUE(userId, ref)
+    )''';
+
+  // Logo lencana yang disetel admin. Bukan milik satu akun, melainkan
+  // pengaturan isi aplikasi; lencana tanpa baris di sini memakai ikon bawaan.
+  // Usulan konten dari pengguna, menunggu ditinjau admin. Muatannya disimpan
+  // sebagai JSON pada kolom `isi` supaya tiap jenis usulan bebas punya bentuk
+  // isian sendiri tanpa menambah kolom.
+  static const String _usulanTableSql = '''CREATE TABLE IF NOT EXISTS usulan (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      jenis TEXT,
+      maksud TEXT,
+      targetKodeTag TEXT,
+      provinsi TEXT,
+      judul TEXT,
+      isi TEXT,
+      status TEXT,
+      catatanAdmin TEXT,
+      kodeTagHasil TEXT,
+      dibuatPada INTEGER,
+      diperbaruiPada INTEGER
+    )''';
+
+  // Katalog kategori yang bisa dikelola admin. Satu tabel menampung beberapa
+  // katalog sekaligus, dibedakan kolom `ranah`. Kolom `field` berisi JSON
+  // larik FieldKategori.
+  static const String _kategoriTableSql =
+      '''CREATE TABLE IF NOT EXISTS kategori (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ranah TEXT NOT NULL,
+      kode TEXT NOT NULL,
+      nama TEXT,
+      urutan INTEGER,
+      field TEXT,
+      bawaan INTEGER,
+      UNIQUE(ranah, kode)
+    )''';
+
+  static const String _lencanaIkonTableSql =
+      '''CREATE TABLE IF NOT EXISTS lencana_ikon (
+      kode TEXT PRIMARY KEY,
+      gambar TEXT
+    )''';
+
+  // Satu baris per percobaan kuis yang diselesaikan.
+  static const String _kuisRiwayatTableSql =
+      '''CREATE TABLE IF NOT EXISTS kuis_riwayat (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userEmail TEXT,
+      kategori TEXT,
+      subKategori TEXT,
+      tema TEXT,
+      jumlahSoal INTEGER,
+      benar INTEGER,
+      salah INTEGER,
+      detik INTEGER,
+      selesaiPada INTEGER
+    )''';
+
+  // Penjumlahan seluruh percobaan kuis satu akun. Dipisahkan dari
+  // `kuis_riwayat` supaya angka totalnya tidak ikut hilang saat percobaan
+  // lama dipangkas.
+  static const String _kuisRekapTableSql =
+      '''CREATE TABLE IF NOT EXISTS kuis_rekap (
+      userId INTEGER PRIMARY KEY,
+      percobaan INTEGER,
+      totalSoal INTEGER,
+      totalBenar INTEGER
+    )''';
+
+  // Percobaan terbaik per tema, disimpan terpisah agar rekor tidak pernah
+  // terpangkas meski percobaan pembentuknya sudah lama.
+  static const String _kuisRekorTableSql =
+      '''CREATE TABLE IF NOT EXISTS kuis_rekor (
+      userId INTEGER,
+      tema TEXT,
+      kategori TEXT,
+      subKategori TEXT,
+      jumlahSoal INTEGER,
+      benar INTEGER,
+      salah INTEGER,
+      detik INTEGER,
+      selesaiPada INTEGER,
+      PRIMARY KEY (userId, tema)
+    )''';
+
+  // Satu baris per hari aktif, dipakai menghitung runtun.
+  static const String _kunjunganTableSql =
+      '''CREATE TABLE IF NOT EXISTS kunjungan (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userEmail TEXT,
+      tanggal TEXT,
+      UNIQUE(userEmail, tanggal)
+    )''';
+
+  // Lencana yang sudah terbuka beserta waktunya.
+  static const String _lencanaTableSql = '''CREATE TABLE IF NOT EXISTS lencana (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userEmail TEXT,
+      kode TEXT,
+      dibukaPada INTEGER,
+      UNIQUE(userEmail, kode)
+    )''';
+
+  // Tingkat penuntasan tiap provinsi beserta jumlah arsipnya saat itu.
+  static const String _progresWilayahTableSql =
+      '''CREATE TABLE IF NOT EXISTS progres_wilayah (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userEmail TEXT,
+      provinsi TEXT,
+      tingkat TEXT,
+      jumlahArsip INTEGER,
+      diperbaruiPada INTEGER,
+      UNIQUE(userEmail, provinsi)
+    )''';
+
   static const String _quizTableSql = '''CREATE TABLE IF NOT EXISTS quiz (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       kategori TEXT,
@@ -363,7 +617,8 @@ class DbHelper {
       ringkasan TEXT,
       gambarUtama TEXT,
       alurPeristiwa TEXT,
-      provinsi TEXT
+      provinsi TEXT,
+      kontributor TEXT
     )''';
 
   static const String _budayaTableSql = '''CREATE TABLE IF NOT EXISTS budaya (
@@ -381,7 +636,8 @@ class DbHelper {
       konteksBudaya TEXT,
       gambarKonteksBudaya TEXT,
       provinsi TEXT,
-      detailKategori TEXT
+      detailKategori TEXT,
+      kontributor TEXT
     )''';
 
   Future<void> _createTables(Database db) async {
@@ -391,9 +647,88 @@ class DbHelper {
     await db.execute(_budayaTableSql);
     await db.execute(_bookmarkTableSql);
     await db.execute(_riwayatTableSql);
+    await db.execute(_kuisRiwayatTableSql);
+    await db.execute(_kuisRekapTableSql);
+    await db.execute(_kuisRekorTableSql);
+    await db.execute(_kunjunganTableSql);
+    await db.execute(_lencanaTableSql);
+    await db.execute(_progresWilayahTableSql);
+    await db.execute(_arsipDibacaTableSql);
+    await db.execute(_lencanaIkonTableSql);
+    await db.execute(_usulanTableSql);
+    await db.execute(_kategoriTableSql);
+    await _siapkanKolomPemilik(db);
+    await _siapkanIndeksUnikUser(db);
+    await _siapkanIndeksKuisRiwayat(db);
+    await _siapkanIndeksUsulan(db);
+  }
+
+  // Tabel yang isinya milik satu akun. Kolom userId ditambahkan lewat migrasi
+  // karena tabel-tabel ini lahir lebih dulu dengan kunci userEmail.
+  static const List<String> _tabelMilikAkun = [
+    'bookmark',
+    'riwayat',
+    'kuis_riwayat',
+    'kunjungan',
+    'lencana',
+    'progres_wilayah',
+  ];
+
+  Future<void> _siapkanKolomPemilik(Database db) async {
+    for (final tabel in _tabelMilikAkun) {
+      await _tambahKolom(db, tabel, 'userId', tipe: 'INTEGER');
+    }
+    await _tambahKolom(db, 'lencana', 'disematkan', tipe: 'INTEGER');
+  }
+
+  // Riwayat kuis dibaca per akun dan dikelompokkan per tema, jadi keduanya
+  // diberi indeks agar tetap cepat saat percobaannya sudah menumpuk.
+  Future<void> _siapkanIndeksKuisRiwayat(Database db) async {
+    try {
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_kuis_riwayat_pemilik '
+        'ON kuis_riwayat(userId, tema)',
+      );
+    } catch (_) {}
+  }
+
+  // Usulan dibaca per pemilik di halaman kontribusi dan per status di panel
+  // admin, jadi keduanya diberi indeks.
+  Future<void> _siapkanIndeksUsulan(Database db) async {
+    try {
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_usulan_pemilik '
+        'ON usulan(userId, status)',
+      );
+    } catch (_) {}
+    try {
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_usulan_status ON usulan(status)',
+      );
+    } catch (_) {}
+  }
+
+  // Username dan email dijaga unik tanpa membedakan huruf besar-kecil.
+  // Indeks bisa dipasang belakangan, berbeda dari constraint pada CREATE TABLE.
+  Future<void> _siapkanIndeksUnikUser(Database db) async {
+    try {
+      await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_nama '
+        'ON user(nama COLLATE NOCASE)',
+      );
+    } catch (_) {}
+    try {
+      await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email '
+        'ON user(email COLLATE NOCASE)',
+      );
+    } catch (_) {}
   }
 
   Future<void> _seedInitialData(Database db) async {
+    // seed katalog kategori
+    await _sisipkanKategoriBawaan(db);
+
     // seed kuis
     final quizCount = Sqflite.firstIntValue(
       await db.rawQuery('SELECT COUNT(*) FROM quiz'),

@@ -5,6 +5,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../data/models/user_model.dart';
 import '../manage_content_page.dart';
+import '../manage_lencana_page.dart';
+import '../manage_usulan_page.dart';
 import '../manage_quiz_page.dart';
 
 class AdminDrawer extends StatelessWidget {
@@ -53,6 +55,28 @@ class AdminDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context); // tutup drawer
                 context.push(const AdminManageContentPage());
+              },
+            ),
+
+            // menu usulan dari pengguna
+            _buildDrawerTile(
+              context: context,
+              icon: Icons.volunteer_activism_rounded,
+              title: 'Usulan Konten',
+              onTap: () {
+                Navigator.pop(context);
+                context.push(const AdminManageUsulanPage());
+              },
+            ),
+
+            // menu logo lencana
+            _buildDrawerTile(
+              context: context,
+              icon: Icons.military_tech_rounded,
+              title: 'Logo Lencana',
+              onTap: () {
+                Navigator.pop(context);
+                context.push(const AdminManageLencanaPage());
               },
             ),
           ],

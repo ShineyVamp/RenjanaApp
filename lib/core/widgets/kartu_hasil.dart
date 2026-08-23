@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/models/hasil_jelajah_model.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_dekorasi.dart';
 import 'app_image.dart';
 
 // Kartu baris hasil, dipakai di Jelajah, halaman provinsi, dan daftar arsip.
@@ -27,10 +28,7 @@ class KartuHasil extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.borderPrimary),
-        ),
+        decoration: AppDekorasi.panel(),
         child: Row(
           crossAxisAlignment: isiPenuh
               ? CrossAxisAlignment.stretch

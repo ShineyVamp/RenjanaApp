@@ -46,18 +46,26 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
+    // Messenger hidup di atas Navigator, jadi pesan yang tertinggal akan ikut
+    // terbawa ke halaman berikutnya bila tidak dibersihkan.
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+
     if (user != null) {
       await PreferenceHandler.saveUser(user);
       if (!mounted) return;
       context.pushAndRemoveAll(MainPage(currentUser: user));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email atau password tidak ditemukan'),
-          backgroundColor: AppColors.primaryDark,
-        ),
-      );
+      return;
     }
+
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Email atau password tidak ditemukan'),
+        duration: Duration(milliseconds: 1800),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.primaryDark,
+      ),
+    );
   }
 
   @override

@@ -2,19 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/header_halaman.dart';
 import '../../data/models/user_model.dart';
-import '../../data/repositories/bookmark_repository.dart';
+import '../../data/repositories/arsip_dibaca_repository.dart';
+import '../../data/models/usulan_model.dart';
+import '../../data/repositories/hasil_kuis_repository.dart';
 import '../../data/repositories/jelajah_repository.dart';
+import '../../data/repositories/runtun_repository.dart';
+import '../../data/repositories/usulan_repository.dart';
 import '../../data/repositories/user_repository.dart';
-import '../../services/pemilih_gambar.dart';
 import '../../services/preference_handler.dart';
-import '../../data/repositories/riwayat_repository.dart';
 import '../auth/login_page.dart';
-import '../bookmark/bookmark_page.dart';
+import '../capaian/jejak_saya_page.dart';
+import '../capaian/riwayat_kuis_page.dart';
+import '../kontribusi/kontribusi_page.dart';
+import 'edit_profil_page.dart';
+import 'widgets/panel_lencana.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -25,14 +32,20 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final UserRepository _userRepository = UserRepository();
-  final BookmarkRepository _bookmarkRepository = BookmarkRepository();
   final JelajahRepository _jelajahRepository = JelajahRepository();
-  final RiwayatRepository _riwayatRepository = RiwayatRepository();
+  final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
+  final RuntunRepository _runtunRepository = RuntunRepository();
+  final HasilKuisRepository _hasilKuisRepository = HasilKuisRepository();
+  final UsulanRepository _usulanRepository = UsulanRepository();
 
   UserSQLModel? _user;
-  int _jumlahTersimpan = 0;
   int _jumlahDibuka = 0;
   int _jumlahProvinsi = 0;
+  RingkasanRuntun _runtun = const RingkasanRuntun();
+  RingkasanKuis _ringkasanKuis = const RingkasanKuis();
+  int _usulanTotal = 0;
+  int _usulanTerbuka = 0;
+  int _usulanDisetujui = 0;
   bool _isLoading = true;
 
   @override
@@ -44,112 +57,56 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _muatData() async {
     final sesi = PreferenceHandler.user;
 
-    // data terbaru dibaca dari database, bukan dari salinan sesi
-    UserSQLModel? user = sesi;
-    if (sesi != null && sesi.email.trim().isNotEmpty) {
-      user = await _userRepository.getUserByEmail(sesi.email) ?? sesi;
-    }
+    // data terbaru dibaca dari database lewat id, bukan dari salinan sesi
+    final user =
+        await _userRepository.getUserById(PreferenceHandler.userId) ?? sesi;
 
-    final bookmark = await _bookmarkRepository.getAllBookmarks();
-    final refs = await _riwayatRepository.dibuka();
-    final dibuka = await _jelajahRepository.ambilDariRiwayat(refs);
-    final provinsi = dibuka
+    final refs = await _arsipDibacaRepository.semua();
+    final dibaca = await _jelajahRepository.ambilDariRiwayat(refs);
+    final provinsi = dibaca
         .map((item) => item.asalProvinsi?.trim().toLowerCase())
         .whereType<String>()
         .where((nama) => nama.isNotEmpty)
         .toSet();
 
+    final runtun = await _runtunRepository.ringkasan();
+    final kuis = await _hasilKuisRepository.ringkasan();
+    final usulanTotal = await _usulanRepository.jumlahMilikSaya();
+    final usulanMenunggu = await _usulanRepository.jumlahMilikSaya(
+      status: StatusUsulan.menunggu,
+    );
+    final usulanRevisi = await _usulanRepository.jumlahMilikSaya(
+      status: StatusUsulan.revisi,
+    );
+    final usulanDisetujui = await _usulanRepository.jumlahDisetujui();
+
     if (!mounted) return;
     setState(() {
       _user = user;
-      _jumlahTersimpan = bookmark.length;
       _jumlahDibuka = refs.length;
       _jumlahProvinsi = provinsi.length;
+      _runtun = runtun;
+      _ringkasanKuis = kuis;
+      _usulanTotal = usulanTotal;
+      _usulanTerbuka = usulanMenunggu + usulanRevisi;
+      _usulanDisetujui = usulanDisetujui;
       _isLoading = false;
     });
   }
 
-  Future<void> _simpanFoto(String? path) async {
+  Future<void> _bukaEditProfil() async {
     final user = _user;
-    if (user == null || user.email.trim().isEmpty) return;
+    if (user == null) return;
 
-    await _userRepository.perbaruiFotoProfil(user.email, path);
-    final diperbarui = user.copyWith(fotoProfil: path, hapusFoto: path == null);
-    await PreferenceHandler.saveUser(diperbarui);
-
+    await context.push(EditProfilPage(user: user));
     if (!mounted) return;
-    setState(() => _user = diperbarui);
-
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          path == null ? 'Foto profil dihapus' : 'Foto profil diperbarui',
-        ),
-        duration: const Duration(milliseconds: 1400),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.success,
-      ),
-    );
+    await _muatData();
   }
 
-  void _bukaPilihanFoto() {
-    final adaFoto = (_user?.fotoProfil ?? '').trim().isNotEmpty;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetCtx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(width: 40, height: 4, color: AppColors.border),
-            const SizedBox(height: 14),
-            Text('Foto Profil', style: AppTypography.headingSmall()),
-            const SizedBox(height: 10),
-            ListTile(
-              leading: const Icon(
-                Icons.photo_library_outlined,
-                color: AppColors.primary,
-              ),
-              title: Text(
-                'Pilih dari galeri',
-                style: AppTypography.labelBold(fontSize: 14),
-              ),
-              onTap: () async {
-                Navigator.pop(sheetCtx);
-                if (!mounted) return;
-                final path = await pilihGambarDariGaleri(context);
-                if (path != null) await _simpanFoto(path);
-              },
-            ),
-            if (adaFoto)
-              ListTile(
-                leading: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: AppColors.error,
-                ),
-                title: Text(
-                  'Hapus foto',
-                  style: AppTypography.labelBold(
-                    fontSize: 14,
-                  ).copyWith(color: AppColors.error),
-                ),
-                onTap: () async {
-                  Navigator.pop(sheetCtx);
-                  await _simpanFoto(null);
-                },
-              ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
+  Future<void> _bukaJejak(int tab) async {
+    await context.push(JejakSayaPage(tabAwal: tab));
+    if (!mounted) return;
+    await _muatData();
   }
 
   Future<void> _logout() async {
@@ -180,51 +137,52 @@ class _ProfilePageState extends State<ProfilePage> {
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               )
-            : Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 700),
-                  child: RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: _muatData,
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-                      children: [
-                        _buildHeader(),
-                        const SizedBox(height: 24),
-                        _buildIdentitas(user),
-                        const SizedBox(height: 22),
-                        _buildStatistik(),
-                        const SizedBox(height: 26),
-                        _buildMenu(),
-                        const SizedBox(height: 26),
-                        _buildTombolLogout(),
-                        const SizedBox(height: 18),
-                        Text(
-                          'RENJANA v1.0.0 · ARSIP BUDAYA NUSANTARA',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                            color: AppColors.textSecondary,
+            : Column(
+                children: [
+                  // header tetap, sejajar dengan Jelajah, Peta, dan Kuis
+                  const HeaderHalaman(judul: 'Profil', garisBawah: false),
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 700),
+                        child: RefreshIndicator(
+                          color: AppColors.primary,
+                          onRefresh: _muatData,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                            children: [
+                              _buildIdentitas(user),
+                              const SizedBox(height: 22),
+                              _buildStatistik(),
+                              const SizedBox(height: 18),
+                              PanelLencana(onBerubah: _muatData),
+                              const SizedBox(height: 14),
+                              _buildPanelRekorKuis(),
+                              const SizedBox(height: 14),
+                              _buildPanelKontribusi(),
+                              const SizedBox(height: 26),
+                              _buildTombolLogout(),
+                              const SizedBox(height: 18),
+                              Text(
+                                'RENJANA v1.0.0 · ARSIP BUDAYA NUSANTARA',
+                                textAlign: TextAlign.center,
+                                style: AppTypography.caption(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
       ),
     );
   }
-
-  // section judul halaman, tepinya diambil alih ListView di sekitarnya
-  Widget _buildHeader() => const HeaderHalaman(
-    judul: 'Profil',
-    garisBawah: false,
-    padding: EdgeInsets.zero,
-  );
 
   // section foto, nama, dan email
   Widget _buildIdentitas(UserSQLModel? user) {
@@ -260,12 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 3),
                 Text(
                   isAdmin ? 'PENGELOLA ARSIP' : 'PENJELAJAH NUSANTARA',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                    color: AppColors.primary,
-                  ),
+                  style: AppTypography.eyebrow(fontSize: 10.5),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -293,6 +246,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
+        IconButton(
+          onPressed: _bukaEditProfil,
+          icon: const Icon(Icons.edit_outlined, size: 20),
+          color: AppColors.primary,
+          tooltip: 'Edit profil',
+          visualDensity: VisualDensity.compact,
+        ),
       ],
     );
   }
@@ -303,7 +263,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final inisial = nama.trim().isEmpty ? '?' : nama.trim()[0].toUpperCase();
 
     return GestureDetector(
-      onTap: _bukaPilihanFoto,
+      onTap: _bukaEditProfil,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 92,
@@ -344,8 +304,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   border: Border.all(color: AppColors.primary, width: 1.2),
                 ),
                 child: const Icon(
-                  Icons.photo_camera_outlined,
-                  size: 15,
+                  Icons.edit_outlined,
+                  size: 14,
                   color: AppColors.primary,
                 ),
               ),
@@ -361,19 +321,103 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStatistik() {
     return Container(
       decoration: BoxDecoration(
+        borderRadius: AppDekorasi.radiusKartu,
         border: Border.all(color: AppColors.borderPrimary),
       ),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: _buildKotakStat('$_jumlahTersimpan', 'Tersimpan')),
-            Expanded(child: _buildKotakStat('$_jumlahDibuka', 'Dibuka')),
             Expanded(
               child: _buildKotakStat(
-                '$_jumlahProvinsi',
-                'Provinsi',
-                terakhir: true,
+                '${_runtun.berjalan}',
+                'Runtun',
+                sorot: _runtun.berjalan > 0,
+              ),
+            ),
+
+            Expanded(flex: 2, child: _buildKotakJejak()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKotakStat(
+    String nilai,
+    String label, {
+    bool terakhir = false,
+    bool sorot = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        decoration: BoxDecoration(
+          border: terakhir
+              ? null
+              : const Border(right: BorderSide(color: AppColors.borderPrimary)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              nilai,
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 24,
+                height: 1,
+                color: sorot ? AppColors.gold : AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    label.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: AppTypography.eyebrow(
+                      fontSize: 9,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                ),
+                if (onTap != null)
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 12,
+                    color: AppColors.primary,
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Arsip dan provinsi digabung dalam satu kotak karena keduanya menuju
+  // halaman yang sama. Bentuk tiap angkanya mengikuti kotak Runtun.
+  Widget _buildKotakJejak() {
+    return GestureDetector(
+      onTap: () => _bukaJejak(0),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 14, 4, 14),
+        child: Row(
+          children: [
+            Expanded(child: _buildAngkaJejak('$_jumlahDibuka', 'Arsip')),
+            Expanded(child: _buildAngkaJejak('$_jumlahProvinsi', 'Provinsi')),
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: AppColors.primary,
               ),
             ),
           ],
@@ -382,118 +426,149 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildKotakStat(String nilai, String label, {bool terakhir = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-      decoration: BoxDecoration(
-        border: terakhir
-            ? null
-            : const Border(right: BorderSide(color: AppColors.borderPrimary)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            nilai,
-            style: GoogleFonts.dmSerifDisplay(
-              fontSize: 26,
-              height: 1,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.9,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // section pintasan
-  Widget _buildMenu() {
+  Widget _buildAngkaJejak(String nilai, String label) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
+        Text(nilai, style: AppTypography.angka()),
+        const SizedBox(height: 5),
         Text(
-          'AKTIVITAS',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.4,
-            color: AppColors.primary,
+          label.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: AppTypography.eyebrow(
+            fontSize: 9,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.9,
           ),
-        ),
-        const SizedBox(height: 8),
-        _buildBarisMenu(
-          nomor: '01',
-          nama: 'Koleksi Tersimpan',
-          keterangan: 'Arsip yang kamu tandai untuk dibaca lagi',
-          onTap: () async {
-            await context.push(const BookmarkPage());
-            if (!mounted) return;
-            await _muatData();
-          },
-        ),
-        _buildBarisMenu(
-          nomor: '02',
-          nama: 'Ganti Foto Profil',
-          keterangan: 'Ambil gambar dari galeri perangkat',
-          onTap: _bukaPilihanFoto,
         ),
       ],
     );
   }
 
-  Widget _buildBarisMenu({
-    required String nomor,
-    required String nama,
-    required String keterangan,
-    required VoidCallback onTap,
-  }) {
+  // section rekor kuis, ringkas dalam satu kotak
+  Widget _buildPanelRekorKuis() {
+    final ringkas = _ringkasanKuis;
+    final adaData = ringkas.percobaan > 0;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () async {
+        await context.push(const RiwayatKuisPage());
+        if (!mounted) return;
+        await _muatData();
+      },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.border)),
-        ),
+        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+        decoration: AppDekorasi.panel(),
         child: Row(
           children: [
-            SizedBox(
-              width: 26,
-              child: Text(
-                nomor,
-                style: AppTypography.tag(color: AppColors.primaryDark),
-              ),
-            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(nama, style: AppTypography.labelBold(fontSize: 14)),
-                  const SizedBox(height: 1),
+                  Text('REKOR KUIS', style: AppTypography.eyebrow()),
+                  const SizedBox(height: 2),
                   Text(
-                    keterangan,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      color: AppColors.textSecondary,
+                    adaData ? 'Ketepatan ${ringkas.persen}%' : 'Belum ada kuis',
+                    style: GoogleFonts.dmSerifDisplay(
+                      fontSize: 24,
+                      color: AppColors.textPrimary,
+                      height: 1.1,
                     ),
                   ),
+                  const SizedBox(height: 3),
+                  Text(
+                    adaData
+                        ? '${ringkas.totalBenar} benar dari '
+                              '${ringkas.totalSoal} soal · '
+                              '${ringkas.percobaan} percobaan'
+                        : 'Kerjakan satu kuis untuk mulai mencatat rekor',
+                    style: AppTypography.bodySmall().copyWith(
+                      fontSize: 11,
+                      height: 1.35,
+                    ),
+                  ),
+                  if (ringkas.temaSempurna > 0) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${ringkas.temaSempurna} tema sempurna',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              size: 18,
+              size: 20,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // section kontribusi, memakai bentuk yang sama dengan panel rekor kuis
+  Widget _buildPanelKontribusi() {
+    final adaTindakan = _usulanTerbuka > 0;
+
+    return GestureDetector(
+      onTap: () async {
+        await context.push(const KontribusiPage());
+        if (!mounted) return;
+        await _muatData();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+        decoration: adaTindakan
+            ? AppDekorasi.panelCapaian(AppColors.warning)
+            : AppDekorasi.panel(),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('KONTRIBUSI', style: AppTypography.eyebrow()),
+                  const SizedBox(height: 2),
+                  Text(
+                    _usulanTotal == 0
+                        ? 'Belum ada usulan'
+                        : '$_usulanDisetujui arsip terbit',
+                    style: AppTypography.angka(
+                      color: AppColors.textPrimary,
+                    ).copyWith(height: 1.1),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    _usulanTotal == 0
+                        ? 'Usulkan arsip daerah Anda untuk ikut melestarikan'
+                        : '$_usulanTotal usulan diajukan',
+                    style: AppTypography.caption(fontSize: 11, height: 1.35),
+                  ),
+                  if (adaTindakan) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '$_usulanTerbuka masih dalam proses',
+                      style: AppTypography.caption(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
               color: AppColors.primary,
             ),
           ],

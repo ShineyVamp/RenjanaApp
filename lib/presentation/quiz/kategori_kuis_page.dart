@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/constants/kuis_kategori.dart';
+import '../../core/widgets/app_bar_halaman.dart';
 import '../../core/widgets/grid_horizontal.dart';
 import '../../core/widgets/kartu_tema_kuis.dart';
 import '../../core/widgets/kotak_pencarian.dart';
@@ -12,10 +14,10 @@ import '../../data/models/tema_kuis_model.dart';
 import '../../data/repositories/quiz_repository.dart';
 import 'mulai_kuis.dart';
 
-// Isi satu kategori kuis, dengan dua cara main: acak dari seluruh kategori,
-// atau memilih satu tema. Kartu tema dikelompokkan menurut penanda
-// sub-kategorinya: budaya per kategori budaya, kedaerahan per provinsi dengan
-// pulau sebagai penyaring.
+// Isi satu kategori kuis, dengan tiga cara main: acak dari seluruh kategori,
+// gabungan satu penyaring, atau satu tema. Kartu tema dikelompokkan menurut
+// penanda sub-kategorinya: budaya per kategori budaya, kedaerahan per provinsi
+// dengan pulau sebagai penyaring.
 class KategoriKuisPage extends StatefulWidget {
   final String kategori;
 
@@ -127,29 +129,7 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Kuis ${widget.kategori}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.headingSmall().copyWith(fontSize: 18),
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
-      ),
+      appBar: AppBarHalaman(judul: 'Kuis ${widget.kategori}'),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -207,10 +187,7 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
 
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.borderPrimary),
-      ),
+      decoration: AppDekorasi.panel(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -243,12 +220,7 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
 
           Text(
             '$_totalSoal SOAL · $jumlahTema TEMA',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-              color: AppColors.primary,
-            ),
+            style: AppTypography.eyebrow(fontSize: 11, letterSpacing: 0.8),
           ),
           const SizedBox(height: 14),
 
@@ -283,10 +255,8 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             'ATAU PILIH SATU TEMA',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppTypography.eyebrow(
               fontSize: 10.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2,
               color: AppColors.textSecondary,
             ),
           ),
@@ -323,7 +293,58 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
             ),
           ),
         ],
+        _buildTombolPenyaring(),
       ],
+    );
+  }
+
+  // Menggabungkan seluruh tema di bawah satu penyaring jadi satu kuis; inilah
+  // pencampuran tingkat pulau untuk kategori kedaerahan.
+  Widget _buildTombolPenyaring() {
+    if (_penyaring == _semuaPenyaring) return const SizedBox.shrink();
+
+    final tema = _semuaTema
+        .where(
+          (t) => indukSubKategori(widget.kategori, t.subKategori) == _penyaring,
+        )
+        .toList();
+    if (tema.length < 2) return const SizedBox.shrink();
+
+    final soal = [for (final t in tema) ...t.soal];
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: AppColors.primary),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: const RoundedRectangleBorder(),
+          ),
+          onPressed: () => mulaiKuisGabungan(
+            context,
+            judul: 'Kuis $_penyaring',
+            kategori: widget.kategori,
+            soal: soal,
+          ),
+          icon: const Icon(
+            Icons.shuffle_rounded,
+            size: 17,
+            color: AppColors.primary,
+          ),
+          label: Text(
+            'Main semua tema $_penyaring · ${soal.length} soal',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -340,6 +361,7 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: terpilih ? AppColors.primary : AppColors.surface,
+            borderRadius: AppDekorasi.radiusKecil,
             border: Border.all(
               color: terpilih ? AppColors.primary : AppColors.border,
             ),

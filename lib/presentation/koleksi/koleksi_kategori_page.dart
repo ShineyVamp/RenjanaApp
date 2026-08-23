@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
+import '../../core/widgets/app_bar_halaman.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/constants/budaya_kategori.dart';
 import '../../data/models/budaya_model.dart';
@@ -44,29 +46,7 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          widget.kategori.nama,
-          style: AppTypography.headingSmall(
-            color: AppColors.textPrimary,
-          ).copyWith(fontSize: 20),
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
-      ),
+      appBar: AppBarHalaman(judul: widget.kategori.nama),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -127,10 +107,7 @@ class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
       behavior: HitTestBehavior.opaque,
       onTap: () => context.push(DetailBudayaPage(budaya: item)),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.borderPrimary),
-        ),
+        decoration: AppDekorasi.panel(),
         // tinggi kartu ikut isi teks, gambar dikunci lewat AspectRatio
         child: Row(
           children: [

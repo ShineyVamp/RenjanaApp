@@ -20,6 +20,9 @@ class BudayaModel {
   // Nama provinsi asal, mengikuti penulisan di wilayah_nusantara.dart.
   final String? provinsi;
 
+  // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.
+  final String? kontributor;
+
   // Isi field khas kategori. Kuncinya mengikuti FieldKategori.kunci pada
   // kategori item ini; nilainya String untuk teks, List<String> untuk daftar.
   final Map<String, dynamic> detailKategori;
@@ -40,6 +43,7 @@ class BudayaModel {
     this.gambarKonteksBudaya,
     this.provinsi,
     this.detailKategori = const {},
+    this.kontributor,
   });
 
   // Item juga tempat wisata, ditandai suffix -D (mis. BUD-RMH-1-D).
@@ -96,6 +100,7 @@ class BudayaModel {
     'gambarKonteksBudaya': gambarKonteksBudaya,
     'provinsi': provinsi,
     'detailKategori': detailKategoriJson,
+    'kontributor': kontributor,
   };
 
   // Membaca kolom detailKategori; nilai null, kosong, atau rusak jadi {}.

@@ -1,7 +1,8 @@
 import 'package:sqflite/sqflite.dart';
-import '../../services/preference_handler.dart';
 import '../local/db_helper.dart';
+import '../../core/constants/wilayah_nusantara.dart';
 import '../models/bookmark_model.dart';
+import 'pemilik_akun.dart';
 import 'budaya_repository.dart';
 import 'sejarah_repository.dart';
 
@@ -20,26 +21,18 @@ class BookmarkRepository {
 
   static bool _legacyClaimed = false;
 
-  // Email user yang sedang login, string kosong berarti belum login.
-  String get _currentUserEmail {
-    try {
-      return PreferenceHandler.userEmail.toLowerCase().trim();
-    } catch (_) {
-      return '';
-    }
-  }
+  int get _pemilik => idAkunAktif;
 
   // Mengklaim bookmark versi lama yang tersimpan tanpa pemilik.
   Future<Database> _db() async {
     final db = await _dbHelper.database;
     if (!_legacyClaimed) {
       _legacyClaimed = true;
-      final email = _currentUserEmail;
-      if (email.isNotEmpty) {
+      if (_pemilik > 0) {
         try {
           await db.rawUpdate(
-            "UPDATE OR IGNORE bookmark SET userEmail = ? WHERE userEmail = ''",
-            [email],
+            'UPDATE OR IGNORE bookmark SET userId = ? WHERE userId IS NULL',
+            [_pemilik],
           );
         } catch (_) {}
       }
@@ -52,8 +45,8 @@ class BookmarkRepository {
       final db = await _db();
       final results = await db.query(
         'bookmark',
-        where: 'kodeTag = ? AND userEmail = ?',
-        whereArgs: [kodeTag, _currentUserEmail],
+        where: 'kodeTag = ? AND userId = ?',
+        whereArgs: [kodeTag, _pemilik],
       );
       return results.isNotEmpty;
     } catch (_) {
@@ -76,7 +69,7 @@ class BookmarkRepository {
     try {
       final db = await _db();
       final id = await db.insert('bookmark', {
-        'userEmail': _currentUserEmail,
+        'userId': _pemilik,
         'itemType': itemType.toLowerCase(),
         'kodeTag': kodeTag,
         'createdAt': DateTime.now().toIso8601String(),
@@ -92,8 +85,8 @@ class BookmarkRepository {
       final db = await _db();
       final count = await db.delete(
         'bookmark',
-        where: 'kodeTag = ? AND userEmail = ?',
-        whereArgs: [kodeTag, _currentUserEmail],
+        where: 'kodeTag = ? AND userId = ?',
+        whereArgs: [kodeTag, _pemilik],
       );
       return count > 0;
     } catch (_) {
@@ -106,8 +99,8 @@ class BookmarkRepository {
       final db = await _db();
       final results = await db.query(
         'bookmark',
-        where: 'userEmail = ?',
-        whereArgs: [_currentUserEmail],
+        where: 'userId = ?',
+        whereArgs: [_pemilik],
         orderBy: 'id DESC',
       );
 
@@ -117,16 +110,38 @@ class BookmarkRepository {
             .toLowerCase();
         final kodeTag = map['kodeTag'] as String? ?? '';
 
-        if (itemType == 'sejarah') {
-          final sejarah = await _sejarahRepository.getSejarahByKodeTag(kodeTag);
-          if (sejarah != null) {
-            items.add(BookmarkItemModel.fromMap(map, sejarah: sejarah));
-          }
-        } else if (itemType == 'budaya') {
-          final budaya = await _budayaRepository.getBudayaByKodeTag(kodeTag);
-          if (budaya != null) {
-            items.add(BookmarkItemModel.fromMap(map, budaya: budaya));
-          }
+        // Arsip dicari di database, sedangkan wilayah diambil dari katalog
+        // konstanta karena pulau dan provinsi tidak disimpan sebagai baris.
+        switch (itemType) {
+          case 'sejarah':
+            final sejarah = await _sejarahRepository.getSejarahByKodeTag(
+              kodeTag,
+            );
+            if (sejarah != null) {
+              items.add(BookmarkItemModel.fromMap(map, sejarah: sejarah));
+            }
+
+          case 'budaya':
+            final budaya = await _budayaRepository.getBudayaByKodeTag(kodeTag);
+            if (budaya != null) {
+              items.add(BookmarkItemModel.fromMap(map, budaya: budaya));
+            }
+
+          case 'pulau':
+            final pulau = pulauDariId(
+              kodeTag.replaceFirst(BookmarkItemModel.awalanPulau, ''),
+            );
+            if (pulau != null) {
+              items.add(BookmarkItemModel.fromMap(map, pulau: pulau));
+            }
+
+          case 'provinsi':
+            final wilayah = provinsiDariNama(
+              kodeTag.replaceFirst(BookmarkItemModel.awalanProvinsi, ''),
+            );
+            if (wilayah != null) {
+              items.add(BookmarkItemModel.fromMap(map, wilayah: wilayah));
+            }
         }
       }
 

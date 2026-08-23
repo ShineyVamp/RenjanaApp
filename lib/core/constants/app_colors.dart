@@ -34,4 +34,8 @@ class AppColors {
 
   // aksen konten
   static const Color accentBudaya = Color(0xFF795548);
+
+  // tingkat capaian, dipakai lencana dan peta progres
+  static const Color perunggu = Color(0xFFB08D57);
+  static const Color perak = Color(0xFF9AA0A6);
 }

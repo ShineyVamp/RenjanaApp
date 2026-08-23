@@ -80,4 +80,35 @@ class AppTypography {
         letterSpacing: 0.8,
         color: color,
       );
+
+  // Label kecil huruf kapital di atas sebuah judul, mis. "PENUNTASAN".
+  static TextStyle eyebrow({
+    double fontSize = 10,
+    Color color = AppColors.primary,
+    double letterSpacing = 1.2,
+  }) => GoogleFonts.plusJakartaSans(
+    fontSize: fontSize,
+    fontWeight: FontWeight.w800,
+    letterSpacing: letterSpacing,
+    color: color,
+  );
+
+  // Keterangan pendek di dalam kartu dan baris daftar.
+  static TextStyle caption({
+    double fontSize = 11.5,
+    Color color = AppColors.textSecondary,
+    FontWeight fontWeight = FontWeight.normal,
+    double? height,
+  }) => GoogleFonts.plusJakartaSans(
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    height: height,
+    color: color,
+  );
+
+  // Angka besar sebagai penekanan utama sebuah kartu.
+  static TextStyle angka({
+    double fontSize = 24,
+    Color color = AppColors.primary,
+  }) => GoogleFonts.dmSerifDisplay(fontSize: fontSize, height: 1, color: color);
 }
