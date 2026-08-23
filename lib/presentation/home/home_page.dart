@@ -13,6 +13,7 @@ import '../bookmark/bookmark_page.dart';
 import '../kontribusi/kontribusi_page.dart';
 import 'widgets/banner_melestarikan.dart';
 import 'widgets/budaya_highlight_card.dart';
+import 'widgets/garis_waktu_list.dart';
 import 'widgets/koleksi_budaya_list.dart';
 import 'widgets/misi_harian_card.dart';
 import 'widgets/pilihan_destinasi_list.dart';
@@ -244,6 +245,10 @@ class _HomePageState extends State<HomePage> with RouteAware {
                       child: MisiHarianCard(key: ValueKey(_revisiMisi)),
                     ),
                     const SizedBox(height: 44),
+
+                    // section garis waktu nusantara (era sejarah)
+                    const GarisWaktuList(),
+                    const SizedBox(height: 48),
 
                     // section koleksi budaya
                     const KoleksiBudayaList(),

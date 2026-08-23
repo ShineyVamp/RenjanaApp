@@ -5,6 +5,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../data/models/user_model.dart';
 import '../manage_content_page.dart';
+import '../manage_kategori_page.dart';
+import '../manage_laporan_page.dart';
 import '../manage_lencana_page.dart';
 import '../manage_usulan_page.dart';
 import '../manage_quiz_page.dart';
@@ -77,6 +79,28 @@ class AdminDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 context.push(const AdminManageLencanaPage());
+              },
+            ),
+
+            // menu kelola kategori
+            _buildDrawerTile(
+              context: context,
+              icon: Icons.category_rounded,
+              title: 'Kelola Kategori',
+              onTap: () {
+                Navigator.pop(context);
+                context.push(const AdminManageKategoriPage());
+              },
+            ),
+
+            // menu moderasi laporan
+            _buildDrawerTile(
+              context: context,
+              icon: Icons.report_problem_rounded,
+              title: 'Moderasi Laporan',
+              onTap: () {
+                Navigator.pop(context);
+                context.push(const AdminManageLaporanPage());
               },
             ),
           ],

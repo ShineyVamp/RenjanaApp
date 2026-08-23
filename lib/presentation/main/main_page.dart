@@ -10,6 +10,7 @@ import '../../services/preference_handler.dart';
 import '../admin/widgets/admin_drawer.dart';
 import '../home/home_page.dart';
 import '../jelajah/jelajah_page.dart';
+import '../komunitas/komunitas_page.dart';
 import '../peta/peta_page.dart';
 import '../quiz/quiz_page.dart';
 
@@ -52,13 +53,21 @@ class _MainPageState extends State<MainPage> {
     return _isAdmin ? 'admin1' : PreferenceHandler.userName;
   }
 
-  final List<String> _labels = ['Beranda', 'Jelajah', 'Peta', 'Kuis', 'Profil'];
+  final List<String> _labels = [
+    'Beranda',
+    'Jelajah',
+    'Peta',
+    'Kuis',
+    'Komunitas',
+    'Profil',
+  ];
 
   final List<String> _activeIcons = [
     'assets/animations/home.json',
     'assets/animations/compass.json',
     'assets/animations/map.json',
     'assets/animations/quiz.json',
+    '',
     'assets/animations/person.json',
   ];
 
@@ -67,6 +76,7 @@ class _MainPageState extends State<MainPage> {
     Icons.explore_outlined,
     Icons.map_outlined,
     Icons.quiz_outlined,
+    Icons.forum_outlined,
     Icons.person_outline,
   ];
 
@@ -80,6 +90,7 @@ class _MainPageState extends State<MainPage> {
       JelajahPage(onBukaPeta: () => setState(() => _selectedIndex = 2)),
       const PetaPage(),
       const QuizPage(),
+      const KomunitasPage(),
       const ProfilePage(),
     ];
   }
@@ -142,12 +153,18 @@ class _MainPageState extends State<MainPage> {
                               width: 28,
                               child: Center(
                                 child: isSelected
-                                    ? Lottie.asset(
-                                        _activeIcons[index],
-                                        frameRate: const FrameRate(120),
-                                        repeat: false,
-                                        fit: BoxFit.contain,
-                                      )
+                                    ? (_activeIcons[index].isNotEmpty
+                                        ? Lottie.asset(
+                                            _activeIcons[index],
+                                            frameRate: const FrameRate(120),
+                                            repeat: false,
+                                            fit: BoxFit.contain,
+                                          )
+                                        : const Icon(
+                                            Icons.forum_rounded,
+                                            size: 24,
+                                            color: AppColors.primary,
+                                          ))
                                     : Icon(
                                         _inactiveIcons[index],
                                         size: 24,

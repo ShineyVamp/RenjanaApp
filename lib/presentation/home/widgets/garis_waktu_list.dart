@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
+import '../../../core/constants/katalog_kategori.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
-import '../../../core/widgets/teks_muat.dart';
 import '../../../core/widgets/section_header.dart';
-import '../../../core/constants/budaya_kategori.dart';
-import '../../../data/models/budaya_model.dart';
-import '../../../data/repositories/budaya_repository.dart';
-import '../../koleksi/koleksi_kategori_page.dart';
+import '../../../core/widgets/teks_muat.dart';
+import '../../../data/models/sejarah_model.dart';
+import '../../../data/repositories/sejarah_repository.dart';
+import '../../sejarah/arsip_periode_page.dart';
 
-// Daftar delapan kategori budaya, gambar dan jumlah item diambil dari database.
-class KoleksiBudayaList extends StatefulWidget {
-  const KoleksiBudayaList({super.key});
+// Garis Waktu Nusantara: daftar sembilan era sejarah Indonesia,
+// gambar dan jumlah arsip diambil secara dinamis dari database.
+class GarisWaktuList extends StatefulWidget {
+  const GarisWaktuList({super.key});
 
   @override
-  State<KoleksiBudayaList> createState() => _KoleksiBudayaListState();
+  State<GarisWaktuList> createState() => _GarisWaktuListState();
 }
 
-class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
+class _GarisWaktuListState extends State<GarisWaktuList> {
   final ScrollController _scrollController = ScrollController();
-  final BudayaRepository _budayaRepository = BudayaRepository();
+  final SejarahRepository _sejarahRepository = SejarahRepository();
 
-  Map<String, List<BudayaModel>> _grouped = {};
+  Map<String, List<SejarahModel>> _grouped = {};
   bool _isLoading = true;
 
   @override
@@ -32,10 +33,17 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
   }
 
   Future<void> _loadItems() async {
-    final grouped = await _budayaRepository.getBudayaGroupedByJenis();
+    final all = await _sejarahRepository.getAllSejarah();
+    final Map<String, List<SejarahModel>> map = {};
+    for (final s in all) {
+      if (s.periode != null && s.periode!.isNotEmpty) {
+        final key = s.periode!.trim().toUpperCase();
+        map.putIfAbsent(key, () => []).add(s);
+      }
+    }
     if (!mounted) return;
     setState(() {
-      _grouped = grouped;
+      _grouped = map;
       _isLoading = false;
     });
   }
@@ -52,19 +60,19 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
       children: [
         // nomor watermark
         Text(
-          '04',
+          '03',
           style: AppTypography.headingLarge(
             color: AppColors.borderPrimary,
           ).copyWith(fontSize: 90, height: 1),
         ),
         const SectionHeader(
-          title: 'Koleksi Budaya',
+          title: 'Garis Waktu Nusantara',
           dividerWidth: 100,
           isCenter: true,
         ),
         const SizedBox(height: 20),
 
-        // kartu kategori, scroll horizontal
+        // kartu era periode, scroll horizontal
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _isLoading
@@ -90,17 +98,17 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
                         controller: _scrollController,
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: List.generate(budayaKategoriList.length, (
+                          children: List.generate(periodeSejarahList.length, (
                             index,
                           ) {
-                            final kategori = budayaKategoriList[index];
+                            final periode = periodeSejarahList[index];
                             return Padding(
                               padding: EdgeInsets.only(
-                                right: index < budayaKategoriList.length - 1
+                                right: index < periodeSejarahList.length - 1
                                     ? 20
                                     : 0,
                               ),
-                              child: _buildCategoryCard(kategori),
+                              child: _buildEraCard(periode),
                             );
                           }),
                         ),
@@ -113,15 +121,15 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
     );
   }
 
-  Widget _buildCategoryCard(BudayaKategori kategori) {
+  Widget _buildEraCard(KategoriItem periode) {
     const double itemWidth = 340;
-    final items = _grouped[kategori.kode] ?? const <BudayaModel>[];
-    final coverImage = items.isNotEmpty ? items.first.gambarUtama : null;
+    final items = _grouped[periode.kode.toUpperCase()] ?? const <SejarahModel>[];
+    final coverImage = items.isNotEmpty ? items.first.gambarUtama : 'assets/images/170845history.png';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        await context.push(KoleksiKategoriPage(kategori: kategori));
+        await context.push(ArsipPeriodePage(periode: periode));
         await _loadItems();
       },
       child: Container(
@@ -149,10 +157,10 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withAlpha(50),
-                      Colors.black.withAlpha(200),
+                      Colors.black.withAlpha(60),
+                      Colors.black.withAlpha(220),
                     ],
-                    stops: const [0.4, 0.7, 1.0],
+                    stops: const [0.35, 0.65, 1.0],
                   ),
                 ),
               ),
@@ -165,20 +173,21 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TeksMuat(
-                    teks: kategori.nama,
+                    teks: periode.nama,
                     gaya: AppTypography.headingMedium(color: Colors.white),
                     ambangKata: 3,
                     ukuranMinimum: 17,
                   ),
+                  const SizedBox(height: 2),
                   Text(
-                    '${items.length} koleksi',
+                    '${items.length} arsip sejarah',
                     style: AppTypography.bodyMedium(color: Colors.white70),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Text(
-                        'Jelajahi lebih lanjut',
+                        'Jelajahi era ini',
                         style: AppTypography.labelBold(
                           color: AppColors.primary,
                         ),

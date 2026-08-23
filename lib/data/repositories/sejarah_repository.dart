@@ -44,24 +44,44 @@ class SejarahRepository {
             map['gambarUtama'] as String? ?? 'assets/images/1308history.png',
         alurPeristiwa: alur,
         provinsi: map['provinsi'] as String?,
+        periode: map['periode'] as String?,
+        jenisPeristiwa: map['jenisPeristiwa'] as String?,
+        detailPeristiwa: SejarahModel.detailDariJson(map['detailPeristiwa']),
+        jenisMedia: map['jenisMedia'] as String? ?? 'gambar',
+        mediaUrl: map['mediaUrl'] as String?,
       );
     }).toList();
   }
 
+  Future<List<SejarahModel>> getSejarahByPeriode(String periode) async {
+    final list = await getAllSejarah();
+    final target = periode.trim().toUpperCase();
+    return list.where((s) => (s.periode?.trim().toUpperCase() ?? '') == target).toList();
+  }
+
   Future<SejarahModel> getSejarahHariIni() async {
     final list = await getAllSejarah();
+    if (list.isEmpty) return defaultSejarahList.first;
+
     final now = DateTime.now();
     final dayStr = now.day.toString().padLeft(2, '0');
     final monthStr = now.month.toString().padLeft(2, '0');
     final todayPrefix = '$dayStr$monthStr';
 
+    // 1. Prioritas utama: jika ada peristiwa yang persis di hari & bulan ini
     try {
       return list.firstWhere(
         (s) => s.tanggalKey.startsWith(todayPrefix) && s.urutan == 1,
       );
-    } catch (_) {
-      return list.isNotEmpty ? list.first : defaultSejarahList.first;
-    }
+    } catch (_) {}
+
+    // 2. Jika tidak ada tanggal eksak: gunakan rotasi harian deterministik
+    final pool = List<SejarahModel>.from(list)
+      ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
+    final benihHariIni =
+        DateTime(now.year, now.month, now.day).millisecondsSinceEpoch ~/
+        Duration.millisecondsPerDay;
+    return pool[Random(benihHariIni).nextInt(pool.length)];
   }
 
   Future<SejarahModel?> getSejarahByKodeTag(String kodeTag) async {
@@ -78,25 +98,11 @@ class SejarahRepository {
     SejarahModel? exclude,
   }) async {
     final list = await getAllSejarah();
-    final pool = List<SejarahModel>.from(
-      list.where((s) => exclude == null || s.kodeTag != exclude.kodeTag),
-    )..shuffle();
-
-    final List<SejarahModel> result = [];
-    final random = Random();
-    while (result.length < count) {
-      if (pool.isNotEmpty) {
-        final index = result.length < pool.length
-            ? result.length
-            : random.nextInt(pool.length);
-        result.add(pool[index]);
-      } else if (list.isNotEmpty) {
-        result.add(list.first);
-      } else {
-        result.add(defaultSejarahList.first);
-      }
+    if (exclude != null) {
+      list.removeWhere((s) => s.kodeTag == exclude.kodeTag);
     }
-    return result;
+    list.shuffle(Random());
+    return list.take(count).toList();
   }
 
   Future<int> tambahSejarah(SejarahModel model) async {
@@ -114,6 +120,11 @@ class SejarahRepository {
       ),
       'provinsi': model.provinsi,
       'kontributor': model.kontributor,
+      'periode': model.periode,
+      'jenisPeristiwa': model.jenisPeristiwa,
+      'detailPeristiwa': model.detailPeristiwaJson,
+      'jenisMedia': model.jenisMedia,
+      'mediaUrl': model.mediaUrl,
     });
   }
 
@@ -140,6 +151,11 @@ class SejarahRepository {
         ),
         'provinsi': model.provinsi,
         'kontributor': model.kontributor,
+        'periode': model.periode,
+        'jenisPeristiwa': model.jenisPeristiwa,
+        'detailPeristiwa': model.detailPeristiwaJson,
+        'jenisMedia': model.jenisMedia,
+        'mediaUrl': model.mediaUrl,
       },
       where: model.id != null ? 'id = ?' : 'kodeTag = ?',
       whereArgs: [model.id ?? oldKodeTag],
@@ -167,3 +183,4 @@ class SejarahRepository {
     return count;
   }
 }
+

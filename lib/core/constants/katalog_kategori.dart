@@ -10,6 +10,12 @@ import 'dart:convert';
 // Kategori budaya, mis. Rumah Adat atau Kuliner Tradisional.
 const String ranahBudaya = 'budaya';
 
+// Periode sejarah, mis. Kerajaan Hindu-Buddha atau Proklamasi & Revolusi.
+const String ranahPeriode = 'periode';
+
+// Jenis peristiwa sejarah dengan isian rincian khas, mis. Perang atau Tokoh.
+const String ranahPeristiwa = 'peristiwa';
+
 enum TipeField {
   teks, // satu baris
   teksPanjang, // paragraf
@@ -179,8 +185,34 @@ List<KategoriItem> _lengkapi(String ranah, List<KategoriItem> daftar) => [
     daftar[i].salin(ranah: ranah, urutan: i + 1, bawaan: true),
 ];
 
+List<KategoriItem> get periodeSejarahList => KatalogKategori.ranah(ranahPeriode);
+List<KategoriItem> get peristiwaSejarahList => KatalogKategori.ranah(ranahPeristiwa);
+
+KategoriItem? periodeByKode(String kode) {
+  final target = kode.trim().toUpperCase();
+  for (final p in periodeSejarahList) {
+    if (p.kode == target) return p;
+  }
+  return null;
+}
+
+String namaPeriode(String kode) => periodeByKode(kode)?.nama ?? kode;
+
+KategoriItem? peristiwaByKode(String kode) {
+  final target = kode.trim().toUpperCase();
+  for (final p in peristiwaSejarahList) {
+    if (p.kode == target) return p;
+  }
+  return null;
+}
+
+String namaPeristiwa(String kode) => peristiwaByKode(kode)?.nama ?? kode;
+List<FieldKategori> fieldPeristiwa(String kode) => peristiwaByKode(kode)?.field ?? const [];
+
 final Map<String, List<KategoriItem>> _bawaan = {
   ranahBudaya: _lengkapi(ranahBudaya, _budayaMentah),
+  ranahPeriode: _lengkapi(ranahPeriode, _periodeMentah),
+  ranahPeristiwa: _lengkapi(ranahPeristiwa, _peristiwaMentah),
 };
 
 const List<KategoriItem> _budayaMentah = [
@@ -497,3 +529,133 @@ const List<KategoriItem> _budayaMentah = [
     ],
   ),
 ];
+
+const List<KategoriItem> _periodeMentah = [
+  KategoriItem(kode: 'PRS', nama: 'Prasejarah'),
+  KategoriItem(kode: 'HND', nama: 'Kerajaan Hindu–Buddha'),
+  KategoriItem(kode: 'ISL', nama: 'Kesultanan Islam'),
+  KategoriItem(kode: 'KLN', nama: 'Kolonialisme Eropa'),
+  KategoriItem(kode: 'NAS', nama: 'Pergerakan Nasional'),
+  KategoriItem(kode: 'REV', nama: 'Proklamasi & Revolusi'),
+  KategoriItem(kode: 'ORL', nama: 'Orde Lama'),
+  KategoriItem(kode: 'ORB', nama: 'Orde Baru'),
+  KategoriItem(kode: 'REF', nama: 'Reformasi & Kontemporer'),
+];
+
+const List<KategoriItem> _peristiwaMentah = [
+  KategoriItem(
+    kode: 'PRG',
+    nama: 'Perang & Pertempuran',
+    field: [
+      FieldKategori(
+        kunci: 'pihakTerlibat',
+        label: 'Pihak yang Terlibat',
+        tipe: TipeField.daftar,
+        petunjuk: 'Contoh: Pasukan Pangeran Diponegoro, Militer Belanda',
+      ),
+      FieldKategori(
+        kunci: 'lokasi',
+        label: 'Lokasi Pertempuran',
+        petunjuk: 'Contoh: Sekitar Jawa Tengah dan DI Yogyakarta',
+      ),
+      FieldKategori(
+        kunci: 'hasil',
+        label: 'Hasil / Dampak Akhir',
+        tipe: TipeField.teksPanjang,
+      ),
+      FieldKategori(
+        kunci: 'korban',
+        label: 'Korban & Kerugian',
+        tipe: TipeField.teksPanjang,
+      ),
+    ],
+  ),
+  KategoriItem(
+    kode: 'PRJ',
+    nama: 'Perjanjian & Diplomasi',
+    field: [
+      FieldKategori(
+        kunci: 'tempat',
+        label: 'Tempat Perundingan',
+        petunjuk: 'Contoh: Linggarjati, Kuningan, Jawa Barat',
+      ),
+      FieldKategori(
+        kunci: 'penandatangan',
+        label: 'Tokoh / Delegasi Penandatangan',
+        tipe: TipeField.daftar,
+      ),
+      FieldKategori(
+        kunci: 'isiPokok',
+        label: 'Isi Pokok Perjanjian',
+        tipe: TipeField.teksPanjang,
+      ),
+    ],
+  ),
+  KategoriItem(
+    kode: 'TKH',
+    nama: 'Tokoh Sejarah',
+    field: [
+      FieldKategori(kunci: 'namaLengkap', label: 'Nama Lengkap & Gelar'),
+      FieldKategori(kunci: 'lahir', label: 'Tempat & Tanggal Lahir'),
+      FieldKategori(kunci: 'wafat', label: 'Tempat & Tanggal Wafat'),
+      FieldKategori(
+        kunci: 'peran',
+        label: 'Peran & Pengaruh Sejarah',
+        tipe: TipeField.teksPanjang,
+      ),
+    ],
+  ),
+  KategoriItem(
+    kode: 'ORG',
+    nama: 'Organisasi & Pergerakan',
+    field: [
+      FieldKategori(
+        kunci: 'pendiri',
+        label: 'Pendiri / Inisiator',
+        tipe: TipeField.daftar,
+      ),
+      FieldKategori(
+        kunci: 'tahunBerdiri',
+        label: 'Tahun & Tempat Berdiri',
+      ),
+      FieldKategori(
+        kunci: 'tujuan',
+        label: 'Tujuan & Visi Gerakan',
+        tipe: TipeField.teksPanjang,
+      ),
+      FieldKategori(
+        kunci: 'tokohPenting',
+        label: 'Tokoh-tokoh Kunci',
+        tipe: TipeField.daftar,
+      ),
+    ],
+  ),
+  KategoriItem(
+    kode: 'NSK',
+    nama: 'Naskah & Dokumen Bersejarah',
+    field: [
+      FieldKategori(kunci: 'penulis', label: 'Penulis / Perumus'),
+      FieldKategori(kunci: 'tahun', label: 'Tahun / Tanggal Dibuat'),
+      FieldKategori(
+        kunci: 'isiPokok',
+        label: 'Inti & Pesan Pokok',
+        tipe: TipeField.teksPanjang,
+      ),
+      FieldKategori(kunci: 'tempatSimpan', label: 'Tempat Penyimpanan Asli'),
+    ],
+  ),
+  KategoriItem(
+    kode: 'STS',
+    nama: 'Situs Sejarah',
+    field: [
+      FieldKategori(kunci: 'lokasi', label: 'Lokasi Situs'),
+      FieldKategori(kunci: 'tahun', label: 'Masa / Perkiraan Tahun'),
+      FieldKategori(
+        kunci: 'kondisiSekarang',
+        label: 'Kondisi & Status Cagar Budaya',
+        tipe: TipeField.teksPanjang,
+      ),
+    ],
+  ),
+];
+

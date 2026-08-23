@@ -3,18 +3,24 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/constants/katalog_kategori.dart';
 import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/asal_daerah_block.dart';
 import '../../core/widgets/blok_kontributor.dart';
+import '../../core/widgets/detail_list_block.dart';
 import '../../core/widgets/detail_section_block.dart';
+import '../../core/widgets/detail_spec_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
+import '../../core/widgets/media_arsip.dart';
 import '../../core/widgets/tombol_koreksi.dart';
+import '../../core/widgets/tombol_suara_arsip.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/models/usulan_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
+import '../../services/pembaca_arsip.dart';
 import '../../services/pembagi_arsip.dart';
 import '../../services/pencatat_bacaan.dart';
 import '../kontribusi/form_usulan_page.dart';
@@ -68,9 +74,25 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
 
   @override
   void dispose() {
+    PembacaArsip().berhenti();
     _pencatat.batalkan();
     _scrollRelated.dispose();
     super.dispose();
+  }
+
+  String get _narasiLengkap {
+    final data = widget.sejarah;
+    final buffer = StringBuffer();
+    buffer.write('${data.judul}. ');
+    if (data.subtitle.isNotEmpty) buffer.write('${data.subtitle}. ');
+    buffer.write('${data.ringkasan}. ');
+    if (data.alurPeristiwa.isNotEmpty) {
+      buffer.write('Alur peristiwa: ');
+      for (final p in data.alurPeristiwa) {
+        buffer.write('${p.date}: ${p.title}. ${p.desc}. ');
+      }
+    }
+    return buffer.toString();
   }
 
   Future<void> _usulkanKoreksi(SejarahModel data) async {
@@ -90,6 +112,48 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     final provinsi = provinsiDariNama(namaProvinsi);
     if (provinsi == null) return;
     context.push(DetailProvinsiPage(provinsi: provinsi));
+  }
+
+  // Section khas jenis peristiwa, dibangkitkan dari daftar field di katalog.
+  List<Widget> _buildSectionPeristiwa(SejarahModel data) {
+    if (data.jenisPeristiwa == null || data.jenisPeristiwa!.isEmpty) {
+      return const [];
+    }
+    final daftarField = fieldPeristiwa(data.jenisPeristiwa!);
+    if (daftarField.isEmpty) return const [];
+
+    final ringkas = <SpecItem>[];
+    final panjang = <Widget>[];
+
+    for (final field in daftarField) {
+      if (!data.adaDetail(field.kunci)) continue;
+
+      switch (field.tipe) {
+        case TipeField.teks:
+          ringkas.add(SpecItem(field.label, data.teksDetail(field.kunci)));
+        case TipeField.teksPanjang:
+          panjang.add(
+            DetailSectionBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              title: field.label,
+              content: data.teksDetail(field.kunci),
+            ),
+          );
+        case TipeField.daftar:
+          panjang.add(
+            DetailListBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              title: field.label,
+              items: data.daftarDetail(field.kunci),
+            ),
+          );
+      }
+    }
+
+    return [
+      if (ringkas.isNotEmpty) DetailSpecBlock(items: ringkas),
+      ...panjang,
+    ];
   }
 
   @override
@@ -115,9 +179,12 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                       children: [
                         AspectRatio(
                           aspectRatio: 1.1,
-                          child: AppImageView(
-                            imagePath: data.gambarUtama,
-                            fit: BoxFit.cover,
+                          child: MediaArsipView(
+                            gambarUtama: data.gambarUtama,
+                            jenisMedia: data.jenisMedia,
+                            mediaUrl: data.mediaUrl,
+                            judul: data.judul,
+                            aspectRatio: 1.1,
                           ),
                         ),
                         Positioned.fill(
@@ -203,6 +270,70 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
+                                if ((data.periode != null &&
+                                        data.periode!.isNotEmpty) ||
+                                    (data.jenisPeristiwa != null &&
+                                        data.jenisPeristiwa!.isNotEmpty)) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    alignment: WrapAlignment.center,
+                                    children: [
+                                      if (data.periode != null &&
+                                          data.periode!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryDark
+                                                .withAlpha(25),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.borderPrimary,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            data.namaPeriodeLabel,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primaryDark,
+                                            ),
+                                          ),
+                                        ),
+                                      if (data.jenisPeristiwa != null &&
+                                          data.jenisPeristiwa!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.surface,
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.border,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            data.namaPeristiwaLabel,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -218,6 +349,15 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                     ),
                   ],
                 ),
+
+                // pemutar audio text-to-speech
+                TombolSuaraArsip(
+                  teksNarasi: _narasiLengkap,
+                  judul: data.judul,
+                ),
+
+                // section field khas jenis peristiwa
+                ..._buildSectionPeristiwa(data),
 
                 // section alur peristiwa
                 if (data.alurPeristiwa.isNotEmpty) ...[

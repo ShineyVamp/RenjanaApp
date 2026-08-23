@@ -13,11 +13,14 @@ import '../../core/widgets/detail_list_block.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_spec_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
+import '../../core/widgets/media_arsip.dart';
 import '../../core/widgets/tombol_koreksi.dart';
+import '../../core/widgets/tombol_suara_arsip.dart';
 import '../../data/models/budaya_model.dart';
-import '../../data/repositories/bookmark_repository.dart';
 import '../../data/models/usulan_model.dart';
+import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/budaya_repository.dart';
+import '../../services/pembaca_arsip.dart';
 import '../../services/pembagi_arsip.dart';
 import '../../services/pembuka_peta.dart';
 import '../../services/pencatat_bacaan.dart';
@@ -71,9 +74,25 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
 
   @override
   void dispose() {
+    PembacaArsip().berhenti();
     _pencatat.batalkan();
     _scrollRelated.dispose();
     super.dispose();
+  }
+
+  String get _narasiLengkap {
+    final data = widget.budaya;
+    final buffer = StringBuffer();
+    buffer.write('${data.judul}. ');
+    if (data.tagline.isNotEmpty) buffer.write('${data.tagline}. ');
+    buffer.write('${data.deskripsi}. ');
+    if (data.maknaSpiritual != null && data.maknaSpiritual!.isNotEmpty) {
+      buffer.write('Makna spiritual: ${data.maknaSpiritual}. ');
+    }
+    if (data.konteksBudaya != null && data.konteksBudaya!.isNotEmpty) {
+      buffer.write('Konteks budaya: ${data.konteksBudaya}. ');
+    }
+    return buffer.toString();
   }
 
   // Destinasi bisa dikunjungi langsung, jadi diberi pintasan ke aplikasi peta.
@@ -196,9 +215,12 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         children: [
                           AspectRatio(
                             aspectRatio: 1,
-                            child: AppImageView(
-                              imagePath: data.gambarUtama,
-                              fit: BoxFit.cover,
+                            child: MediaArsipView(
+                              gambarUtama: data.gambarUtama,
+                              jenisMedia: data.jenisMedia,
+                              mediaUrl: data.mediaUrl,
+                              judul: data.judul,
+                              aspectRatio: 1,
                             ),
                           ),
                           Positioned.fill(
@@ -321,6 +343,12 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         ],
                       ),
                     ],
+                  ),
+
+                  // pemutar audio text-to-speech
+                  TombolSuaraArsip(
+                    teksNarasi: _narasiLengkap,
+                    judul: data.judul,
                   ),
 
                   // section field khas kategori

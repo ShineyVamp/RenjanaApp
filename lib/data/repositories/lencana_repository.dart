@@ -160,6 +160,11 @@ class LencanaRepository {
       ? (item.budaya?.jenis.trim().toUpperCase() ?? '')
       : '';
 
+  static String _periodeArsip(HasilJelajah item) =>
+      item.jenis == JenisArsip.sejarah
+      ? (item.sejarah?.periode?.trim().toUpperCase() ?? '')
+      : '';
+
   static String _pulauArsip(HasilJelajah item) =>
       pulauDariProvinsi(item.asalProvinsi)?.id ?? '';
 
@@ -175,13 +180,18 @@ class LencanaRepository {
     final usulanTerbit = await _usulanRepository.jumlahDisetujui();
     final petaLogo = await logo();
 
-    // jumlah arsip tersedia dan yang sudah dibuka, per kategori dan per pulau
+    // jumlah arsip tersedia dan yang sudah dibuka, per kategori, per periode, dan per pulau
     final totalKategori = <String, int>{};
+    final totalPeriode = <String, int>{};
     final totalPulau = <String, int>{};
     for (final item in semuaArsip) {
       final kat = _kategoriArsip(item);
       if (kat.isNotEmpty) {
         totalKategori[kat] = (totalKategori[kat] ?? 0) + 1;
+      }
+      final prd = _periodeArsip(item);
+      if (prd.isNotEmpty) {
+        totalPeriode[prd] = (totalPeriode[prd] ?? 0) + 1;
       }
       final pulau = _pulauArsip(item);
       if (pulau.isNotEmpty) {
@@ -190,11 +200,16 @@ class LencanaRepository {
     }
 
     final bacaKategori = <String, int>{};
+    final bacaPeriode = <String, int>{};
     final bacaPulau = <String, int>{};
     for (final item in dibuka) {
       final kat = _kategoriArsip(item);
       if (kat.isNotEmpty) {
         bacaKategori[kat] = (bacaKategori[kat] ?? 0) + 1;
+      }
+      final prd = _periodeArsip(item);
+      if (prd.isNotEmpty) {
+        bacaPeriode[prd] = (bacaPeriode[prd] ?? 0) + 1;
       }
       final pulau = _pulauArsip(item);
       if (pulau.isNotEmpty) {
@@ -215,6 +230,10 @@ class LencanaRepository {
         case JenisSyarat.arsipKategori:
           target = totalKategori[lencana.acuan] ?? 0;
           tercapai = bacaKategori[lencana.acuan] ?? 0;
+          break;
+        case JenisSyarat.arsipPeriode:
+          target = totalPeriode[lencana.acuan] ?? 0;
+          tercapai = bacaPeriode[lencana.acuan] ?? 0;
           break;
         case JenisSyarat.arsipPulau:
           target = totalPulau[lencana.acuan] ?? 0;

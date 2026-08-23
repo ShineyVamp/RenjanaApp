@@ -6,6 +6,7 @@ class AppColors {
   // warna utama
   static const Color primary = Color(0xFFC9362B);
   static const Color primaryDark = Color(0xFFA9312E);
+  static const Color primaryLight = Color(0xFFE88A83);
 
   // latar dan permukaan
   static const Color background = Color(0xFFF4F0E7);

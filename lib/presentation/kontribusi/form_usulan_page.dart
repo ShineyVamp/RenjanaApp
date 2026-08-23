@@ -37,6 +37,8 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   late JenisUsulan _jenis;
   String? _provinsi;
   String? _gambar;
+  String _jenisMedia = 'gambar';
+  final _mediaUrl = TextEditingController();
   bool _menyimpan = false;
 
   // sejarah
@@ -44,6 +46,9 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   final _subtitle = TextEditingController();
   final _tanggal = TextEditingController();
   final _ringkasan = TextEditingController();
+  String _periode = periodeSejarahList.first.kode;
+  String _jenisPeristiwa = peristiwaSejarahList.first.kode;
+  final Map<String, TextEditingController> _detailPeristiwa = {};
   final List<_EntriPeristiwa> _peristiwa = [];
 
   // budaya
@@ -81,6 +86,15 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       }
     }
 
+    for (final peristiwa in peristiwaSejarahList) {
+      for (final field in peristiwa.field) {
+        _detailPeristiwa.putIfAbsent(
+          field.kunci,
+          () => TextEditingController(),
+        );
+      }
+    }
+
     final awal = widget.usulanAwal;
     _jenis = awal?.jenis ?? JenisUsulan.budaya;
     if (awal != null) {
@@ -96,6 +110,9 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     _gambar = awal.teks(KunciUsulan.gambar).isEmpty
         ? null
         : awal.teks(KunciUsulan.gambar);
+    final jm = awal.teks(KunciUsulan.jenisMedia);
+    if (jm.isNotEmpty) _jenisMedia = jm;
+    _mediaUrl.text = awal.teks(KunciUsulan.mediaUrl);
 
     switch (awal.jenis) {
       case JenisUsulan.sejarah:
@@ -103,6 +120,22 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         _subtitle.text = awal.teks(KunciUsulan.subtitle);
         _tanggal.text = awal.teks(KunciUsulan.tanggalKey);
         _ringkasan.text = awal.teks(KunciUsulan.ringkasan);
+        final prd = awal.teks(KunciUsulan.periode);
+        if (periodeByKode(prd) != null) _periode = prd;
+        final jns = awal.teks(KunciUsulan.jenisPeristiwa);
+        if (peristiwaByKode(jns) != null) _jenisPeristiwa = jns;
+
+        final detailP = awal.isi[KunciUsulan.detailPeristiwa];
+        if (detailP is Map) {
+          detailP.forEach((kunci, nilai) {
+            final controller = _detailPeristiwa['$kunci'];
+            if (controller == null) return;
+            controller.text = nilai is List
+                ? nilai.join('\n')
+                : nilai.toString();
+          });
+        }
+
         for (final p in awal.daftar(KunciUsulan.alurPeristiwa)) {
           _peristiwa.add(_EntriPeristiwa.dariMap(p));
         }
@@ -157,7 +190,9 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       _maknaSpiritual,
       _konteksBudaya,
       _tema,
+      _mediaUrl,
       ..._detail.values,
+      ..._detailPeristiwa.values,
     ]) {
       c.dispose();
     }
@@ -203,6 +238,13 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         isi[KunciUsulan.subtitle] = _subtitle.text.trim();
         isi[KunciUsulan.tanggalKey] = _tanggal.text.trim();
         isi[KunciUsulan.ringkasan] = _ringkasan.text.trim();
+        isi[KunciUsulan.periode] = _periode;
+        isi[KunciUsulan.jenisPeristiwa] = _jenisPeristiwa;
+        isi[KunciUsulan.detailPeristiwa] = _rakitDetailPeristiwa();
+        isi[KunciUsulan.jenisMedia] = _jenisMedia;
+        isi[KunciUsulan.mediaUrl] = _jenisMedia == 'gambar'
+            ? ''
+            : _mediaUrl.text.trim();
         final daftar = _peristiwa
             .map((p) => p.toMap())
             .where((m) => (m['judul'] as String).isNotEmpty)
@@ -218,6 +260,10 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         isi[KunciUsulan.konteksBudaya] = _konteksBudaya.text.trim();
         isi[KunciUsulan.destinasi] = _destinasi;
         isi[KunciUsulan.detailKategori] = _rakitDetail();
+        isi[KunciUsulan.jenisMedia] = _jenisMedia;
+        isi[KunciUsulan.mediaUrl] = _jenisMedia == 'gambar'
+            ? ''
+            : _mediaUrl.text.trim();
 
       case JenisUsulan.kuis:
         isi[KunciUsulan.tema] = _tema.text.trim();
@@ -229,6 +275,27 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
             .toList();
     }
     return isi;
+  }
+
+  // Hanya field milik jenis peristiwa terpilih yang ikut, dan yang kosong dibuang.
+  Map<String, dynamic> _rakitDetailPeristiwa() {
+    final hasil = <String, dynamic>{};
+    for (final field in fieldPeristiwa(_jenisPeristiwa)) {
+      final teks = _detailPeristiwa[field.kunci]?.text.trim() ?? '';
+      if (teks.isEmpty) continue;
+
+      if (field.tipe == TipeField.daftar) {
+        final baris = teks
+            .split('\n')
+            .map((b) => b.trim())
+            .where((b) => b.isNotEmpty)
+            .toList();
+        if (baris.isNotEmpty) hasil[field.kunci] = baris;
+      } else {
+        hasil[field.kunci] = teks;
+      }
+    }
+    return hasil;
   }
 
   // Hanya field milik kategori terpilih yang ikut, dan yang kosong dibuang.
@@ -545,8 +612,37 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   }
 
   List<Widget> _buildIsianSejarah() {
+    final peristiwa = peristiwaByKode(_jenisPeristiwa);
+
     return [
       const JudulBagian(teks: 'Peristiwa Sejarah'),
+      PilihanDropdown<String>(
+        label: 'Periode / Era Sejarah',
+        nilai: _periode,
+        wajib: true,
+        pilihan: [
+          for (final p in periodeSejarahList)
+            DropdownMenuItem(value: p.kode, child: Text(p.nama)),
+        ],
+        onChanged: (nilai) {
+          if (nilai == null) return;
+          setState(() => _periode = nilai);
+        },
+      ),
+      PilihanDropdown<String>(
+        label: 'Jenis Peristiwa',
+        nilai: _jenisPeristiwa,
+        wajib: true,
+        pilihan: [
+          for (final p in peristiwaSejarahList)
+            DropdownMenuItem(value: p.kode, child: Text(p.nama)),
+        ],
+        onChanged: (nilai) {
+          if (nilai == null) return;
+          setState(() => _jenisPeristiwa = nilai);
+        },
+        petunjuk: 'Menentukan rincian data khas peristiwa di bawah.',
+      ),
       IsianTeks(
         label: 'Judul',
         controller: _judulSejarah,
@@ -581,6 +677,55 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         onPilih: _pilihGambar,
         onHapus: () => setState(() => _gambar = null),
       ),
+      PilihanDropdown<String>(
+        label: 'Format Media Utama',
+        nilai: _jenisMedia,
+        wajib: true,
+        pilihan: const [
+          DropdownMenuItem(value: 'gambar', child: Text('Foto / Gambar Saja')),
+          DropdownMenuItem(
+            value: 'video',
+            child: Text('Video Berkas / Galeri'),
+          ),
+          DropdownMenuItem(
+            value: 'youtube',
+            child: Text('Video Tautan YouTube'),
+          ),
+        ],
+        onChanged: (nilai) {
+          if (nilai == null) return;
+          setState(() => _jenisMedia = nilai);
+        },
+      ),
+      if (_jenisMedia != 'gambar')
+        IsianTeks(
+          label: _jenisMedia == 'youtube'
+              ? 'Tautan Video YouTube'
+              : 'Path / URL Video',
+          controller: _mediaUrl,
+          petunjuk: _jenisMedia == 'youtube'
+              ? 'Contoh: https://www.youtube.com/watch?v=...'
+              : 'Contoh: https://... atau path berkas video',
+        ),
+
+      if (peristiwa != null && peristiwa.field.isNotEmpty) ...[
+        JudulBagian(
+          teks: 'Rincian ${peristiwa.nama}',
+          keterangan:
+              'Isian khas jenis peristiwa. Boleh diisi sebagian atau dilewati.',
+        ),
+        for (final field in peristiwa.field)
+          IsianTeks(
+            label: field.label,
+            controller: _detailPeristiwa[field.kunci]!,
+            baris: field.tipe == TipeField.daftar
+                ? 4
+                : (field.tipe == TipeField.teksPanjang ? 3 : 1),
+            petunjuk: field.tipe == TipeField.daftar
+                ? '${field.petunjuk ?? ''} (tulis satu entri per baris)'
+                : field.petunjuk,
+          ),
+      ],
 
       const JudulBagian(
         teks: 'Alur Peristiwa',
@@ -664,6 +809,36 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         onPilih: _pilihGambar,
         onHapus: () => setState(() => _gambar = null),
       ),
+      PilihanDropdown<String>(
+        label: 'Format Media Utama',
+        nilai: _jenisMedia,
+        wajib: true,
+        pilihan: const [
+          DropdownMenuItem(value: 'gambar', child: Text('Foto / Gambar Saja')),
+          DropdownMenuItem(
+            value: 'video',
+            child: Text('Video Berkas / Galeri'),
+          ),
+          DropdownMenuItem(
+            value: 'youtube',
+            child: Text('Video Tautan YouTube'),
+          ),
+        ],
+        onChanged: (nilai) {
+          if (nilai == null) return;
+          setState(() => _jenisMedia = nilai);
+        },
+      ),
+      if (_jenisMedia != 'gambar')
+        IsianTeks(
+          label: _jenisMedia == 'youtube'
+              ? 'Tautan Video YouTube'
+              : 'Path / URL Video',
+          controller: _mediaUrl,
+          petunjuk: _jenisMedia == 'youtube'
+              ? 'Contoh: https://www.youtube.com/watch?v=...'
+              : 'Contoh: https://... atau path berkas video',
+        ),
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: GestureDetector(

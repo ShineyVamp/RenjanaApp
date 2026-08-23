@@ -15,11 +15,15 @@ class KartuHasil extends StatelessWidget {
   // bertinggi tetap.
   final bool isiPenuh;
 
+  // Menandai arsip yang belum pernah dibaca oleh pengguna
+  final bool isBaru;
+
   const KartuHasil({
     super.key,
     required this.item,
     required this.onTap,
     this.isiPenuh = false,
+    this.isBaru = false,
   });
 
   @override
@@ -61,6 +65,13 @@ class KartuHasil extends StatelessWidget {
                               ? AppColors.primaryDark
                               : AppColors.primary,
                         ),
+                        if (isBaru) ...[
+                          const SizedBox(width: 6),
+                          const LencanaKecil(
+                            teks: 'BARU',
+                            warna: AppColors.success,
+                          ),
+                        ],
                         if (item.isDestinasi) ...[
                           const SizedBox(width: 6),
                           const LencanaKecil(

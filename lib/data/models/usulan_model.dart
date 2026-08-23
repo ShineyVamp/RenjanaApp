@@ -96,11 +96,16 @@ class KunciUsulan {
   // dipakai semua jenis
   static const String gambar = 'gambar';
   static const String judul = 'judul';
+  static const String jenisMedia = 'jenisMedia';
+  static const String mediaUrl = 'mediaUrl';
 
   // sejarah
   static const String subtitle = 'subtitle';
   static const String tanggalKey = 'tanggalKey';
   static const String ringkasan = 'ringkasan';
+  static const String periode = 'periode';
+  static const String jenisPeristiwa = 'jenisPeristiwa';
+  static const String detailPeristiwa = 'detailPeristiwa';
 
   // daftar peristiwa: {tanggal, judul, keterangan}
   static const String alurPeristiwa = 'alurPeristiwa';
@@ -267,6 +272,11 @@ class Usulan {
         KunciUsulan.tanggalKey: arsip.tanggalKey,
         KunciUsulan.ringkasan: arsip.ringkasan,
         KunciUsulan.gambar: arsip.gambarUtama,
+        KunciUsulan.jenisMedia: arsip.jenisMedia,
+        KunciUsulan.mediaUrl: arsip.mediaUrl ?? '',
+        KunciUsulan.periode: arsip.periode ?? '',
+        KunciUsulan.jenisPeristiwa: arsip.jenisPeristiwa ?? '',
+        KunciUsulan.detailPeristiwa: arsip.detailPeristiwa,
         KunciUsulan.alurPeristiwa: arsip.alurPeristiwa
             .map(
               (p) => {
@@ -300,6 +310,8 @@ class Usulan {
         KunciUsulan.maknaSpiritual: arsip.maknaSpiritual ?? '',
         KunciUsulan.konteksBudaya: arsip.konteksBudaya ?? '',
         KunciUsulan.gambar: arsip.gambarUtama,
+        KunciUsulan.jenisMedia: arsip.jenisMedia,
+        KunciUsulan.mediaUrl: arsip.mediaUrl ?? '',
         KunciUsulan.destinasi: arsip.isDestinasi,
         KunciUsulan.detailKategori: arsip.detailKategori,
       },
