@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/extensions/navigation.dart';
+import '../../core/widgets/app_bar_halaman.dart';
 import '../../core/widgets/app_image.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../detail/detail_budaya_page.dart';
 import '../detail/detail_sejarah_page.dart';
+import '../wilayah/detail_provinsi_page.dart';
+import '../wilayah/detail_pulau_page.dart';
 
 class BookmarkPage extends StatefulWidget {
   const BookmarkPage({super.key});
@@ -20,7 +23,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
   List<BookmarkItemModel> _bookmarks = [];
   bool _isLoading = true;
   String _searchQuery = '';
-  String _selectedTab = 'SEMUA'; // SEMUA | SEJARAH | BUDAYA
+  String _selectedTab = 'SEMUA'; // SEMUA | SEJARAH | BUDAYA | WILAYAH
 
   @override
   void initState() {
@@ -45,9 +48,12 @@ class _BookmarkPageState extends State<BookmarkPage> {
 
   List<BookmarkItemModel> get _filteredBookmarks {
     return _bookmarks.where((item) {
+      // Pulau dan provinsi disatukan di bawah satu chip Wilayah.
       final matchesTab =
           _selectedTab == 'SEMUA' ||
-          item.itemType.toUpperCase() == _selectedTab;
+          (_selectedTab == 'WILAYAH'
+              ? item.isWilayah
+              : item.itemType.toUpperCase() == _selectedTab);
       final matchesQuery =
           _searchQuery.isEmpty ||
           item.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -81,6 +87,10 @@ class _BookmarkPageState extends State<BookmarkPage> {
       await context.push(DetailSejarahPage(sejarah: item.sejarah!));
     } else if (item.itemType == 'budaya' && item.budaya != null) {
       await context.push(DetailBudayaPage(budaya: item.budaya!));
+    } else if (item.itemType == 'pulau' && item.pulau != null) {
+      await context.push(DetailPulauPage(pulau: item.pulau!));
+    } else if (item.itemType == 'provinsi' && item.wilayah != null) {
+      await context.push(DetailProvinsiPage(provinsi: item.wilayah!));
     }
     _loadBookmarks();
   }
@@ -92,42 +102,22 @@ class _BookmarkPageState extends State<BookmarkPage> {
         .where((b) => b.itemType == 'sejarah')
         .length;
     final totalBudaya = _bookmarks.where((b) => b.itemType == 'budaya').length;
+    final totalWilayah = _bookmarks.where((b) => b.isWilayah).length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          onPressed: () {
-            ScaffoldMessenger.of(context).clearSnackBars();
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          'Koleksi Tersimpan',
-          style: GoogleFonts.dmSerifDisplay(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        actions: [
+      appBar: AppBarHalaman(
+        judul: 'Koleksi Tersimpan',
+        onKembali: () {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          context.pop();
+        },
+        aksi: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
             onPressed: _loadBookmarks,
           ),
         ],
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -199,6 +189,11 @@ class _BookmarkPageState extends State<BookmarkPage> {
                               ),
                               const SizedBox(width: 8),
                               _buildTabChip('BUDAYA', 'Budaya ($totalBudaya)'),
+                              const SizedBox(width: 8),
+                              _buildTabChip(
+                                'WILAYAH',
+                                'Wilayah ($totalWilayah)',
+                              ),
                             ],
                           ),
                         ],

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/extensions/navigation.dart';
-import '../../../../core/widgets/app_image.dart';
-import '../../../../core/widgets/section_header.dart';
-import '../../../../data/models/budaya_model.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_typography.dart';
+import '../../../core/extensions/navigation.dart';
+import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/section_header.dart';
+import '../../../data/models/budaya_model.dart';
 import '../../detail/detail_budaya_page.dart';
 
 class BudayaHighlightCard extends StatelessWidget {

@@ -32,6 +32,7 @@ class BudayaRepository {
         gambarKonteksBudaya: map['gambarKonteksBudaya'] as String?,
         provinsi: map['provinsi'] as String?,
         detailKategori: BudayaModel.detailDariJson(map['detailKategori']),
+        kontributor: map['kontributor'] as String?,
       );
     }).toList();
   }

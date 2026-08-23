@@ -5,6 +5,7 @@ import 'package:renjana/presentation/profile/profile_page.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../data/models/user_model.dart';
+import '../../data/repositories/runtun_repository.dart';
 import '../../services/preference_handler.dart';
 import '../admin/widgets/admin_drawer.dart';
 import '../home/home_page.dart';
@@ -25,6 +26,14 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
+
+  // Halaman ini baru tercapai setelah sesi tersedia, jadi kunjungan dicatat
+  // di sini, bukan di main().
+  @override
+  void initState() {
+    super.initState();
+    RuntunRepository().catatKunjunganHariIni();
+  }
 
   bool get _isAdmin {
     final user = widget.currentUser ?? PreferenceHandler.user;

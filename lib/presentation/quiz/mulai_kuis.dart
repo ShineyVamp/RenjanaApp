@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/pembersih_dialog.dart';
@@ -10,7 +11,7 @@ import '../../data/models/tema_kuis_model.dart';
 import '../../data/repositories/quiz_repository.dart';
 import 'quiz_play_page.dart';
 
-// Dua cara memulai kuis, dipakai halaman Kuis maupun halaman kategori.
+// Tiga cara memulai kuis, dipakai halaman Kuis maupun halaman kategori.
 
 // Memulai kuis satu tema utuh, urutan soalnya diacak.
 void mulaiKuisTema(BuildContext context, TemaKuis tema) {
@@ -28,6 +29,28 @@ void mulaiKuisTema(BuildContext context, TemaKuis tema) {
   context.push(
     QuizPlayPage(title: tema.tema, category: tema.kategori, questions: acak),
   );
+}
+
+// Gabungan beberapa tema sekaligus, mis. seluruh provinsi dalam satu pulau.
+// Tidak punya rekor karena isi soalnya lintas tema.
+void mulaiKuisGabungan(
+  BuildContext context, {
+  required String judul,
+  required String kategori,
+  required List<QuizSQLModel> soal,
+}) {
+  if (soal.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Belum ada soal untuk pilihan ini.'),
+        backgroundColor: AppColors.primaryDark,
+      ),
+    );
+    return;
+  }
+
+  final acak = List<QuizSQLModel>.from(soal)..shuffle();
+  context.push(QuizPlayPage(title: judul, category: kategori, questions: acak));
 }
 
 // Membuka pilihan jumlah soal, lalu memulai kuis acak dari seluruh
@@ -117,11 +140,7 @@ Future<void> tampilkanSheetKuisKategori(
                       horizontal: 10,
                       vertical: 6,
                     ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.borderLight),
-                    ),
+                    decoration: AppDekorasi.panel(garis: AppColors.borderLight),
                     child: Row(
                       children: [
                         const Icon(

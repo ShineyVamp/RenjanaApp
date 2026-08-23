@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
+import '../../data/models/hasil_kuis_model.dart';
+import '../capaian/riwayat_kuis_page.dart';
 import 'quiz_play_page.dart';
 
 class QuizResultPage extends StatefulWidget {
@@ -13,6 +16,12 @@ class QuizResultPage extends StatefulWidget {
   final int incorrectCount;
   final int elapsedSeconds;
 
+  // Kosong bila kuisnya campuran sekategori, sehingga tidak punya rekor tema.
+  final String tema;
+
+  // Rekor tema ini sebelum percobaan barusan disimpan; null bila belum ada.
+  final HasilKuis? rekorSebelumnya;
+
   const QuizResultPage({
     super.key,
     required this.title,
@@ -21,6 +30,8 @@ class QuizResultPage extends StatefulWidget {
     required this.correctCount,
     required this.incorrectCount,
     required this.elapsedSeconds,
+    this.tema = '',
+    this.rekorSebelumnya,
   });
 
   @override
@@ -31,6 +42,83 @@ class _QuizResultPageState extends State<QuizResultPage> {
   int _selectedFilter = 0; // 0 = Semua, 1 = Benar, 2 = Salah
 
   // Mengulang kuis dengan soal yang sama.
+  // Baris rekor hanya muncul pada kuis satu tema; kuis acak sekategori tidak
+  // punya rekor karena isi soalnya berganti-ganti.
+  Widget _buildBarisRekor() {
+    if (widget.tema.trim().isEmpty) return const SizedBox.shrink();
+
+    final lama = widget.rekorSebelumnya;
+    final pecah =
+        lama == null ||
+        widget.correctCount > lama.benar ||
+        (widget.correctCount == lama.benar &&
+            widget.elapsedSeconds < lama.detik);
+
+    final warna = pecah ? AppColors.gold : AppColors.border;
+    final judul = lama == null
+        ? 'Rekor pertama tema ini'
+        : (pecah ? 'Rekor baru' : 'Rekor tema ini');
+    final keterangan = lama == null
+        ? 'Capaian ini menjadi patokan untuk percobaan berikutnya.'
+        : 'Sebelumnya ${lama.benar}/${lama.jumlahSoal} benar '
+              'dalam ${lama.waktuTerbaca}.';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: GestureDetector(
+        onTap: () => context.push(const RiwayatKuisPage()),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+          decoration: AppDekorasi.panelCapaian(warna, menonjol: pecah),
+          child: Row(
+            children: [
+              Icon(
+                pecah
+                    ? Icons.emoji_events_rounded
+                    : Icons.emoji_events_outlined,
+                size: 20,
+                color: pecah ? AppColors.gold : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      judul,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                        color: pecah ? AppColors.gold : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      keterangan,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _restartQuiz() {
     context.pushReplacement(
       QuizPlayPage(
@@ -232,6 +320,9 @@ class _QuizResultPageState extends State<QuizResultPage> {
                     ],
                   ),
                 ),
+
+                // section rekor tema
+                _buildBarisRekor(),
                 const SizedBox(height: 20),
 
                 // tombol ulangi & selesai

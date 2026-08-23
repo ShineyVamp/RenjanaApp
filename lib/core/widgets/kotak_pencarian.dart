@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/app_colors.dart';
+import '../constants/app_dekorasi.dart';
 
 // Kotak pencarian bergaris tunggal, dipakai daftar arsip daerah dan daftar
 // tema kuis.
@@ -24,10 +25,7 @@ class KotakPencarian extends StatelessWidget {
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.borderPrimary),
-      ),
+      decoration: AppDekorasi.panel(),
       child: Row(
         children: [
           const Icon(Icons.search_rounded, size: 18, color: AppColors.primary),

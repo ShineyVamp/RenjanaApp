@@ -660,4 +660,1138 @@ final List<BudayaModel> defaultBudayaList = [
           'menyebut ia menumbuk lesung agar ayam berkokok lebih awal.',
     },
   ),
+
+  // Arsip sementara berlabel [Karangan] untuk provinsi yang belum
+  // punya arsip asli.
+  const BudayaModel(
+    kodeTag: 'BUD-RMH-2',
+    provinsi: 'Sumatera Utara',
+    jenis: 'RMH',
+    urutan: 2,
+    judul: '[Karangan] RUMAH BOLON',
+    kategoriLabel: 'RUMAH ADAT',
+    tagline:
+        'Rumah panggung raja-raja Batak dengan atap melengkung menyerupai '
+        'punggung kerbau.',
+    deskripsi:
+        'Rumah Bolon adalah rumah adat suku Batak yang berdiri di atas '
+        'tiang setinggi dada orang dewasa. Seluruh sambungannya '
+        'mengandalkan pasak kayu dan ikatan ijuk, tanpa sebatang paku pun.',
+    gambarUtama: 'assets/images/onboardin1.jpg',
+    maknaSpiritual:
+        'Ukiran gorga berwarna merah, putih, dan hitam pada dindingnya '
+        'melambangkan tiga alam: dunia atas tempat pencipta, dunia tengah '
+        'tempat manusia, dan dunia bawah.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Dahulu Rumah Bolon hanya dihuni raja beserta keluarganya. Tamu '
+        'yang masuk harus menunduk melewati pintu rendah, cara halus '
+        'mengajarkan hormat kepada pemilik rumah.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahanBangunan': 'Kayu ulin, ijuk aren, bambu, dan tali rotan',
+      'strukturKhas':
+          'Tiang bulatnya hanya diletakkan di atas batu datar, tidak ditanam ke '
+          'tanah. Susunan ini membuat rumah bergoyang mengikuti getaran gempa '
+          'alih-alih patah.',
+      'bagianRumah': [
+        'Tangga masuk di bagian depan, selalu berjumlah ganjil',
+        'Ruang tengah tanpa sekat sebagai tempat berkumpul',
+        'Para-para, loteng penyimpan hasil panen',
+        'Kolong rumah untuk ternak dan alat pertanian',
+      ],
+      'fungsiSosial':
+          'Ruang tengahnya dipakai musyawarah adat, penyelesaian sengketa, dan '
+          'pesta pernikahan. Posisi duduk peserta menandai kedudukannya dalam '
+          'marga.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-TRN-2',
+    provinsi: 'Riau',
+    jenis: 'TRN',
+    urutan: 2,
+    judul: '[Karangan] TARI ZAPIN',
+    kategoriLabel: 'TARIAN TRADISIONAL',
+    tagline:
+        'Tarian Melayu bernapas Arab yang langkahnya rapat, kecil, dan tak '
+        'pernah tergesa.',
+    deskripsi:
+        'Zapin tumbuh dari perjumpaan pedagang Arab dengan masyarakat '
+        'Melayu pesisir. Gerakannya bertumpu pada langkah kaki yang rapat '
+        'dan ayunan tangan yang ditahan sebatas pinggang.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Dahulu Zapin hanya ditarikan penari laki-laki dalam majelis, dan '
+        'lagu pengiringnya berisi pujian serta nasihat. Baru pada abad '
+        'ke-20 penari perempuan mulai ikut tampil di panggung umum.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'jumlahPenari': 'Genap, umumnya 4 sampai 8 orang',
+      'pengiring': 'Gambus, marwas, akordeon, dan rebana',
+      'gerakUtama': [
+        'Langkah biasa, kaki melangkah rapat ke depan dan belakang',
+        'Langkah tahto, pembuka dan penutup sebagai tanda hormat',
+        'Siku keluang, tangan berayun menyerupai kelelawar terbang',
+        'Pusing tengah, penari berputar di tempat mengikuti ketukan marwas',
+      ],
+      'waktuPementasan':
+          'Ditampilkan pada pesta pernikahan, khitanan, dan penyambutan tamu. '
+          'Pementasan selalu dibuka dan ditutup dengan langkah tahto.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-MSK-2',
+    provinsi: 'Kepulauan Riau',
+    jenis: 'MSK',
+    urutan: 2,
+    judul: '[Karangan] GAMBUS MELAYU',
+    kategoriLabel: 'ALAT MUSIK DAN LAGU DAERAH',
+    tagline:
+        'Alat petik berbadan cekung yang jadi nyawa setiap majelis Melayu.',
+    deskripsi:
+        'Gambus adalah alat musik petik berbadan seperti buah labu dibelah, '
+        'berdawai enam sampai dua belas. Suaranya bulat dan rendah, dipakai '
+        'memimpin irama dalam orkes Melayu.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Gambus dibawa pedagang dari Timur Tengah dan diterima masyarakat '
+        'Melayu sebagai alat musik yang pantas mengiringi syair keagamaan. '
+        'Di Kepulauan Riau, ia jadi penanda bahwa sebuah majelis resmi '
+        'dimulai.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': 'Kayu nangka atau cempedak dengan penutup kulit kambing',
+      'caraMemainkan':
+          'Dipetik dengan plektrum dari tanduk sambil ditekan pada leher tanpa '
+          'fret, sehingga pemain bisa menggeser nada secara halus.',
+      'tanggaNada': 'Diatonis dengan cengkok khas Melayu',
+      'repertoar': [
+        'Lancang Kuning',
+        'Pak Ngah Balik',
+        'Zapin Bunga Tanjung',
+        'Serampang Dua Belas',
+      ],
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-BHS-1',
+    provinsi: 'Jambi',
+    jenis: 'BHS',
+    urutan: 1,
+    judul: '[Karangan] AKSARA INCUNG',
+    kategoriLabel: 'BAHASA DAN SASTRA DAERAH',
+    tagline:
+        'Tulisan berbentuk goresan miring yang dipahat pada tanduk dan '
+        'bambu.',
+    deskripsi:
+        'Incung adalah aksara masyarakat Kerinci yang bentuk hurufnya '
+        'miring dan runcing karena ditoreh dengan pisau kecil. Naskahnya '
+        'ditulis pada tanduk kerbau, ruas bambu, dan kulit kayu.',
+    gambarUtama: 'assets/images/1308history.png',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Naskah Incung disimpan turun-temurun dalam keluarga dan hanya '
+        'dibuka pada waktu tertentu. Isinya mencakup silsilah, hukum adat, '
+        'mantra pengobatan, dan surat perjanjian antar-dusun.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'rumpunBahasa': 'Melayik, cabang Austronesia',
+      'jumlahPenutur': 'Sekitar 300 ribu penutur bahasa Kerinci',
+      'aksara': 'Incung, ditulis dari kiri ke kanan',
+      'contohUngkapan': [
+        'Sakti alam kerinci — kekuatan yang lahir dari tanah sendiri',
+        'Adat bersendi syarak — adat berpijak pada aturan agama',
+        'Idup dikanduang adat — hidup dijaga oleh adat',
+      ],
+      'karyaSastra':
+          'Tambo Kerinci, kumpulan naskah yang memuat asal-usul dusun beserta '
+          'hukum yang berlaku di dalamnya. Sebagian naskahnya kini disimpan di '
+          'museum daerah.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-UPC-1',
+    provinsi: 'Bengkulu',
+    jenis: 'UPC',
+    urutan: 1,
+    judul: '[Karangan] TABOT',
+    kategoriLabel: 'UPACARA DAN TRADISI ADAT',
+    tagline:
+        'Arak-arakan menara kayu yang berakhir dengan melarungnya ke laut.',
+    deskripsi:
+        'Tabot adalah upacara yang digelar sepuluh hari pertama bulan '
+        'Muharam untuk mengenang gugurnya Husain di Karbala. Puncaknya '
+        'adalah mengarak bangunan menara berhias ke tepi laut lalu '
+        'membuangnya.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual:
+        'Pelarungan Tabot dimaknai sebagai pelepasan duka. Yang dibuang '
+        'bukan sekadar bangunan, melainkan kesedihan yang tidak boleh '
+        'dibawa terus oleh yang hidup.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Tradisi ini dibawa pekerja dari Madras dan Bengali yang membangun '
+        'Benteng Marlborough pada abad ke-18. Keturunan mereka, keluarga '
+        'Tabot, memegang hak menyelenggarakannya sampai sekarang.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'waktuPelaksanaan': '1 sampai 10 Muharam',
+      'pelaksana': 'Keluarga Tabot bersama pemerintah daerah',
+      'tahapan': [
+        'Mengambik tanah, pengambilan tanah keramat pada malam pertama',
+        'Duduk penja, mencuci benda pusaka berbentuk telapak tangan',
+        'Menjara, kunjungan antar-kelompok sambil menabuh dol',
+        'Arak gedang, pawai menara Tabot keliling kota',
+        'Tabot tebuang, melarung menara ke laut pada hari kesepuluh',
+      ],
+      'perlengkapan': [
+        'Menara Tabot dari bambu, kertas warna, dan kayu ringan',
+        'Dol, gendang besar dari bonggol kelapa',
+        'Penja, replika telapak tangan dari kuningan',
+        'Bunga melur dan kain putih',
+      ],
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-KLN-4',
+    provinsi: 'Sumatera Selatan',
+    jenis: 'KLN',
+    urutan: 4,
+    judul: '[Karangan] PEMPEK',
+    kategoriLabel: 'KULINER TRADISIONAL',
+    tagline: 'Adonan ikan dan sagu yang tak lengkap tanpa kuah cuka hitam.',
+    deskripsi:
+        'Pempek adalah olahan daging ikan giling yang dicampur tepung sagu, '
+        'direbus, lalu digoreng sebelum disajikan. Pendampingnya wajib '
+        'cuko, kuah gelap berbahan gula aren, cabai, dan asam jawa.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Pempek lahir dari kebutuhan mengawetkan tangkapan ikan Sungai Musi '
+        'yang berlimpah. Kini ia jadi penanda Palembang, dan setiap '
+        'keluarga memegang takaran cuko masing-masing.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': [
+        'Daging ikan tenggiri giling 500 gram',
+        'Tepung sagu tani 300 gram',
+        'Air es 200 mililiter',
+        'Telur ayam untuk isian pempek kapal selam',
+      ],
+      'bumbu': [
+        'Garam dan penyedap secukupnya',
+        'Bawang putih halus 4 siung',
+        'Gula aren 250 gram untuk cuko',
+        'Cabai rawit, asam jawa, dan ebi untuk cuko',
+      ],
+      'langkah': [
+        'Campur ikan giling dengan air es, garam, dan bawang putih sampai '
+            'rata.',
+        'Masukkan tepung sagu sedikit demi sedikit, aduk asal tercampur '
+            'agar tidak keras.',
+        'Bentuk adonan menjadi lenjer panjang atau kantong untuk kapal '
+            'selam.',
+        'Rebus dalam air mendidih sampai pempek mengapung, lalu tiriskan.',
+        'Goreng sebentar dalam minyak panas sebelum disajikan.',
+        'Rebus gula aren, asam, cabai, dan ebi hingga mengental menjadi '
+            'cuko.',
+      ],
+      'rasa': 'Gurih ikan berpadu kuah asam pedas manis',
+      'penyajian':
+          'Dipotong serong lalu disiram cuko, ditaburi mentimun cincang dan mi '
+          'kuning. Cuko disajikan terpisah bagi yang tidak kuat pedas.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-KLN-5',
+    provinsi: 'Kepulauan Bangka Belitung',
+    jenis: 'KLN',
+    urutan: 5,
+    judul: '[Karangan] LEMPAH KUNING',
+    kategoriLabel: 'KULINER TRADISIONAL',
+    tagline: 'Gulai ikan berkuah kunyit yang rasanya asam segar, bukan santan.',
+    deskripsi:
+        'Lempah kuning adalah masakan berkuah kunyit berisi ikan laut dan '
+        'nanas muda. Kuahnya bening dan tajam karena sama sekali tidak '
+        'memakai santan.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Masakan ini muncul dari kebiasaan nelayan memasak tangkapan '
+        'langsung di perahu dengan bahan seadanya. Nanas dipakai bukan '
+        'sebagai pemanis, melainkan untuk menghilangkan bau amis.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': [
+        'Ikan tenggiri atau kakap 600 gram',
+        'Nanas muda setengah buah, potong juring',
+        'Air 1 liter',
+        'Belimbing wuluh 5 buah',
+      ],
+      'bumbu': [
+        'Kunyit seruas dan lengkuas seruas',
+        'Cabai merah 10 buah dan bawang merah 8 siung',
+        'Terasi bakar setengah sendok teh',
+        'Garam dan gula secukupnya',
+      ],
+      'langkah': [
+        'Haluskan kunyit, cabai, bawang merah, dan terasi.',
+        'Didihkan air bersama bumbu halus dan lengkuas yang dimemarkan.',
+        'Masukkan nanas dan belimbing wuluh, masak sampai kuah berwarna '
+            'kuning pekat.',
+        'Masukkan potongan ikan, masak sebentar agar dagingnya tidak '
+            'hancur.',
+        'Cicipi dan sesuaikan asin serta asamnya sebelum diangkat.',
+      ],
+      'rasa': 'Asam segar dengan pedas yang tajam',
+      'penyajian':
+          'Disantap panas bersama nasi putih dan sambal terasi. Kuahnya sengaja '
+          'dibuat banyak agar bisa disiramkan ke atas nasi.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-PKN-1',
+    provinsi: 'Lampung',
+    jenis: 'PKN',
+    urutan: 1,
+    judul: '[Karangan] KAIN TAPIS',
+    kategoriLabel: 'PAKAIAN ADAT',
+    tagline: 'Kain tenun bersulam benang emas yang dikerjakan berbulan-bulan.',
+    deskripsi:
+        'Tapis adalah kain sarung tenun khas Lampung yang permukaannya '
+        'disulam benang emas dan perak. Sehelai tapis halus bisa memakan '
+        'waktu tiga sampai enam bulan pengerjaan.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Dahulu tapis hanya boleh dikenakan pada upacara adat, dan ragam '
+        'sulamannya menandai kedudukan pemakainya. Perempuan Lampung dahulu '
+        'belajar menenun tapis sebagai syarat sebelum menikah.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': 'Benang kapas tenunan tangan dengan sulam benang emas',
+      'bagianBusana': [
+        'Tapis, kain sarung bersulam sebagai bagian utama',
+        'Siger, mahkota kuningan bertanduk untuk pengantin perempuan',
+        'Selappai, baju tanpa lengan berhias tapis',
+        'Buah jukum, rangkaian kalung berbentuk bunga',
+      ],
+      'warnaDominan': 'Cokelat kemerahan dengan kilau emas',
+      'pemakaian':
+          'Dikenakan pada pernikahan adat, pengangkatan gelar, dan penyambutan '
+          'tamu agung. Motif tertentu hanya boleh dipakai keturunan penyimbang '
+          'adat.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-TTR-3',
+    provinsi: 'Banten',
+    jenis: 'TTR',
+    urutan: 3,
+    judul: '[Karangan] DEBUS',
+    kategoriLabel: 'SENI PERTUNJUKAN DAN TEATER',
+    tagline:
+        'Pertunjukan kekebalan tubuh yang lahir dari latihan bela diri dan '
+        'zikir.',
+    deskripsi:
+        'Debus adalah seni pertunjukan yang menampilkan ketahanan tubuh '
+        'terhadap benda tajam dan api. Peserta menjalani puasa dan wirid '
+        'panjang sebelum diizinkan tampil.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual:
+        'Debus dipahami bukan sebagai pameran kesaktian, melainkan bukti '
+        'kepasrahan. Yang ditonjolkan adalah ketenangan pelaku, bukan '
+        'lukanya.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Debus berkembang pada masa Kesultanan Banten abad ke-16 sebagai '
+        'cara membangkitkan keberanian pasukan. Setelah masa perang usai, '
+        'ia bertahan sebagai pertunjukan rakyat.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'jumlahPemain': '8 sampai 15 orang termasuk penabuh',
+      'pengiring': 'Tambur, gendang, kecrek, dan lantunan zikir',
+      'durasi': 'Sekitar 60 menit',
+      'lakon': [
+        'Beubeur, mengiris lengan dengan golok tanpa terluka',
+        'Gedebus, menusuk perut dengan almadad',
+        'Nyusuk, menembus pipi dengan jarum besar',
+        'Ngagurah, berjalan di atas bara api',
+      ],
+      'jalanCerita':
+          'Pertunjukan dibuka dengan zikir bersama, dilanjutkan atraksi yang '
+          'menaik tingkat bahayanya, dan ditutup doa penutup. Pemimpin kelompok '
+          'selalu tampil terakhir.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-RMH-3',
+    provinsi: 'Kalimantan Barat',
+    jenis: 'RMH',
+    urutan: 3,
+    judul: '[Karangan] RUMAH RADAKNG',
+    kategoriLabel: 'RUMAH ADAT',
+    tagline:
+        'Rumah panjang Dayak yang satu bangunannya memuat puluhan keluarga.',
+    deskripsi:
+        'Radakng adalah rumah betang suku Dayak Kanayatn yang panjangnya '
+        'bisa mencapai seratus meter. Satu bangunan dihuni banyak keluarga '
+        'yang masing-masing memiliki bilik sendiri.',
+    gambarUtama: 'assets/images/onboardin1.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Hidup di bawah satu atap membuat keputusan penting selalu diambil '
+        'bersama di beranda panjang. Pendatang yang menginap wajib '
+        'diperkenalkan lebih dulu kepada seluruh penghuni.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahanBangunan': 'Kayu belian, papan ulin, dan atap sirap kayu',
+      'strukturKhas':
+          'Bangunan berdiri di atas tiang setinggi tiga sampai lima meter dan '
+          'memanjang sejajar sungai. Beranda terbuka membentang di sepanjang '
+          'sisi depan.',
+      'bagianRumah': [
+        'Sami, beranda panjang tempat berkumpul dan bermusyawarah',
+        'Bilik keluarga yang berderet di sisi belakang',
+        'Pene, ruang terbuka untuk menjemur padi',
+        'Tangga tunggal dari batang kayu bertakik',
+      ],
+      'fungsiSosial':
+          'Beranda panjangnya menjadi ruang sidang adat, tempat menerima tamu, '
+          'dan lokasi upacara panen. Setiap keluarga wajib menjaga bagian atap '
+          'di atas biliknya.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-UPC-2',
+    provinsi: 'Kalimantan Tengah',
+    jenis: 'UPC',
+    urutan: 2,
+    judul: '[Karangan] TIWAH',
+    kategoriLabel: 'UPACARA DAN TRADISI ADAT',
+    tagline:
+        'Upacara mengantar tulang leluhur ke tempat peristirahatan '
+        'terakhir.',
+    deskripsi:
+        'Tiwah adalah upacara kematian tingkat akhir dalam kepercayaan '
+        'Kaharingan. Tulang yang telah lama dimakamkan digali kembali, '
+        'dibersihkan, lalu disimpan di sandung.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual:
+        'Tiwah dipercaya mengantar liau, jiwa orang yang meninggal, menuju '
+        'Lewu Tatau. Sebelum tiwah dilaksanakan, jiwa itu dianggap masih '
+        'berkeliaran di antara yang hidup.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Karena biayanya besar, tiwah sering dilakukan sekaligus untuk '
+        'banyak keluarga dan dapat berlangsung berminggu-minggu. '
+        'Persiapannya kadang memakan waktu bertahun-tahun.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'waktuPelaksanaan': 'Musim kemarau, setelah panen',
+      'pelaksana': 'Basir, pemimpin ritual Kaharingan',
+      'tahapan': [
+        'Pembuatan sandung dan sapundu di halaman rumah',
+        'Penggalian dan pembersihan tulang dari makam lama',
+        'Balian, pembacaan mantra pengantar selama beberapa malam',
+        'Penyembelihan hewan kurban di tiang sapundu',
+        'Penempatan tulang ke dalam sandung',
+      ],
+      'perlengkapan': [
+        'Sandung, rumah kecil penyimpan tulang',
+        'Sapundu, patung kayu bergambar wajah leluhur',
+        'Gong dan garantung sebagai pengiring',
+        'Tuak dan sesaji dari beras ketan',
+      ],
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SIT-4-D',
+    provinsi: 'Kalimantan Selatan',
+    jenis: 'SIT',
+    urutan: 4,
+    judul: '[Karangan] MASJID SULTAN SURIANSYAH',
+    kategoriLabel: 'SITUS DAN BANGUNAN BERSEJARAH',
+    tagline:
+        'Masjid tertua Kalimantan Selatan yang atapnya bertingkat tanpa '
+        'kubah.',
+    deskripsi:
+        'Masjid ini dibangun pada masa Sultan Suriansyah, raja Banjar '
+        'pertama yang memeluk Islam. Atapnya bertumpang tiga dari sirap '
+        'kayu, sama sekali tanpa kubah maupun menara tinggi.',
+    gambarUtama: 'assets/images/borobudurB.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Bentuknya memperlihatkan bagaimana Islam masuk tanpa menghapus '
+        'bentuk bangunan setempat. Mihrabnya beratap sendiri, terpisah dari '
+        'bangunan utama, ciri yang jarang ditemukan di masjid lain.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'tahunBerdiri': 'Sekitar 1526',
+      'pendiri': 'Sultan Suriansyah',
+      'gayaArsitektur': 'Tradisional Banjar beratap tumpang',
+      'fungsiAsli':
+          'Masjid kerajaan sekaligus tempat pengangkatan sultan dan pusat '
+          'pengajaran agama bagi penduduk Banjar Kuala.',
+      'kondisiSekarang':
+          'Masih dipakai untuk salat lima waktu dan terbuka bagi pengunjung. '
+          'Kompleksnya mencakup makam Sultan Suriansyah beserta kerabatnya.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SNJT-3',
+    provinsi: 'Kalimantan Timur',
+    jenis: 'SNJT',
+    urutan: 3,
+    judul: '[Karangan] MANDAU',
+    kategoriLabel: 'SENJATA TRADISIONAL',
+    tagline: 'Parang Dayak yang bilahnya sengaja dibuat tidak simetris.',
+    deskripsi:
+        'Mandau adalah senjata utama suku Dayak berupa parang panjang '
+        'dengan satu sisi tajam. Bilahnya sedikit melengkung dan salah satu '
+        'sisinya dibiarkan cekung.',
+    gambarUtama: 'assets/images/kerisB.jpg',
+    maknaSpiritual:
+        'Ukiran dan tempelan rambut pada gagangnya dipercaya menjaga '
+        'pemiliknya. Mandau pusaka tidak boleh dicabut sembarangan tanpa '
+        'alasan.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Mandau bukan sekadar alat, melainkan penanda kedewasaan laki-laki '
+        'Dayak. Sarungnya dilengkapi pisau kecil bernama langgei puai untuk '
+        'pekerjaan halus.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': 'Besi mantikei, tanduk rusa, dan rotan',
+      'teknikPembuatan':
+          'Bilah ditempa berulang dari batu gunung yang mengandung besi, lalu '
+          'disepuh dengan air perasan tumbuhan agar tidak mudah berkarat.',
+      'bagianSenjata': [
+        'Bilah dengan satu sisi tajam dan satu sisi cekung',
+        'Hulu dari tanduk rusa berukir kepala burung enggang',
+        'Kumpang, sarung kayu berhias manik dan bulu',
+        'Langgei puai, pisau kecil yang menyatu dengan sarung',
+      ],
+      'fungsi':
+          'Dipakai membuka ladang, berburu, dan mempertahankan diri. Mandau '
+          'berukir halus disimpan sebagai pusaka dan hanya dikeluarkan pada '
+          'upacara adat.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-TRN-3',
+    provinsi: 'Kalimantan Utara',
+    jenis: 'TRN',
+    urutan: 3,
+    judul: '[Karangan] TARI JUGIT',
+    kategoriLabel: 'TARIAN TRADISIONAL',
+    tagline: 'Tarian istana Bulungan yang gerakannya ditahan pelan sekali.',
+    deskripsi:
+        'Jugit adalah tarian keraton Kesultanan Bulungan yang dibawakan '
+        'penari perempuan dengan gerak sangat lambat. Kelambatan itulah '
+        'ukuran keberhasilannya.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Jugit terbagi dua: Jugit Paman yang boleh disaksikan umum, dan '
+        'Jugit Demaring yang dahulu hanya boleh ditarikan di hadapan '
+        'sultan. Penarinya dipilih dari kalangan kerabat istana.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'jumlahPenari': '4 sampai 8 penari perempuan',
+      'pengiring': 'Gambang, gong, dan gendang keraton',
+      'gerakUtama': [
+        'Sembah pembuka dengan lutut menyentuh lantai',
+        'Ayunan tangan setinggi bahu yang ditahan lambat',
+        'Langkah geser tanpa mengangkat telapak kaki',
+        'Putaran badan setengah lingkaran sebagai penutup',
+      ],
+      'waktuPementasan':
+          'Dipentaskan pada penobatan sultan, pernikahan kerabat istana, dan '
+          'penyambutan tamu kehormatan. Di luar acara resmi, tarian ini jarang '
+          'ditampilkan.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-TRN-4',
+    provinsi: 'Sulawesi Utara',
+    jenis: 'TRN',
+    urutan: 4,
+    judul: '[Karangan] TARI KABASARAN',
+    kategoriLabel: 'TARIAN TRADISIONAL',
+    tagline:
+        'Tarian perang Minahasa dengan mata penari yang sengaja '
+        'dibelalakkan.',
+    deskripsi:
+        'Kabasaran adalah tarian perang suku Minahasa yang dibawakan penari '
+        'laki-laki berpakaian merah sambil menghunus pedang. Wajah penari '
+        'dibuat garang dengan mata membelalak sepanjang tarian.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Dahulu tarian ini mengiringi keberangkatan dan kepulangan pasukan. '
+        'Kini Kabasaran tampil pada penyambutan tamu dan upacara adat, '
+        'tetapi busananya tetap merah darah seperti dulu.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'jumlahPenari': '6 sampai 30 penari laki-laki',
+      'pengiring': 'Tambur bertalu cepat dan gong kecil',
+      'gerakUtama': [
+        'Cakalele, gerak menyerang dengan pedang terangkat',
+        'Kumbasaran, hentakan kaki serempak mengikuti tambur',
+        'Lalaya\'an, gerak berputar sambil memutar tameng',
+        'Sembah penutup kepada pemimpin adat',
+      ],
+      'waktuPementasan':
+          'Ditampilkan pada upacara adat, penyambutan tamu, dan peringatan hari '
+          'besar daerah. Penari harus berasal dari keturunan yang leluhurnya '
+          'pernah menjadi waranei.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-PKN-2',
+    provinsi: 'Gorontalo',
+    jenis: 'PKN',
+    urutan: 2,
+    judul: '[Karangan] BILI\'U',
+    kategoriLabel: 'PAKAIAN ADAT',
+    tagline:
+        'Busana pengantin Gorontalo yang setiap helainya punya nama dan '
+        'aturan.',
+    deskripsi:
+        'Bili\'u adalah pakaian adat pengantin Gorontalo yang dikenakan pada '
+        'puncak upacara pernikahan. Setiap kelengkapannya memiliki nama '
+        'tersendiri dan urutan pemakaian yang tidak boleh dibalik.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual:
+        'Warna busana menandai kedudukan: kuning keemasan untuk keturunan '
+        'bangsawan, ungu dan hijau untuk golongan lain. Aturan ini masih '
+        'dipegang pada upacara adat resmi.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Pengantin yang mengenakan bili\'u tidak boleh berjalan sendiri; ia '
+        'dituntun pemangku adat sepanjang upacara. Prosesi pemakaiannya '
+        'sendiri bisa memakan waktu dua jam.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': 'Kain satin bersulam benang emas dan hiasan kuningan',
+      'bagianBusana': [
+        'Baju bili\'u berlengan panjang dengan sulaman dada',
+        'Buluwa, mahkota bertingkat bagi pengantin perempuan',
+        'Tuhi-tuhi, hiasan kepala menjuntai dari kuningan',
+        'Etango, ikat pinggang lebar berukir',
+      ],
+      'warnaDominan': 'Kuning keemasan dan ungu',
+      'pemakaian':
+          'Dikenakan hanya pada puncak akad dan resepsi adat. Di luar itu, '
+          'busana ini disimpan dan dirawat oleh pemangku adat, bukan oleh '
+          'keluarga pengantin.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SRK-2',
+    provinsi: 'Sulawesi Tengah',
+    jenis: 'SRK',
+    urutan: 2,
+    judul: '[Karangan] KAIN KULIT KAYU IVO',
+    kategoriLabel: 'SENI RUPA DAN KRIYA',
+    tagline:
+        'Kain yang dibuat bukan dengan ditenun, melainkan dipukul sampai '
+        'melebar.',
+    deskripsi:
+        'Kain ivo dibuat dari kulit bagian dalam pohon beringin atau nunu '
+        'yang dipukul berjam-jam sampai seratnya melebar menjadi lembaran. '
+        'Tidak ada benang dan tidak ada alat tenun sama sekali.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Kain kulit kayu adalah tekstil tertua di Sulawesi Tengah, dipakai '
+        'jauh sebelum kapas dikenal. Bunyi pukulan ike yang bersahutan dulu '
+        'jadi penanda bahwa sebuah kampung sedang menyiapkan upacara.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'medium': 'Kulit bagian dalam pohon nunu',
+      'teknik':
+          'Kulit direndam beberapa hari lalu dipukul dengan batu beralur '
+          'bernama ike sampai seratnya merenggang dan melebar berkali lipat, '
+          'kemudian dijemur dan diwarnai.',
+      'motifKhas': [
+        'Garis geometris berulang berwarna cokelat tanah',
+        'Titik-titik menyerupai biji yang disusun berbaris',
+        'Motif sulur tumbuhan menjalar di tepi kain',
+        'Bidang polos yang sengaja dibiarkan kosong',
+      ],
+      'maknaMotif':
+          'Motif geometris melambangkan keteraturan hidup bermasyarakat, '
+          'sedangkan bidang kosong dibiarkan sebagai pengakuan bahwa tidak ada '
+          'yang sempurna.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-RMH-4',
+    provinsi: 'Sulawesi Barat',
+    jenis: 'RMH',
+    urutan: 4,
+    judul: '[Karangan] RUMAH BOYANG',
+    kategoriLabel: 'RUMAH ADAT',
+    tagline:
+        'Rumah panggung Mandar yang tinggi tiangnya menandai derajat '
+        'pemiliknya.',
+    deskripsi:
+        'Boyang adalah rumah adat suku Mandar berbentuk panggung dengan '
+        'atap pelana. Jumlah anak tangga dan tinggi tiangnya dahulu '
+        'menandai kedudukan pemilik rumah.',
+    gambarUtama: 'assets/images/onboardin1.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Bagian depan rumah selalu menghadap laut karena masyarakat Mandar '
+        'hidup dari pelayaran. Ruang tamu dibuat luas agar cukup menampung '
+        'kerabat yang datang saat musim melaut usai.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahanBangunan': 'Kayu bitti, papan jati, dan atap rumbia',
+      'strukturKhas':
+          'Bangunan ditopang tiang yang berdiri di atas batu, dengan lantai '
+          'dibuat bertingkat rendah untuk memisahkan ruang tamu dari ruang '
+          'keluarga.',
+      'bagianRumah': [
+        'Lotang, ruang depan untuk menerima tamu',
+        'Tangnga boyang, ruang tengah keluarga',
+        'Bui boyang, ruang belakang tempat perempuan bekerja',
+        'Naung boyang, kolong untuk menyimpan perahu kecil dan jala',
+      ],
+      'fungsiSosial':
+          'Ruang depannya dipakai musyawarah kampung dan pembacaan doa selamat '
+          'sebelum melaut. Perempuan menerima tamunya di ruang belakang, '
+          'terpisah dari ruang depan.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SIT-5-D',
+    provinsi: 'Sulawesi Tenggara',
+    jenis: 'SIT',
+    urutan: 5,
+    judul: '[Karangan] BENTENG KERATON BUTON',
+    kategoriLabel: 'SITUS DAN BANGUNAN BERSEJARAH',
+    tagline:
+        'Benteng batu karang terluas di dunia yang di dalamnya masih ada '
+        'kampung.',
+    deskripsi:
+        'Benteng Keraton Buton adalah tembok pertahanan sepanjang lebih '
+        'dari dua kilometer yang mengelilingi pusat Kesultanan Buton. Di '
+        'dalam temboknya sampai kini masih berdiri permukiman penduduk.',
+    gambarUtama: 'assets/images/borobudurB.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Temboknya disusun dari batu karang yang direkatkan campuran kapur '
+        'dan putih telur. Dua belas gerbangnya dulu dijaga terpisah oleh '
+        'kelompok masyarakat yang berbeda.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'tahunBerdiri': 'Abad ke-16',
+      'pendiri': 'Sultan Buton ketiga, La Sangaji',
+      'gayaArsitektur': 'Benteng batu karang bertembok keliling',
+      'fungsiAsli':
+          'Melindungi istana, masjid agung, dan permukiman keluarga sultan dari '
+          'serangan laut sekaligus menjadi batas wilayah kekuasaan.',
+      'kondisiSekarang':
+          'Sebagian besar tembok masih utuh dan bisa ditelusuri berkeliling. Di '
+          'dalamnya terdapat masjid tua, makam sultan, dan rumah penduduk yang '
+          'masih dihuni.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-UPC-3',
+    provinsi: 'Bali',
+    jenis: 'UPC',
+    urutan: 3,
+    judul: '[Karangan] NGABEN',
+    kategoriLabel: 'UPACARA DAN TRADISI ADAT',
+    tagline: 'Upacara membakar jenazah yang justru digelar tanpa tangis.',
+    deskripsi:
+        'Ngaben adalah upacara pembakaran jenazah dalam agama Hindu Bali. '
+        'Keluarga diminta menahan tangis karena kesedihan dipercaya menahan '
+        'perjalanan jiwa yang dilepas.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual:
+        'Api dipahami sebagai perwujudan Dewa Brahma yang mengembalikan '
+        'lima unsur tubuh ke asalnya. Abu yang tersisa kemudian dilarung ke '
+        'laut atau sungai.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Karena biayanya besar, banyak keluarga menunggu ngaben massal yang '
+        'ditanggung bersama satu banjar. Jenazah dimakamkan sementara '
+        'sampai waktunya tiba.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'waktuPelaksanaan': 'Hari baik menurut kalender Bali',
+      'pelaksana': 'Pedanda bersama warga banjar',
+      'tahapan': [
+        'Ngulapin, memanggil kembali roh dari tempat meninggalnya',
+        'Nyiramin, memandikan jenazah di halaman rumah',
+        'Ngaskara, penyucian roh oleh pedanda',
+        'Pengarakan bade menuju kuburan sambil diputar di persimpangan',
+        'Pembakaran jenazah dan pelarungan abu ke laut',
+      ],
+      'perlengkapan': [
+        'Bade, menara pengusung jenazah bertingkat',
+        'Lembu kayu sebagai wadah pembakaran',
+        'Kain kafan dan bunga sesaji',
+        'Tirta, air suci dari beberapa pura',
+      ],
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-PRM-3',
+    provinsi: 'Nusa Tenggara Barat',
+    jenis: 'PRM',
+    urutan: 3,
+    judul: '[Karangan] PERESEAN',
+    kategoriLabel: 'PERMAINAN DAN OLAHRAGA TRADISIONAL',
+    tagline: 'Adu rotan antar-lelaki Sasak yang darahnya dianggap doa hujan.',
+    deskripsi:
+        'Peresean adalah pertarungan dua laki-laki bersenjata tongkat rotan '
+        'dan berperisai kulit kerbau. Pemenang ditentukan bukan oleh '
+        'jatuhnya lawan, melainkan oleh lecetnya kulit.',
+    gambarUtama: 'assets/images/onboardin1.jpg',
+    maknaSpiritual:
+        'Tetesan darah pepadu dipercaya sebagai persembahan agar hujan '
+        'turun. Karena itu peresean dulu digelar justru pada puncak musim '
+        'kering.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Peresean dahulu dipakai menguji keberanian calon prajurit. Meski '
+        'keras, kedua petarung wajib berjabat tangan setelah pertandingan '
+        'dan dilarang menyimpan dendam.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'jumlahPemain': '2 pepadu, dipandu 3 pekembar',
+      'alat': [
+        'Penjalin, tongkat rotan sepanjang satu meter',
+        'Ende, perisai dari kulit kerbau tebal',
+        'Ikat kepala dan kain pinggang adat',
+        'Gamelan gendang beleq sebagai pengiring',
+      ],
+      'caraBermain': [
+        'Pekembar memilih dua petarung yang seimbang dari penonton.',
+        'Kedua pepadu saling berhadapan dan memberi hormat.',
+        'Pertandingan berlangsung lima ronde, masing-masing pendek.',
+        'Pukulan hanya sah bila mengenai punggung atau bahu.',
+        'Pertandingan dihentikan begitu salah satu berdarah di kepala.',
+      ],
+      'nilai':
+          'Peresean mengajarkan keberanian menerima sakit tanpa mengeluh dan '
+          'kemampuan berhenti bermusuhan begitu pertandingan usai.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-MSK-3',
+    provinsi: 'Nusa Tenggara Timur',
+    jenis: 'MSK',
+    urutan: 3,
+    judul: '[Karangan] SASANDO',
+    kategoriLabel: 'ALAT MUSIK DAN LAGU DAERAH',
+    tagline:
+        'Alat petik berbadan daun lontar yang senarnya melingkari tabung '
+        'bambu.',
+    deskripsi:
+        'Sasando adalah alat musik petik dari Pulau Rote dengan tabung '
+        'bambu di tengah dan senar yang melingkarinya. Wadah setengah '
+        'lingkaran dari anyaman daun lontar berfungsi sebagai pemantul '
+        'suara.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Ganjalan kecil di bawah setiap senar bisa digeser untuk mengubah '
+        'nada, sehingga satu sasando dapat disetel ke berbagai tangga nada. '
+        'Pemainnya memetik dengan kedua tangan dari dua sisi tabung.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': 'Bambu, daun lontar kering, dan senar kawat',
+      'caraMemainkan':
+          'Dipetik dengan jari kedua tangan yang bekerja dari sisi berlawanan; '
+          'tangan kiri memainkan melodi sementara tangan kanan mengisi iringan.',
+      'tanggaNada': 'Dapat disetel pentatonis maupun diatonis',
+      'repertoar': ['Bolelebo', 'Ofalangga', 'Lisoi', 'Tebe Onana'],
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SIT-6-D',
+    provinsi: 'Maluku Utara',
+    jenis: 'SIT',
+    urutan: 6,
+    judul: '[Karangan] KERATON KESULTANAN TERNATE',
+    kategoriLabel: 'SITUS DAN BANGUNAN BERSEJARAH',
+    tagline:
+        'Istana berbentuk singa duduk yang menghadap langsung ke Gunung '
+        'Gamalama.',
+    deskripsi:
+        'Keraton Kesultanan Ternate dibangun pada abad ke-19 di atas bukit '
+        'menghadap laut. Denahnya dirancang menyerupai seekor singa yang '
+        'sedang duduk, dengan bagian depan sebagai kepala.',
+    gambarUtama: 'assets/images/borobudurB.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Ternate adalah pusat perdagangan cengkih yang membuat bangsa Eropa '
+        'berdatangan sejak abad ke-16. Keraton ini menyimpan mahkota '
+        'berambut yang menurut kepercayaan setempat rambutnya terus tumbuh.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'tahunBerdiri': '1813',
+      'pendiri': 'Sultan Muhammad Ali',
+      'gayaArsitektur': 'Perpaduan Eropa dan Maluku Utara',
+      'fungsiAsli':
+          'Kediaman sultan sekaligus pusat pemerintahan dan penyimpanan pusaka '
+          'kesultanan yang menguasai perdagangan cengkih.',
+      'kondisiSekarang':
+          'Sebagian bangunan menjadi museum yang memamerkan mahkota, senjata, '
+          'dan naskah kuno. Sultan beserta keluarganya masih menempati bagian '
+          'dalam keraton.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SIT-7-D',
+    provinsi: 'Papua Barat Daya',
+    jenis: 'SIT',
+    urutan: 7,
+    judul: '[Karangan] LUKISAN CADAS MISOOL',
+    kategoriLabel: 'SITUS DAN BANGUNAN BERSEJARAH',
+    tagline:
+        'Cap tangan berusia ribuan tahun di tebing karang yang hanya bisa '
+        'dicapai dengan perahu.',
+    deskripsi:
+        'Di tebing-tebing karang Misool terdapat lukisan cadas berupa cap '
+        'tangan, ikan, dan perahu yang dibuat dengan pewarna merah dari '
+        'oker. Sebagian berada tepat di atas permukaan laut.',
+    gambarUtama: 'assets/images/borobudurB.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Lukisan ini diperkirakan berumur ribuan tahun dan menjadi jejak '
+        'paling awal kehidupan manusia di kawasan Raja Ampat. Posisinya '
+        'yang menggantung di atas air membuatnya sulit dijangkau dan justru '
+        'terjaga.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'tahunBerdiri': 'Diperkirakan 3.000 sampai 5.000 tahun lalu',
+      'pendiri': 'Penghuni awal kepulauan Misool',
+      'gayaArsitektur': 'Lukisan cadas pada dinding karang',
+      'fungsiAsli':
+          'Diduga menjadi penanda wilayah sekaligus bagian dari upacara yang '
+          'berkaitan dengan laut dan perjalanan melautnya penduduk awal.',
+      'kondisiSekarang':
+          'Masih terlihat jelas dan dilindungi sebagai bagian kawasan '
+          'konservasi. Pengunjung hanya boleh mendekat dengan perahu, tanpa '
+          'menyentuh dinding.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-TRN-5',
+    provinsi: 'Papua Barat',
+    jenis: 'TRN',
+    urutan: 5,
+    judul: '[Karangan] TARI YOSPAN',
+    kategoriLabel: 'TARIAN TRADISIONAL',
+    tagline:
+        'Tarian pergaulan Papua yang gerakannya meniru pesawat lepas '
+        'landas.',
+    deskripsi:
+        'Yospan adalah gabungan dua tarian, Yosim dan Pancar. Sebagian '
+        'gerakannya meniru manuver pesawat terbang yang dilihat penduduk '
+        'pada pertengahan abad ke-20.',
+    gambarUtama: 'assets/images/onboardin3.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Berbeda dari tarian adat yang penuh aturan, Yospan adalah tarian '
+        'pergaulan yang boleh diikuti siapa saja. Lingkaran penari kerap '
+        'membesar sendiri karena penonton ikut masuk.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'jumlahPenari': 'Tidak dibatasi, biasanya lebih dari 10 orang',
+      'pengiring': 'Ukulele, tifa, bas gitar, dan stem bass',
+      'gerakUtama': [
+        'Pancar gas, langkah cepat maju seperti pesawat berlari',
+        'Gale-gale, langkah bergoyang mengikuti irama',
+        'Jef, gerak melompat ringan dengan kedua kaki',
+        'Pacul tiga, tiga hentakan kaki berulang',
+      ],
+      'waktuPementasan':
+          'Ditampilkan pada penyambutan tamu, pesta rakyat, dan perayaan '
+          'sekolah. Tidak ada pantangan waktu, sehingga Yospan bisa dibawakan '
+          'kapan saja.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-FKL-3',
+    provinsi: 'Papua Tengah',
+    jenis: 'FKL',
+    urutan: 3,
+    judul: '[Karangan] LEGENDA DANAU PANIAI',
+    kategoriLabel: 'CERITA RAKYAT DAN MITOLOGI',
+    tagline: 'Cerita tentang danau yang lahir dari janji yang dilanggar.',
+    deskripsi:
+        'Legenda ini menceritakan asal-usul Danau Paniai di dataran tinggi '
+        'Papua Tengah. Danau itu dikisahkan muncul setelah seorang pemuda '
+        'melanggar pantangan yang ia setujui sendiri.',
+    gambarUtama: 'assets/images/1308history.png',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Cerita ini dituturkan turun-temurun oleh masyarakat Mee dan biasa '
+        'disampaikan orang tua kepada anak menjelang tidur. Versi lisannya '
+        'berbeda-beda antar-kampung.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'tokoh': [
+        'Pemuda Mee yang menemukan mata air',
+        'Perempuan penjaga air yang muncul dari kabut',
+        'Tetua kampung yang memberi peringatan',
+        'Warga kampung di lembah',
+      ],
+      'latar': 'Lembah pegunungan tengah Papua',
+      'ringkasanCerita':
+          'Seorang pemuda menemukan mata air yang tak pernah kering dan '
+          'dijanjikan air itu akan terus mengalir asalkan ia tidak '
+          'menceritakannya kepada siapa pun. Ketika kampung dilanda kemarau, ia '
+          'melanggar janji dan membawa warga ke sana. Air lalu menyembur tanpa '
+          'henti sampai seluruh lembah tergenang menjadi danau.',
+      'pesanMoral':
+          'Cerita ini mengajarkan bahwa janji yang diucapkan sendiri harus '
+          'ditepati, dan bahwa kebaikan yang dipaksakan tanpa perhitungan bisa '
+          'berubah menjadi bencana.',
+      'versiLain':
+          'Versi lain menyebut air itu muncul dari tangisan perempuan penjaga '
+          'yang kecewa, bukan dari mata air yang meluap.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-RMH-5',
+    provinsi: 'Papua Pegunungan',
+    jenis: 'RMH',
+    urutan: 5,
+    judul: '[Karangan] HONAI',
+    kategoriLabel: 'RUMAH ADAT',
+    tagline:
+        'Rumah bulat beratap jerami yang di dalamnya api tak pernah '
+        'dibiarkan padam.',
+    deskripsi:
+        'Honai adalah rumah adat suku Dani berbentuk bulat dengan atap '
+        'jerami mengerucut hampir menyentuh tanah. Pintunya rendah dan '
+        'tidak ada satu pun jendela.',
+    gambarUtama: 'assets/images/onboardin1.jpg',
+    maknaSpiritual: null,
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Ketiadaan jendela bukan kelalaian melainkan perhitungan: udara '
+        'pegunungan yang dingin ditahan di dalam, dan asap perapian di '
+        'tengah ruangan menghangatkan sekaligus mengawetkan atap jerami.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahanBangunan': 'Kayu, jerami alang-alang, dan tali dari kulit kayu',
+      'strukturKhas':
+          'Dinding kayu disusun melingkar dengan atap kerucut yang menjuntai '
+          'rendah. Bagian dalam dibagi dua tingkat, dengan perapian tepat di '
+          'tengah lantai bawah.',
+      'bagianRumah': [
+        'Pintu rendah tunggal yang mengharuskan penghuni menunduk',
+        'Perapian di tengah lantai bawah',
+        'Lantai atas dari papan sebagai tempat tidur',
+        'Para-para di bawah atap untuk menyimpan alat berburu',
+      ],
+      'fungsiSosial':
+          'Honai laki-laki dan perempuan dipisah, dan honai laki-laki menjadi '
+          'tempat mengajarkan adat kepada anak lelaki yang sudah cukup umur.',
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-MSK-4',
+    provinsi: 'Papua',
+    jenis: 'MSK',
+    urutan: 4,
+    judul: '[Karangan] TIFA',
+    kategoriLabel: 'ALAT MUSIK DAN LAGU DAERAH',
+    tagline:
+        'Gendang kayu berbentuk jam pasir yang tak boleh sembarang ditabuh.',
+    deskripsi:
+        'Tifa adalah gendang tabung dari kayu yang dilubangi dengan membran '
+        'kulit rusa atau biawak pada satu sisi. Badannya diukir dan '
+        'sebagian dilengkapi pegangan.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual:
+        'Pada beberapa marga, tifa tertentu hanya boleh ditabuh pemiliknya '
+        'dan ukirannya menandai asal-usul keluarga pemiliknya.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Tifa mengiringi hampir seluruh upacara di Papua, dari penyambutan '
+        'tamu sampai pesta panen. Sebelum ditabuh, membrannya dipanaskan di '
+        'dekat api agar suaranya nyaring.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'bahan': 'Kayu lenggua dengan membran kulit rusa',
+      'caraMemainkan':
+          'Ditabuh dengan telapak tangan pada bagian tepi dan tengah membran '
+          'untuk menghasilkan dua warna bunyi yang berbeda.',
+      'tanggaNada': 'Tidak bernada tetap, berfungsi sebagai pengatur irama',
+      'repertoar': ['Yamko Rambe Yamko', 'Apuse', 'Sajojo', 'E Mambo Simbo'],
+    },
+  ),
+  const BudayaModel(
+    kodeTag: 'BUD-SRK-3',
+    provinsi: 'Papua Selatan',
+    jenis: 'SRK',
+    urutan: 3,
+    judul: '[Karangan] UKIRAN ASMAT',
+    kategoriLabel: 'SENI RUPA DAN KRIYA',
+    tagline: 'Patung kayu yang dipahat tanpa sketsa dan tanpa diukur.',
+    deskripsi:
+        'Ukiran Asmat adalah seni pahat kayu yang dikerjakan tanpa gambar '
+        'rancangan lebih dulu. Pemahatnya, disebut wowipits, langsung '
+        'membentuk kayu mengikuti bayangan di kepalanya.',
+    gambarUtama: 'assets/images/onboardin2.jpg',
+    maknaSpiritual:
+        'Setiap patung mewakili kerabat yang telah meninggal, dan '
+        'pembuatannya dianggap sebagai cara melunasi utang kepada leluhur.',
+    gambarMaknaSpiritual: null,
+    konteksBudaya:
+        'Kayu yang dipakai umumnya bitanggur atau ketapang yang tumbuh di '
+        'rawa. Karya besar seperti tiang bisu dikerjakan berbulan-bulan dan '
+        'hanya boleh dibuat setelah upacara tertentu.',
+    gambarKonteksBudaya: null,
+    detailKategori: {
+      'medium': 'Kayu bitanggur dan kayu besi rawa',
+      'teknik':
+          'Kayu dipahat langsung dengan kapak batu atau pahat besi tanpa '
+          'sketsa, lalu diwarnai dengan kapur putih, tanah merah, dan arang '
+          'hitam.',
+      'motifKhas': [
+        'Bisj, tiang tinggi berisi susunan tokoh leluhur',
+        'Sosok manusia berjongkok dengan kepala membesar',
+        'Burung dan kuskus sebagai perlambang perantara',
+        'Perisai berukir garis melingkar berulang',
+      ],
+      'maknaMotif':
+          'Sosok manusia melambangkan kerabat yang meninggal dan belum '
+          'dibalaskan, sedangkan burung menandai perpindahan jiwa dari dunia '
+          'hidup ke dunia leluhur.',
+    },
+  ),
 ];

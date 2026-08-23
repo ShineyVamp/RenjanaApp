@@ -7,7 +7,11 @@ import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/detail_section_block.dart';
+import '../../core/widgets/detail_top_bar.dart';
+import '../../data/models/bookmark_model.dart';
+import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/wilayah_repository.dart';
+import '../../services/pembagi_arsip.dart';
 import 'detail_provinsi_page.dart';
 import 'widgets/kartu_statistik.dart';
 
@@ -22,15 +26,58 @@ class DetailPulauPage extends StatefulWidget {
 
 class _DetailPulauPageState extends State<DetailPulauPage> {
   final WilayahRepository _wilayahRepository = WilayahRepository();
+  final BookmarkRepository _bookmarkRepository = BookmarkRepository();
 
   RingkasanPulau? _ringkasan;
+  bool _tersimpan = false;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _muatData();
+    _periksaBookmark();
   }
+
+  String get _kunciBookmark => BookmarkItemModel.kunciPulau(widget.pulau.id);
+
+  Future<void> _periksaBookmark() async {
+    final tersimpan = await _bookmarkRepository.isBookmarked(_kunciBookmark);
+    if (!mounted) return;
+    setState(() => _tersimpan = tersimpan);
+  }
+
+  Future<void> _ubahBookmark() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final kini = await _bookmarkRepository.toggleBookmark(
+      'pulau',
+      _kunciBookmark,
+    );
+    if (!mounted) return;
+
+    setState(() => _tersimpan = kini);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          kini
+              ? 'Berhasil disimpan ke Bookmark'
+              : 'Berhasil dihapus dari Bookmark',
+        ),
+        duration: const Duration(milliseconds: 1200),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  Future<void> _bagikan() => bagikanArsip(
+    context,
+    judul: widget.pulau.nama,
+    jenis: 'Gugus Pulau',
+    keterangan: widget.pulau.deskripsi,
+    provinsi: null,
+  );
 
   Future<void> _muatData() async {
     final ringkasan = await _wilayahRepository.ringkasanPulau(widget.pulau);
@@ -54,27 +101,6 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          pulau.nama,
-          style: AppTypography.headingSmall().copyWith(fontSize: 19),
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: AppColors.primary, width: 0.8),
-        ),
-      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -108,6 +134,21 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                         ),
                       ),
                     ),
+
+                    // Top bar harus jadi anak terakhir Stack. Lapisan gradien
+                    // di atas menjawab true pada hit test, jadi apa pun yang
+                    // berada di bawahnya tidak bisa disentuh.
+                    // tombol kembali, beranda, simpan, dan bagikan
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: DetailTopBar(
+                        isBookmarked: _tersimpan,
+                        onBookmarkToggle: _ubahBookmark,
+                        onShare: _bagikan,
+                      ),
+                    ),
                   ],
                 ),
 
@@ -119,11 +160,10 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                     children: [
                       Text(
                         'GUGUS PULAU',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppTypography.eyebrow(
                           fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.4,
                           color: AppColors.primaryDark,
+                          letterSpacing: 1.4,
                         ),
                       ),
                       const SizedBox(height: 4),

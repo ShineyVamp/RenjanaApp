@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/extensions/navigation.dart';
-import '../../../../core/widgets/app_image.dart';
-import '../../../../core/widgets/section_header.dart';
-import '../../../../core/constants/budaya_kategori.dart';
-import '../../../../data/models/budaya_model.dart';
-import '../../../../data/repositories/budaya_repository.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_typography.dart';
+import '../../../core/extensions/navigation.dart';
+import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/teks_muat.dart';
+import '../../../core/widgets/section_header.dart';
+import '../../../core/constants/budaya_kategori.dart';
+import '../../../data/models/budaya_model.dart';
+import '../../../data/repositories/budaya_repository.dart';
 import '../../koleksi/koleksi_kategori_page.dart';
 
 // Daftar delapan kategori budaya, gambar dan jumlah item diambil dari database.
@@ -125,6 +126,7 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
       },
       child: Container(
         width: itemWidth,
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.borderPrimary),
         ),
@@ -162,11 +164,11 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    kategori.nama,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.headingMedium(color: Colors.white),
+                  TeksMuat(
+                    teks: kategori.nama,
+                    gaya: AppTypography.headingMedium(color: Colors.white),
+                    ambangKata: 3,
+                    ukuranMinimum: 17,
                   ),
                   Text(
                     '${items.length} koleksi',

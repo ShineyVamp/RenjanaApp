@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/extensions/navigation.dart';
-import '../../../../core/widgets/app_image.dart';
-import '../../../../core/widgets/section_header.dart';
-import '../../../../data/models/budaya_model.dart';
-import '../../../../data/repositories/budaya_repository.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_dekorasi.dart';
+import '../../../core/constants/app_typography.dart';
+import '../../../core/extensions/navigation.dart';
+import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/teks_muat.dart';
+import '../../../core/widgets/section_header.dart';
+import '../../../data/models/budaya_model.dart';
+import '../../../data/repositories/budaya_repository.dart';
 import '../../detail/detail_budaya_page.dart';
 
 // Budaya yang juga tempat wisata, ditandai suffix -D pada ID tag.
@@ -139,6 +141,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
+                    borderRadius: AppDekorasi.radiusKartu,
                     border: Border.all(color: AppColors.borderPrimary),
                   ),
                   child: Text(
@@ -192,6 +195,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
       },
       child: Container(
         width: itemWidth,
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.borderPrimary),
         ),
@@ -237,11 +241,11 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.judul,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.headingMedium(color: Colors.white),
+                  TeksMuat(
+                    teks: item.judul,
+                    gaya: AppTypography.headingMedium(color: Colors.white),
+                    ambangKata: 3,
+                    ukuranMinimum: 17,
                   ),
                   Text(
                     item.namaKategoriBudaya,

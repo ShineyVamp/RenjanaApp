@@ -7,12 +7,17 @@ import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/asal_daerah_block.dart';
+import '../../core/widgets/blok_kontributor.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
+import '../../core/widgets/tombol_koreksi.dart';
 import '../../data/models/sejarah_model.dart';
+import '../../data/models/usulan_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
-import '../../data/repositories/riwayat_repository.dart';
+import '../../services/pembagi_arsip.dart';
+import '../../services/pencatat_bacaan.dart';
+import '../kontribusi/form_usulan_page.dart';
 import '../wilayah/detail_provinsi_page.dart';
 import 'widgets/timeline_item_widget.dart';
 
@@ -28,6 +33,7 @@ class DetailSejarahPage extends StatefulWidget {
 class _DetailSejarahPageState extends State<DetailSejarahPage> {
   final SejarahRepository _sejarahRepository = SejarahRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
+  final PencatatBacaan _pencatat = PencatatBacaan();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
   List<SejarahModel> _otherSejarahList = [];
@@ -37,7 +43,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     super.initState();
     _checkBookmarkStatus();
     _loadOtherSejarah();
-    RiwayatRepository().catatDibuka('sejarah', widget.sejarah.kodeTag);
+    _pencatat.mulai('sejarah', widget.sejarah.kodeTag);
   }
 
   Future<void> _checkBookmarkStatus() async {
@@ -62,9 +68,23 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
 
   @override
   void dispose() {
+    _pencatat.batalkan();
     _scrollRelated.dispose();
     super.dispose();
   }
+
+  Future<void> _usulkanKoreksi(SejarahModel data) async {
+    await context.push(FormUsulanPage(usulanAwal: Usulan.koreksiSejarah(data)));
+  }
+
+  Future<void> _bagikan(SejarahModel data) => bagikanArsip(
+    context,
+    judul: data.judul,
+    jenis: 'Sejarah',
+    keterangan: data.ringkasan,
+    kodeTag: data.kodeTag,
+    provinsi: data.provinsi,
+  );
 
   void _bukaProvinsi(String? namaProvinsi) {
     final provinsi = provinsiDariNama(namaProvinsi);
@@ -123,6 +143,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                           right: 0,
                           child: DetailTopBar(
                             isBookmarked: _isBookmarked,
+                            onShare: () => _bagikan(data),
                             onBookmarkToggle: () async {
                               final messenger = ScaffoldMessenger.of(context);
                               final nowBookmarked = await _bookmarkRepository
@@ -243,6 +264,14 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                   namaProvinsi: data.provinsi,
                   onLihatProvinsi: () => _bukaProvinsi(data.provinsi),
                 ),
+
+                // section kontributor
+                BlokKontributor(nama: data.kontributor),
+
+                const SizedBox(height: 6),
+
+                // section usulan koreksi
+                TombolKoreksi(onTap: () => _usulkanKoreksi(data)),
 
                 const SizedBox(height: 28),
 

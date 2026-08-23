@@ -8,14 +8,20 @@ import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/asal_daerah_block.dart';
+import '../../core/widgets/blok_kontributor.dart';
 import '../../core/widgets/detail_list_block.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_spec_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
+import '../../core/widgets/tombol_koreksi.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
+import '../../data/models/usulan_model.dart';
 import '../../data/repositories/budaya_repository.dart';
-import '../../data/repositories/riwayat_repository.dart';
+import '../../services/pembagi_arsip.dart';
+import '../../services/pembuka_peta.dart';
+import '../../services/pencatat_bacaan.dart';
+import '../kontribusi/form_usulan_page.dart';
 import '../wilayah/detail_provinsi_page.dart';
 
 class DetailBudayaPage extends StatefulWidget {
@@ -30,6 +36,7 @@ class DetailBudayaPage extends StatefulWidget {
 class _DetailBudayaPageState extends State<DetailBudayaPage> {
   final BudayaRepository _budayaRepository = BudayaRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
+  final PencatatBacaan _pencatat = PencatatBacaan();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
   List<BudayaModel> _otherBudayaList = [];
@@ -39,7 +46,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
     super.initState();
     _checkBookmarkStatus();
     _loadOtherBudaya();
-    RiwayatRepository().catatDibuka('budaya', widget.budaya.kodeTag);
+    _pencatat.mulai('budaya', widget.budaya.kodeTag);
   }
 
   Future<void> _checkBookmarkStatus() async {
@@ -64,9 +71,58 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
 
   @override
   void dispose() {
+    _pencatat.batalkan();
     _scrollRelated.dispose();
     super.dispose();
   }
+
+  // Destinasi bisa dikunjungi langsung, jadi diberi pintasan ke aplikasi peta.
+  Widget _buildTombolPeta(BudayaModel data) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: AppColors.primary),
+            padding: const EdgeInsets.symmetric(vertical: 13),
+            shape: const RoundedRectangleBorder(),
+          ),
+          onPressed: () => bukaLokasiDiPeta(
+            context,
+            namaTempat: data.judul,
+            provinsi: data.provinsi,
+          ),
+          icon: const Icon(
+            Icons.map_outlined,
+            size: 18,
+            color: AppColors.primary,
+          ),
+          label: Text(
+            'Buka lokasi di aplikasi peta',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _usulkanKoreksi(BudayaModel data) async {
+    await context.push(FormUsulanPage(usulanAwal: Usulan.koreksiBudaya(data)));
+  }
+
+  Future<void> _bagikan(BudayaModel data) => bagikanArsip(
+    context,
+    judul: data.judul,
+    jenis: data.kategoriLabel,
+    keterangan: data.tagline.isNotEmpty ? data.tagline : data.deskripsi,
+    kodeTag: data.kodeTag,
+    provinsi: data.provinsi,
+  );
 
   void _bukaProvinsi(String? namaProvinsi) {
     final provinsi = provinsiDariNama(namaProvinsi);
@@ -168,6 +224,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             right: 0,
                             child: DetailTopBar(
                               isBookmarked: _isBookmarked,
+                              onShare: () => _bagikan(data),
                               onBookmarkToggle: () async {
                                 final messenger = ScaffoldMessenger.of(context);
                                 final nowBookmarked = await _bookmarkRepository
@@ -325,7 +382,18 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                     onLihatProvinsi: () => _bukaProvinsi(data.provinsi),
                   ),
 
-                  const SizedBox(height: 20),
+                  // section kontributor
+                  BlokKontributor(nama: data.kontributor),
+
+                  // section lokasi, hanya untuk item yang juga tempat wisata
+                  if (data.isDestinasi) _buildTombolPeta(data),
+
+                  const SizedBox(height: 14),
+
+                  // section usulan koreksi
+                  TombolKoreksi(onTap: () => _usulkanKoreksi(data)),
+
+                  const SizedBox(height: 24),
 
                   // section budaya lainnya
                   Padding(

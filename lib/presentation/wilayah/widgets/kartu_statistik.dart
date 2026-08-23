@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_dekorasi.dart';
+import '../../../core/constants/app_typography.dart';
 
 // Kartu angka pendek pada halaman pulau dan provinsi.
 class KartuStatistik extends StatelessWidget {
@@ -20,10 +22,7 @@ class KartuStatistik extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.borderPrimary),
-      ),
+      decoration: AppDekorasi.panel(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -32,12 +31,7 @@ class KartuStatistik extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             label.toUpperCase(),
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.1,
-              color: AppColors.primary,
-            ),
+            style: AppTypography.eyebrow(fontSize: 9.5, letterSpacing: 1.1),
           ),
           const SizedBox(height: 3),
           Text(

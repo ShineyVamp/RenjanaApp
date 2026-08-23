@@ -33,6 +33,11 @@ class WilayahRepository {
     return hasil;
   }
 
+  // Peta arsip per provinsi, kuncinya nama provinsi huruf kecil. Dipakai
+  // pemanggil yang butuh seluruh provinsi sekaligus.
+  Future<Map<String, List<HasilJelajah>>> arsipPerProvinsi() =>
+      _kelompokPerProvinsi();
+
   Future<List<HasilJelajah>> arsipProvinsi(String namaProvinsi) async {
     final kelompok = await _kelompokPerProvinsi();
     final daftar = kelompok[namaProvinsi.trim().toLowerCase()] ?? const [];

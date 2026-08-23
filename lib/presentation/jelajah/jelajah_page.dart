@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/widgets/header_halaman.dart';
@@ -26,8 +29,16 @@ class _JelajahPageState extends State<JelajahPage> {
   final RiwayatRepository _riwayatRepository = RiwayatRepository();
   final TextEditingController _controller = TextEditingController();
 
+  // Pencarian ditunda sejenak setelah ketikan berhenti. Tanpa ini setiap
+  // huruf memicu pembacaan seluruh tabel arsip.
+  static const Duration _jedaKetik = Duration(milliseconds: 250);
+  static const int _batasHasil = 60;
+
+  Timer? _penunda;
+
   String _query = '';
-  List<HasilJelajah> _hasil = [];
+  SaringJenis? _saring;
+  HasilPencarian _pencarian = const HasilPencarian();
   List<HasilJelajah> _terakhirDibuka = [];
   List<String> _terakhirDicari = [];
   bool _sedangMencari = false;
@@ -42,6 +53,7 @@ class _JelajahPageState extends State<JelajahPage> {
 
   @override
   void dispose() {
+    _penunda?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -64,27 +76,47 @@ class _JelajahPageState extends State<JelajahPage> {
     });
   }
 
-  Future<void> _jalankanPencarian(String kataKunci) async {
+  // Dipanggil tiap ketikan; pencariannya sendiri baru jalan setelah jeda.
+  void _ketik(String kataKunci) {
+    _penunda?.cancel();
+
     setState(() {
       _query = kataKunci;
       _sedangMencari = kataKunci.trim().isNotEmpty;
+      if (kataKunci.trim().isEmpty) {
+        _pencarian = const HasilPencarian();
+        _saring = null;
+      }
     });
 
-    if (kataKunci.trim().isEmpty) {
-      setState(() {
-        _hasil = [];
-        _sedangMencari = false;
-      });
-      return;
-    }
+    if (kataKunci.trim().isEmpty) return;
+    _penunda = Timer(_jedaKetik, () => _jalankanPencarian(kataKunci));
+  }
 
-    final hasil = await _repository.cari(kataKunci);
+  Future<void> _jalankanPencarian(String kataKunci) async {
+    if (kataKunci.trim().isEmpty) return;
+
+    final hasil = await _repository.cari(
+      kataKunci,
+      batas: _batasHasil,
+      saring: _saring,
+    );
     // buang hasil yang bukan milik kata kunci terakhir
     if (!mounted || kataKunci != _query) return;
     setState(() {
-      _hasil = hasil;
+      _pencarian = hasil;
       _sedangMencari = false;
     });
+  }
+
+  // Mengganti penyaring langsung mencari ulang, tanpa jeda ketikan.
+  void _gantiSaring(SaringJenis? saring) {
+    if (_saring == saring) return;
+    setState(() {
+      _saring = saring;
+      _sedangMencari = true;
+    });
+    _jalankanPencarian(_query);
   }
 
   // Mengirim pencarian dan mencatatnya ke riwayat.
@@ -102,12 +134,12 @@ class _JelajahPageState extends State<JelajahPage> {
   void _pakaiKataKunci(String kataKunci) {
     _controller.text = kataKunci;
     _controller.selection = TextSelection.collapsed(offset: kataKunci.length);
-    _jalankanPencarian(kataKunci);
+    _ketik(kataKunci);
   }
 
   void _bersihkanQuery() {
     _controller.clear();
-    _jalankanPencarian('');
+    _ketik('');
   }
 
   Future<void> _bukaArsip(HasilJelajah item) async {
@@ -128,6 +160,7 @@ class _JelajahPageState extends State<JelajahPage> {
         child: Column(
           children: [
             _buildHeader(),
+            if (_adaQuery) _buildSaring(),
             Expanded(
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -150,10 +183,7 @@ class _JelajahPageState extends State<JelajahPage> {
       bawah: Container(
         height: 48,
         padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.borderPrimary),
-        ),
+        decoration: AppDekorasi.panel(),
         child: Row(
           children: [
             const Icon(
@@ -165,7 +195,7 @@ class _JelajahPageState extends State<JelajahPage> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                onChanged: _jalankanPencarian,
+                onChanged: _ketik,
                 onSubmitted: (_) => _simpanKeRiwayat(),
                 textInputAction: TextInputAction.search,
                 style: GoogleFonts.plusJakartaSans(
@@ -198,6 +228,64 @@ class _JelajahPageState extends State<JelajahPage> {
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // section penyaring jenis, hanya muncul saat ada kata kunci
+  Widget _buildSaring() {
+    Widget chip(SaringJenis? saring, String label, int jumlah) {
+      final terpilih = _saring == saring;
+      final kosong = jumlah == 0;
+
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: GestureDetector(
+          onTap: kosong && saring != null ? null : () => _gantiSaring(saring),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: terpilih ? AppColors.primary : AppColors.surface,
+              borderRadius: AppDekorasi.radiusKecil,
+              border: Border.all(
+                color: terpilih ? AppColors.primary : AppColors.border,
+              ),
+            ),
+            child: Text(
+              '${label.toUpperCase()} ($jumlah)',
+              style: AppTypography.eyebrow(
+                fontSize: 10.5,
+                color: terpilih
+                    ? Colors.white
+                    : (kosong ? AppColors.surfaceMuted : AppColors.textPrimary),
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final jumlah = _pencarian.jumlah;
+    final semua = jumlah.values.fold(0, (a, b) => a + b);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: SizedBox(
+        height: 30,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            chip(null, 'Semua', semua),
+            for (final j in SaringJenis.values)
+              chip(j, j.label, jumlah[j] ?? 0),
           ],
         ),
       ),
@@ -242,6 +330,7 @@ class _JelajahPageState extends State<JelajahPage> {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
+                        borderRadius: AppDekorasi.radiusKecil,
                         border: Border.all(color: AppColors.border),
                       ),
                       child: Text(
@@ -267,10 +356,7 @@ class _JelajahPageState extends State<JelajahPage> {
           behavior: HitTestBehavior.opaque,
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border.all(color: AppColors.borderPrimary),
-            ),
+            decoration: AppDekorasi.panel(),
             child: Row(
               children: [
                 Container(
@@ -278,6 +364,7 @@ class _JelajahPageState extends State<JelajahPage> {
                   height: 56,
                   decoration: BoxDecoration(
                     color: AppColors.background,
+                    borderRadius: AppDekorasi.radiusKecil,
                     border: Border.all(color: AppColors.border),
                   ),
                   child: const Icon(
@@ -364,7 +451,7 @@ class _JelajahPageState extends State<JelajahPage> {
       );
     }
 
-    if (_hasil.isEmpty) {
+    if (_pencarian.hasil.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 44, horizontal: 10),
         child: Column(
@@ -376,13 +463,18 @@ class _JelajahPageState extends State<JelajahPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Tidak ada hasil untuk "${_query.trim()}"',
+              _saring == null
+                  ? 'Tidak ada hasil untuk "${_query.trim()}"'
+                  : 'Tidak ada ${_saring!.label.toLowerCase()} untuk '
+                        '"${_query.trim()}"',
               textAlign: TextAlign.center,
               style: AppTypography.labelBold(fontSize: 15),
             ),
             const SizedBox(height: 6),
             Text(
-              'Coba kata kunci lain, atau telusuri lewat Peta Nusantara.',
+              _saring == null
+                  ? 'Coba kata kunci lain, atau telusuri lewat Peta Nusantara.'
+                  : 'Pilih penyaring Semua untuk melihat jenis lainnya.',
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
@@ -395,22 +487,53 @@ class _JelajahPageState extends State<JelajahPage> {
       );
     }
 
+    final hasil = _pencarian.hasil;
+    final penuh = _pencarian.terpotong;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${_hasil.length} hasil untuk "${_query.trim()}"',
+          penuh
+              ? '${hasil.length} teratas dari ${_pencarian.totalCocok} hasil '
+                    'untuk "${_query.trim()}"'
+              : '${hasil.length} hasil untuk "${_query.trim()}"',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 11.5,
             fontWeight: FontWeight.w600,
             color: AppColors.textSecondary,
           ),
         ),
+        if (penuh) ...[
+          const SizedBox(height: 2),
+          Text(
+            'Persempit kata kuncinya untuk hasil yang lebih tepat.',
+            style: AppTypography.caption(fontSize: 10.5),
+          ),
+        ],
         const SizedBox(height: 12),
-        ..._hasil.map(
-          (item) => Padding(
+        ...hasil.map(
+          (hasil) => Padding(
             padding: const EdgeInsets.only(bottom: 14),
-            child: KartuHasil(item: item, onTap: () => _bukaArsip(item)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                KartuHasil(
+                  item: hasil.item,
+                  onTap: () => _bukaArsip(hasil.item),
+                ),
+                // Menjelaskan kenapa baris ini muncul, terutama saat yang
+                // cocok cuma sepotong kata di dalam deskripsi.
+                if (hasil.bagian != BagianCocok.judul)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, left: 2),
+                    child: Text(
+                      'cocok pada ${hasil.bagian.label}',
+                      style: AppTypography.caption(fontSize: 10.5),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ],
@@ -421,12 +544,7 @@ class _JelajahPageState extends State<JelajahPage> {
   Widget _buildLabelSeksi(String teks, {VoidCallback? onHapus}) {
     final label = Text(
       teks,
-      style: GoogleFonts.plusJakartaSans(
-        fontSize: 10.5,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.4,
-        color: AppColors.primary,
-      ),
+      style: AppTypography.eyebrow(fontSize: 10.5, letterSpacing: 1.4),
     );
 
     if (onHapus == null) return label;
@@ -528,10 +646,7 @@ class _PesanInfo extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-      ),
+      decoration: AppDekorasi.panel(garis: AppColors.border),
       child: Row(
         children: [
           Icon(icon, size: 18, color: AppColors.surfaceMuted),

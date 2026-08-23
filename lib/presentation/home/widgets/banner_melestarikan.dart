@@ -1,7 +1,8 @@
 ﻿import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/widgets/app_button.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_dekorasi.dart';
+import '../../../core/constants/app_typography.dart';
+import '../../../core/widgets/app_button.dart';
 
 class BannerMelestarikan extends StatelessWidget {
   final VoidCallback? onContribute;
@@ -15,6 +16,7 @@ class BannerMelestarikan extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
+          borderRadius: AppDekorasi.radiusKartu,
           border: Border.all(color: AppColors.borderPrimary),
         ),
         child: Column(

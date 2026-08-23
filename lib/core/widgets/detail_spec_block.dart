@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/app_colors.dart';
+import '../constants/app_dekorasi.dart';
+import '../constants/app_typography.dart';
 
 class SpecItem {
   final String label;
@@ -31,10 +33,7 @@ class DetailSpecBlock extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.borderPrimary),
-        ),
+        decoration: AppDekorasi.panel(),
         child: Column(
           children: List.generate(items.length, (index) {
             final terakhir = index == items.length - 1;
@@ -50,12 +49,7 @@ class DetailSpecBlock extends StatelessWidget {
                 children: [
                   Text(
                     items[index].label.toUpperCase(),
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.1,
-                      color: AppColors.primary,
-                    ),
+                    style: AppTypography.eyebrow(letterSpacing: 1.1),
                   ),
                   const SizedBox(height: 3),
                   Text(

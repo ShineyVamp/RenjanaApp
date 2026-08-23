@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/header_halaman.dart';
+import '../../data/repositories/progres_wilayah_repository.dart';
 import '../wilayah/detail_provinsi_page.dart';
 import '../wilayah/detail_pulau_page.dart';
 import 'widgets/peta_painter.dart';
@@ -38,6 +40,12 @@ class _PetaPageState extends State<PetaPage>
   GugusPulau? _pulauPanel;
   String? _provinsiAktif;
 
+  final ProgresWilayahRepository _progresRepository =
+      ProgresWilayahRepository();
+
+  // Tingkat penuntasan tiap provinsi, kuncinya nama provinsi huruf kecil.
+  Map<String, TingkatWilayah> _tingkat = const {};
+
   static const double _skalaMin = 1;
   static const double _skalaMaks = 12;
 
@@ -54,6 +62,44 @@ class _PetaPageState extends State<PetaPage>
         });
     _transformasi.addListener(_saatTransformasiBerubah);
     _muatGeometri();
+    _muatTingkat();
+  }
+
+  Future<void> _muatTingkat() async {
+    final tingkat = await _progresRepository.tingkatSemuaProvinsi();
+    if (!mounted) return;
+    setState(() => _tingkat = tingkat);
+  }
+
+  // Banyaknya provinsi yang sudah tuntas pada satu pulau.
+  int _tuntasDiPulau(GugusPulau gugus) => gugus.provinsi
+      .where(
+        (p) => switch (_tingkat[p.nama.toLowerCase()]) {
+          TingkatWilayah.tuntas || TingkatWilayah.dikuasai => true,
+          _ => false,
+        },
+      )
+      .length;
+
+  int get _tuntasNasional =>
+      gugusPulauList.fold(0, (t, g) => t + _tuntasDiPulau(g));
+
+  String _subPulau(GugusPulau gugus) {
+    final tuntas = _tuntasDiPulau(gugus);
+    if (tuntas == 0) return '${gugus.provinsi.length} PROVINSI';
+    return '$tuntas/${gugus.provinsi.length} TUNTAS';
+  }
+
+  // Di level provinsi legenda menerangkan warna penanda; di level nasional ia
+  // menerangkan arti angka pada penanda pulau. Keduanya hanya muncul setelah
+  // ada capaian yang perlu dijelaskan.
+  bool get _perluLegenda {
+    final pulau = _pulauAktif;
+    if (pulau == null) return _tuntasNasional > 0;
+    return pulau.provinsi.any(
+      (p) =>
+          (_tingkat[p.nama.toLowerCase()] ?? TingkatWilayah.belum).adaCapaian,
+    );
   }
 
   @override
@@ -173,7 +219,7 @@ class _PetaPageState extends State<PetaPage>
     await context.push(DetailPulauPage(pulau: pulau));
   }
 
-  void _bukaProvinsi(Provinsi provinsi) {
+  Future<void> _bukaProvinsi(Provinsi provinsi) async {
     setState(() => _provinsiAktif = provinsi.nama);
 
     final proyeksi = _proyeksi!;
@@ -190,7 +236,9 @@ class _PetaPageState extends State<PetaPage>
       durasiMs: 600,
     );
 
-    context.push(DetailProvinsiPage(provinsi: provinsi));
+    await context.push(DetailProvinsiPage(provinsi: provinsi));
+    if (!mounted) return;
+    await _muatTingkat();
   }
 
   void _ubahSkala(double faktor) {
@@ -254,10 +302,8 @@ class _PetaPageState extends State<PetaPage>
       garisBawah: false,
       aksi: Text(
         '$jumlahProvinsi PROVINSI',
-        style: GoogleFonts.plusJakartaSans(
+        style: AppTypography.eyebrow(
           fontSize: 9.5,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.2,
           color: AppColors.primaryDark,
         ),
       ),
@@ -289,6 +335,7 @@ class _PetaPageState extends State<PetaPage>
           ..._buildPenanda(),
           _buildTopBar(),
           _buildKontrolZoom(),
+          _buildLegenda(),
           _buildHintBar(),
           _buildPanelProvinsi(),
         ],
@@ -313,6 +360,7 @@ class _PetaPageState extends State<PetaPage>
       required bool modeProvinsi,
       required bool aktif,
       required VoidCallback onTap,
+      TingkatWilayah? tingkat,
     }) {
       final layar = MatrixUtils.transformPoint(
         matriks,
@@ -336,6 +384,7 @@ class _PetaPageState extends State<PetaPage>
               sub: sub,
               modeProvinsi: modeProvinsi,
               aktif: aktif,
+              tingkat: tingkat,
               onTap: onTap,
             ),
           ),
@@ -349,7 +398,7 @@ class _PetaPageState extends State<PetaPage>
           lon: gugus.lon,
           lat: gugus.lat,
           judul: gugus.nama.toUpperCase(),
-          sub: '${gugus.provinsi.length} PROVINSI',
+          sub: _subPulau(gugus),
           modeProvinsi: false,
           aktif: false,
           onTap: () => _bukaPulau(gugus),
@@ -364,6 +413,7 @@ class _PetaPageState extends State<PetaPage>
           sub: provinsi.ibukota.toUpperCase(),
           modeProvinsi: true,
           aktif: _provinsiAktif == provinsi.nama,
+          tingkat: _tingkat[provinsi.nama.toLowerCase()],
           onTap: () => _bukaProvinsi(provinsi),
         );
       }
@@ -406,17 +456,16 @@ class _PetaPageState extends State<PetaPage>
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.background,
+                    borderRadius: AppDekorasi.radiusKecil,
                     border: Border.all(
                       color: AppColors.primary.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Text(
                     '‹ NUSANTARA',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppTypography.eyebrow(
                       fontSize: 11,
-                      fontWeight: FontWeight.w800,
                       letterSpacing: 0.6,
-                      color: AppColors.primary,
                     ),
                   ),
                 ),
@@ -429,12 +478,7 @@ class _PetaPageState extends State<PetaPage>
                 children: [
                   Text(
                     pulau == null ? 'PETA NUSANTARA' : 'GUGUS PULAU',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.4,
-                      color: AppColors.primary,
-                    ),
+                    style: AppTypography.eyebrow(letterSpacing: 1.4),
                   ),
                   const SizedBox(height: 1),
                   Text(
@@ -448,8 +492,8 @@ class _PetaPageState extends State<PetaPage>
                   const SizedBox(height: 2),
                   Text(
                     pulau == null
-                        ? '${gugusPulauList.length} gugus pulau · '
-                              '$jumlahProvinsi provinsi'
+                        ? '$_tuntasNasional dari $jumlahProvinsi provinsi '
+                              'sudah tuntas'
                         : '${pulau.provinsi.length} provinsi · '
                               'ketuk provinsi untuk membuka arsip',
                     style: GoogleFonts.plusJakartaSans(
@@ -477,6 +521,7 @@ class _PetaPageState extends State<PetaPage>
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: AppColors.background,
+            borderRadius: AppDekorasi.radiusKecil,
             border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
             boxShadow: const [
               BoxShadow(
@@ -511,6 +556,91 @@ class _PetaPageState extends State<PetaPage>
           const SizedBox(height: 8),
           tombol('RESET', _kembaliNasional, fontSize: 9),
         ],
+      ),
+    );
+  }
+
+  // Keterangan capaian, isinya menyesuaikan level yang sedang dibuka.
+  Widget _buildLegenda() {
+    if (!_perluLegenda) return const SizedBox.shrink();
+    if (_pulauAktif == null) return _buildKeteranganPulau();
+
+    Widget baris(Color warna, String teks) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: warna, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              teks,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9.5,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Positioned(
+      left: 16,
+      top: 96,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 12, 6),
+        decoration: BoxDecoration(
+          color: AppColors.background.withValues(alpha: 0.92),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'PENUNTASAN',
+              style: AppTypography.eyebrow(fontSize: 8.5, letterSpacing: 1),
+            ),
+            const SizedBox(height: 5),
+            baris(AppColors.perunggu, 'Dikunjungi'),
+            baris(AppColors.perak, 'Semua arsip dibaca'),
+            baris(AppColors.gold, 'Ditambah kuis sempurna'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Penjelasan angka pada penanda pulau, mis. "2/10 TUNTAS".
+  Widget _buildKeteranganPulau() {
+    return Positioned(
+      left: 16,
+      top: 96,
+      right: 70,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 12, 9),
+        decoration: AppDekorasi.kontrolPeta(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'ANGKA PADA PENANDA',
+              style: AppTypography.eyebrow(fontSize: 8.5, letterSpacing: 1),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Provinsi yang seluruh arsipnya sudah Anda baca, dibanding '
+              'jumlah provinsi di pulau itu.',
+              style: AppTypography.caption(fontSize: 10, height: 1.35),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -595,10 +725,7 @@ class _PetaPageState extends State<PetaPage>
                             horizontal: 12,
                             vertical: 10,
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            border: Border.all(color: AppColors.borderPrimary),
-                          ),
+                          decoration: AppDekorasi.panel(),
                           child: Row(
                             children: [
                               const Icon(
@@ -648,11 +775,9 @@ class _PetaPageState extends State<PetaPage>
                                   width: 18,
                                   child: Text(
                                     '${i + 1}'.padLeft(2, '0'),
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: AppTypography.eyebrow(
                                       fontSize: 9.5,
-                                      fontWeight: FontWeight.w800,
                                       letterSpacing: 0.5,
-                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -694,16 +819,26 @@ class _Penanda extends StatelessWidget {
   final bool aktif;
   final VoidCallback onTap;
 
+  // Tingkat penuntasan provinsi; null pada penanda pulau.
+  final TingkatWilayah? tingkat;
+
   const _Penanda({
     required this.judul,
     required this.sub,
     required this.modeProvinsi,
     required this.aktif,
     required this.onTap,
+    this.tingkat,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Warna capaian dipakai pada seluruh kartu penanda, bukan hanya titiknya,
+    // supaya perubahannya langsung terlihat.
+    final capaian = (tingkat ?? TingkatWilayah.belum).adaCapaian
+        ? tingkat!.warna
+        : null;
+
     final warnaChip = aktif
         ? AppColors.textPrimary
         : (modeProvinsi ? AppColors.surface : AppColors.primary);
@@ -713,9 +848,8 @@ class _Penanda extends StatelessWidget {
     final warnaSub = (modeProvinsi && !aktif)
         ? AppColors.primaryDark
         : Colors.white.withValues(alpha: 0.85);
-    final warnaBatang = modeProvinsi
-        ? AppColors.primaryDark
-        : AppColors.primary;
+    final warnaBatang =
+        capaian ?? (modeProvinsi ? AppColors.primaryDark : AppColors.primary);
 
     return GestureDetector(
       onTap: onTap,
@@ -724,12 +858,21 @@ class _Penanda extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: EdgeInsets.fromLTRB(capaian == null ? 8 : 6, 3, 8, 3),
             decoration: BoxDecoration(
               color: warnaChip,
-              border: modeProvinsi && !aktif
-                  ? Border.all(color: AppColors.primary.withValues(alpha: 0.45))
-                  : null,
+              border: capaian != null
+                  ? Border(
+                      left: BorderSide(color: capaian, width: 4),
+                      top: BorderSide(color: capaian),
+                      right: BorderSide(color: capaian),
+                      bottom: BorderSide(color: capaian),
+                    )
+                  : (modeProvinsi && !aktif
+                        ? Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.45),
+                          )
+                        : null),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black26,
@@ -766,8 +909,8 @@ class _Penanda extends StatelessWidget {
           ),
           Container(width: 1.5, height: 9, color: warnaBatang),
           Container(
-            width: 9,
-            height: 9,
+            width: capaian == null ? 9 : 12,
+            height: capaian == null ? 9 : 12,
             decoration: BoxDecoration(
               color: warnaBatang,
               shape: BoxShape.circle,
