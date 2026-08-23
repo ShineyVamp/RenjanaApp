@@ -1,3 +1,6 @@
+import 'dart:convert';
+import '../../core/constants/katalog_kategori.dart';
+
 class TimelineItemModel {
   final String date;
   final String title;
@@ -51,6 +54,21 @@ class SejarahModel {
   // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.
   final String? kontributor;
 
+  // Periode zaman sejarah (kode: PRS, HND, ISL, KLN, NAS, REV, ORL, ORB, REF)
+  final String? periode;
+
+  // Jenis peristiwa sejarah (kode: PRG, PRJ, TKH, ORG, NSK, STS)
+  final String? jenisPeristiwa;
+
+  // Detail data peristiwa dinamis
+  final Map<String, dynamic> detailPeristiwa;
+
+  // Format media: 'gambar' (default), 'video', 'youtube'
+  final String jenisMedia;
+
+  // URL / Path video atau link YouTube (bila jenisMedia != 'gambar')
+  final String? mediaUrl;
+
   const SejarahModel({
     this.id,
     required this.kodeTag,
@@ -63,5 +81,59 @@ class SejarahModel {
     this.alurPeristiwa = const [],
     this.provinsi,
     this.kontributor,
+    this.periode,
+    this.jenisPeristiwa,
+    this.detailPeristiwa = const {},
+    this.jenisMedia = 'gambar',
+    this.mediaUrl,
   });
+
+  bool get isVideo => jenisMedia == 'video';
+  bool get isYoutube => jenisMedia == 'youtube';
+  bool get hasVideoMedia => isVideo || isYoutube;
+
+  // Nama periode untuk ditampilkan
+  String get namaPeriodeLabel => namaPeriode(periode ?? '');
+
+  // Nama jenis peristiwa untuk ditampilkan
+  String get namaPeristiwaLabel => namaPeristiwa(jenisPeristiwa ?? '');
+
+  // Helper pembacaan detailPeristiwa
+  String teksDetail(String kunci) {
+    final nilai = detailPeristiwa[kunci];
+    if (nilai is String) return nilai.trim();
+    if (nilai is List) return nilai.join(', ');
+    return '';
+  }
+
+  List<String> daftarDetail(String kunci) {
+    final nilai = detailPeristiwa[kunci];
+    if (nilai is List) {
+      return nilai
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+    if (nilai is String && nilai.trim().isNotEmpty) return [nilai.trim()];
+    return const [];
+  }
+
+  bool adaDetail(String kunci) => detailPeristiwa[kunci] is List
+      ? daftarDetail(kunci).isNotEmpty
+      : teksDetail(kunci).isNotEmpty;
+
+  String get detailPeristiwaJson =>
+      detailPeristiwa.isEmpty ? '' : jsonEncode(detailPeristiwa);
+
+  static Map<String, dynamic> detailDariJson(Object? mentah) {
+    if (mentah == null) return const {};
+    final teks = mentah.toString().trim();
+    if (teks.isEmpty) return const {};
+    try {
+      final hasil = jsonDecode(teks);
+      if (hasil is Map<String, dynamic>) return hasil;
+    } catch (_) {}
+    return const {};
+  }
 }
+

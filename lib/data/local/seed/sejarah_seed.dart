@@ -9,6 +9,15 @@ final List<SejarahModel> defaultSejarahList = [
     urutan: 1,
     judul: 'Detik Proklamasi',
     subtitle: '17.08.45',
+    periode: 'REV',
+    jenisPeristiwa: 'NSK',
+    detailPeristiwa: {
+      'penulis': 'Ir. Soekarno & Drs. Moh. Hatta',
+      'tahun': '17 Agustus 1945',
+      'isiPokok':
+          'Pernyataan kemerdekaan bangsa Indonesia dan pengalihan kekuasaan secara saksama.',
+      'tempatSimpan': 'Monumen Nasional (Monas), Jakarta',
+    },
     ringkasan:
         'Proklamasi Kemerdekaan Indonesia, yang dibacakan pada 17 Agustus 1945, '
         'menandai deklarasi resmi kedaulatan Republik Indonesia. Disusun di kediaman '
@@ -51,6 +60,15 @@ final List<SejarahModel> defaultSejarahList = [
     urutan: 1,
     judul: 'Runtuhnya Tirani',
     subtitle: '15.08.45',
+    periode: 'REV',
+    jenisPeristiwa: 'PRG',
+    detailPeristiwa: {
+      'pihakTerlibat': ['Kekaisaran Jepang', 'Pasukan Sekutu'],
+      'lokasi': 'Tokyo / Kawasan Pasifik',
+      'hasil':
+          'Jepang menyerah tanpa syarat kepada Sekutu, menciptakan kekosongan kekuasaan (vacuum of power) di Indonesia.',
+      'korban': 'Ratusan ribu korban perang di kawasan Asia Pasifik',
+    },
     ringkasan:
         '15 Agustus 1945: Saat kekosongan kekuasaan dunia membuka jalan '
         'keberanian bagi para pendiri bangsa untuk merapatkan barisan dan '
@@ -84,6 +102,18 @@ final List<SejarahModel> defaultSejarahList = [
     urutan: 1,
     judul: 'Penculikan Rengasdengklok',
     subtitle: '16.08.45',
+    periode: 'REV',
+    jenisPeristiwa: 'PRG',
+    detailPeristiwa: {
+      'pihakTerlibat': [
+        'Golongan Muda (Sukarni, Chaerul Saleh, Wikana)',
+        'Golongan Tua (Ir. Soekarno, Drs. Moh. Hatta)',
+      ],
+      'lokasi': 'Rengasdengklok, Karawang, Jawa Barat',
+      'hasil':
+          'Soekarno dan Hatta menyetujui percepatan pelaksanaan proklamasi kemerdekaan.',
+      'korban': 'Tidak ada korban fisik',
+    },
     ringkasan:
         '16 Agustus 1945: Aksi dramatis para pemuda pejuang yang membawa Bung Karno '
         'dan Bung Hatta ke Rengasdengklok guna memutus campur tangan militer Jepang.',
@@ -106,6 +136,15 @@ final List<SejarahModel> defaultSejarahList = [
     urutan: 2,
     judul: 'Malam Perumusan Naskah',
     subtitle: '16.08.45',
+    periode: 'REV',
+    jenisPeristiwa: 'NSK',
+    detailPeristiwa: {
+      'penulis': 'Soekarno, Moh. Hatta, Achmad Soebardjo',
+      'tahun': '16-17 Agustus 1945 dini hari',
+      'isiPokok':
+          'Rumusan naskah proklamasi yang otentik dan disepakati bersama para tokoh pergerakan.',
+      'tempatSimpan': 'Arsip Nasional Republik Indonesia (ANRI)',
+    },
     ringkasan:
         '16 Agustus 1945 (Malam): Perumusan naskah otentik proklamasi di kediaman '
         'Laksamana Maeda di bawah tekanan waktu demi fajar kemerdekaan.',
@@ -128,6 +167,20 @@ final List<SejarahModel> defaultSejarahList = [
     urutan: 1,
     judul: 'Garda Kedaulatan',
     subtitle: '20.08.45',
+    periode: 'REV',
+    jenisPeristiwa: 'ORG',
+    detailPeristiwa: {
+      'pendiri': ['Panitia Persiapan Kemerdekaan Indonesia (PPKI)'],
+      'tahunBerdiri': '20-22 Agustus 1945',
+      'tujuan':
+          'Memelihara keamanan bersama rakyat dan menjaga keselamatan negara yang baru lahir.',
+      'tokohPenting': [
+        'Kasman Singodimedjo',
+        'Chaeroel Saleh',
+        'Kaprawi',
+        'Sutjipto',
+      ],
+    },
     ringkasan:
         '20 Agustus 1945: Pembentukan Badan Keamanan Rakyat (BKR) untuk menyatukan '
         'laskar pejuang pemuda ex-PETA dan Heiho menjaga keutuhan Republik.',
@@ -150,6 +203,19 @@ final List<SejarahModel> defaultSejarahList = [
     urutan: 1,
     judul: 'Ikrar Sumpah Pemuda',
     subtitle: '28.10.28',
+    periode: 'NAS',
+    jenisPeristiwa: 'PRJ',
+    detailPeristiwa: {
+      'tempat': 'Gedung Indonesische Clubgebouw, Jl. Kramat Raya 106, Jakarta',
+      'penandatangan': [
+        'Soegondo Djojopoespito (Ketua)',
+        'R.M. Djoko Marsaid (Wakil)',
+        'Mohammad Yamin (Sekretaris)',
+        'Amir Sjarifoeddin (Bendahara)',
+      ],
+      'isiPokok':
+          'Ikrar persatuan satu tanah air, satu bangsa, dan menjunjung bahasa persatuan bahasa Indonesia.',
+    },
     ringkasan:
         '28 Oktober 1928: Kongres Pemuda II yang melahirkan ikrar persatuan '
         'Satu Tanah Air, Satu Bangsa, dan Satu Bahasa Indonesia.',
@@ -165,3 +231,4 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 ];
+

@@ -531,6 +531,23 @@ class UsulanRepository {
         alurPeristiwa: _peristiwaDari(usulan),
         provinsi: usulan.provinsi,
         kontributor: nama,
+        periode: usulan.teks(KunciUsulan.periode).isEmpty
+            ? null
+            : usulan.teks(KunciUsulan.periode),
+        jenisPeristiwa: usulan.teks(KunciUsulan.jenisPeristiwa).isEmpty
+            ? null
+            : usulan.teks(KunciUsulan.jenisPeristiwa),
+        detailPeristiwa: (usulan.isi[KunciUsulan.detailPeristiwa] is Map)
+            ? Map<String, dynamic>.from(
+                usulan.isi[KunciUsulan.detailPeristiwa] as Map,
+              )
+            : const {},
+        jenisMedia: usulan.teks(KunciUsulan.jenisMedia).isEmpty
+            ? 'gambar'
+            : usulan.teks(KunciUsulan.jenisMedia),
+        mediaUrl: usulan.teks(KunciUsulan.mediaUrl).isEmpty
+            ? null
+            : usulan.teks(KunciUsulan.mediaUrl),
       ),
     );
 
@@ -575,6 +592,12 @@ class UsulanRepository {
         provinsi: usulan.provinsi,
         detailKategori: _detailDari(usulan),
         kontributor: nama,
+        jenisMedia: usulan.teks(KunciUsulan.jenisMedia).isEmpty
+            ? 'gambar'
+            : usulan.teks(KunciUsulan.jenisMedia),
+        mediaUrl: usulan.teks(KunciUsulan.mediaUrl).isEmpty
+            ? null
+            : usulan.teks(KunciUsulan.mediaUrl),
       ),
     );
 
@@ -671,6 +694,27 @@ class UsulanRepository {
                 : _peristiwaDari(usulan),
             provinsi: _pilih(usulan.provinsi, arsip.provinsi ?? ''),
             kontributor: arsip.kontributor,
+            periode: _pilih(
+              usulan.teks(KunciUsulan.periode),
+              arsip.periode ?? '',
+            ),
+            jenisPeristiwa: _pilih(
+              usulan.teks(KunciUsulan.jenisPeristiwa),
+              arsip.jenisPeristiwa ?? '',
+            ),
+            detailPeristiwa: (usulan.isi[KunciUsulan.detailPeristiwa] is Map)
+                ? Map<String, dynamic>.from(
+                    usulan.isi[KunciUsulan.detailPeristiwa] as Map,
+                  )
+                : arsip.detailPeristiwa,
+            jenisMedia: _pilih(
+              usulan.teks(KunciUsulan.jenisMedia),
+              arsip.jenisMedia,
+            ),
+            mediaUrl: _pilih(
+              usulan.teks(KunciUsulan.mediaUrl),
+              arsip.mediaUrl ?? '',
+            ),
           ),
         );
         return HasilTerap.berhasil(arsip.kodeTag);
@@ -717,6 +761,14 @@ class UsulanRepository {
             provinsi: _pilih(usulan.provinsi, arsip.provinsi ?? ''),
             detailKategori: detail.isEmpty ? arsip.detailKategori : detail,
             kontributor: arsip.kontributor,
+            jenisMedia: _pilih(
+              usulan.teks(KunciUsulan.jenisMedia),
+              arsip.jenisMedia,
+            ),
+            mediaUrl: _pilih(
+              usulan.teks(KunciUsulan.mediaUrl),
+              arsip.mediaUrl ?? '',
+            ),
           ),
         );
         return HasilTerap.berhasil(arsip.kodeTag);

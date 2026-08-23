@@ -11,6 +11,7 @@ import '../../data/models/tema_kuis_model.dart';
 import '../../data/repositories/quiz_repository.dart';
 import 'kategori_kuis_page.dart';
 import 'mulai_kuis.dart';
+import 'quiz_play_page.dart';
 
 class QuizPage extends StatefulWidget {
   const QuizPage({super.key});
@@ -22,6 +23,7 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   final QuizRepository _quizRepository = QuizRepository();
   List<QuizSQLModel> _allQuizzes = [];
+  int _jumlahSoalSalah = 0;
   bool _isLoading = true;
 
   static const List<String> _categories = ['Sejarah', 'Budaya', 'Kedaerahan'];
@@ -50,9 +52,11 @@ class _QuizPageState extends State<QuizPage> {
   Future<void> _loadData({bool showLoader = true}) async {
     if (showLoader) setState(() => _isLoading = true);
     final list = await _quizRepository.getAllQuizzes();
+    final salah = await _quizRepository.getJumlahSoalSalah();
     if (!mounted) return;
     setState(() {
       _allQuizzes = list;
+      _jumlahSoalSalah = salah;
       _isLoading = false;
       _syncRecommendedThemes();
     });
@@ -102,6 +106,20 @@ class _QuizPageState extends State<QuizPage> {
     await _loadData(showLoader: false);
   }
 
+  Future<void> _mulaiLatihanSoalSalah() async {
+    final list = await _quizRepository.getSoalSalahList();
+    if (list.isEmpty || !mounted) return;
+    await context.push(
+      QuizPlayPage(
+        title: 'Latihan Soal Salah',
+        category: 'Latihan',
+        questions: list,
+      ),
+    );
+    if (!mounted) return;
+    await _loadData(showLoader: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final recommendations = _themeRecommendations;
@@ -136,6 +154,93 @@ class _QuizPageState extends State<QuizPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (_jumlahSoalSalah > 0) ...[
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 20),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: AppColors.borderPrimary,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withAlpha(15),
+                                        blurRadius: 10,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 46,
+                                        height: 46,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryDark
+                                              .withAlpha(25),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.history_edu_rounded,
+                                          color: AppColors.primaryDark,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Bank Soal Salah',
+                                              style: GoogleFonts.dmSerifDisplay(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '$_jumlahSoalSalah soal perlu dilatih kembali',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                fontSize: 12,
+                                                color:
+                                                    AppColors.textSecondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 10,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        onPressed: _mulaiLatihanSoalSalah,
+                                        child: Text(
+                                          'Latih',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                               Text(
                                 'Kategori',
                                 style: GoogleFonts.dmSerifDisplay(

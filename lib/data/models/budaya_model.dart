@@ -27,6 +27,12 @@ class BudayaModel {
   // kategori item ini; nilainya String untuk teks, List<String> untuk daftar.
   final Map<String, dynamic> detailKategori;
 
+  // Format media: 'gambar' (default), 'video', 'youtube'
+  final String jenisMedia;
+
+  // URL / Path video atau link YouTube (bila jenisMedia != 'gambar')
+  final String? mediaUrl;
+
   const BudayaModel({
     this.id,
     required this.kodeTag,
@@ -44,7 +50,13 @@ class BudayaModel {
     this.provinsi,
     this.detailKategori = const {},
     this.kontributor,
+    this.jenisMedia = 'gambar',
+    this.mediaUrl,
   });
+
+  bool get isVideo => jenisMedia == 'video';
+  bool get isYoutube => jenisMedia == 'youtube';
+  bool get hasVideoMedia => isVideo || isYoutube;
 
   // Item juga tempat wisata, ditandai suffix -D (mis. BUD-RMH-1-D).
   bool get isDestinasi =>
@@ -101,6 +113,8 @@ class BudayaModel {
     'provinsi': provinsi,
     'detailKategori': detailKategoriJson,
     'kontributor': kontributor,
+    'jenisMedia': jenisMedia,
+    'mediaUrl': mediaUrl,
   };
 
   // Membaca kolom detailKategori; nilai null, kosong, atau rusak jadi {}.

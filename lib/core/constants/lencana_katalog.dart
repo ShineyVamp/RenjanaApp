@@ -10,6 +10,8 @@ import 'wilayah_nusantara.dart';
 enum JenisSyarat {
   // seluruh arsip pada satu kategori budaya sudah dibuka
   arsipKategori,
+  // seluruh arsip pada satu periode sejarah sudah dibuka
+  arsipPeriode,
   // seluruh arsip pada satu gugus pulau sudah dibuka
   arsipPulau,
   // sejumlah tema kuis pernah dikerjakan tanpa salah
@@ -28,7 +30,7 @@ class Lencana {
   final String keterangan;
   final JenisSyarat syarat;
 
-  // Kode kategori budaya atau id pulau; kosong bila syaratnya tidak
+  // Kode kategori budaya, periode sejarah, atau id pulau; kosong bila syaratnya tidak
   // menunjuk wilayah maupun kategori tertentu.
   final String acuan;
 
@@ -56,6 +58,18 @@ List<Lencana> get _lencanaKategori => [
       keterangan: 'Buka seluruh arsip kategori ${k.nama}',
       syarat: JenisSyarat.arsipKategori,
       acuan: k.kode,
+    ),
+];
+
+// Lencana periode sejarah, satu untuk tiap era zaman sejarah.
+List<Lencana> get _lencanaPeriode => [
+  for (final p in periodeSejarahList)
+    Lencana(
+      kode: 'PRD-${p.kode}',
+      nama: 'Saksi ${p.nama}',
+      keterangan: 'Buka seluruh arsip sejarah era ${p.nama}',
+      syarat: JenisSyarat.arsipPeriode,
+      acuan: p.kode,
     ),
 ];
 
@@ -147,6 +161,7 @@ const List<Lencana> _lencanaKebiasaan = [
 List<Lencana> get lencanaKatalog => [
   ..._lencanaKebiasaan,
   ..._lencanaKategori,
+  ..._lencanaPeriode,
   ..._lencanaPulau,
 ];
 

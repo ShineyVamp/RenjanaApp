@@ -30,7 +30,7 @@ class DbHelper {
   // isi berkas seed bertambah. Penyisipan konten bawaan menumpang pada
   // onUpgrade, yang hanya jalan bila angka ini lebih besar dari versi yang
   // tersimpan di perangkat.
-  static const int _dbVersion = 18;
+  static const int _dbVersion = 23;
 
   static Database? _database;
 
@@ -57,6 +57,9 @@ class DbHelper {
         await _createTables(db);
         await _migrateSchema(db);
         await _seedInitialData(db);
+      },
+      onOpen: (db) async {
+        await _migrateSchema(db);
       },
     );
   }
@@ -187,6 +190,30 @@ class DbHelper {
     await _tambahKolom(db, 'sejarah', 'kontributor');
     await _tambahKolom(db, 'budaya', 'kontributor');
     await _siapkanIndeksUsulan(db);
+
+    // v19: kolom periode, jenisPeristiwa, dan detailPeristiwa pada sejarah
+    await _tambahKolom(db, 'sejarah', 'periode');
+    await _tambahKolom(db, 'sejarah', 'jenisPeristiwa');
+    await _tambahKolom(db, 'sejarah', 'detailPeristiwa');
+    await _isiKategoriSejarahBawaan(db);
+
+    // v20: format media (video & youtube) pada arsip sejarah dan budaya
+    await _tambahKolom(db, 'sejarah', 'jenisMedia', tipe: "TEXT DEFAULT 'gambar'");
+    await _tambahKolom(db, 'sejarah', 'mediaUrl', tipe: 'TEXT');
+    await _tambahKolom(db, 'budaya', 'jenisMedia', tipe: "TEXT DEFAULT 'gambar'");
+    await _tambahKolom(db, 'budaya', 'mediaUrl', tipe: 'TEXT');
+
+    // v21: pembeku runtun (streak freeze) dan bank soal salah
+    await _tambahKolom(db, 'kunjungan', 'beku', tipe: 'INTEGER DEFAULT 0');
+    await db.execute(_runtunPembekuTableSql);
+    await db.execute(_soalSalahTableSql);
+
+    // v22: komunitas lokal (diskusi, jawaban, suara) dan moderasi laporan
+    await db.execute(_diskusiTableSql);
+    await db.execute(_jawabanTableSql);
+    await db.execute(_suaraTableSql);
+    await db.execute(_laporanTableSql);
+    await _sisipkanDiskusiBawaan(db);
 
     // Penyisipan konten bawaan, selalu dijalankan terakhir agar seluruh kolom
     // yang dibutuhkan sudah ada. Ketiganya memeriksa isi database dulu,
@@ -337,10 +364,15 @@ class DbHelper {
     String tipe = 'TEXT',
   }) async {
     try {
+      final namaKolom = kolom.trim().split(RegExp(r'\s+')).first;
       final info = await db.rawQuery('PRAGMA table_info($tabel)');
-      final sudahAda = info.any((col) => col['name'] == kolom);
+      final sudahAda = info.any((col) => col['name'] == namaKolom);
       if (!sudahAda) {
-        await db.execute('ALTER TABLE $tabel ADD COLUMN $kolom $tipe');
+        if (kolom.trim().contains(' ')) {
+          await db.execute('ALTER TABLE $tabel ADD COLUMN $kolom');
+        } else {
+          await db.execute('ALTER TABLE $tabel ADD COLUMN $kolom $tipe');
+        }
       }
     } catch (_) {}
   }
@@ -380,6 +412,63 @@ class DbHelper {
     'HIS-200845-1': 'DKI Jakarta',
     'HIS-281028-1': 'DKI Jakarta',
   };
+
+  static const Map<String, ({String periode, String jenis, String detail})>
+  _kategoriSejarahBawaan = {
+    'HIS-170845-1': (
+      periode: 'REV',
+      jenis: 'NSK',
+      detail:
+          '{"penulis":"Ir. Soekarno & Drs. Moh. Hatta","tahun":"17 Agustus 1945","isiPokok":"Pernyataan kemerdekaan bangsa Indonesia dan pengalihan kekuasaan secara saksama.","tempatSimpan":"Monumen Nasional (Monas), Jakarta"}',
+    ),
+    'HIS-150845-1': (
+      periode: 'REV',
+      jenis: 'PRG',
+      detail:
+          '{"pihakTerlibat":["Kekaisaran Jepang","Pasukan Sekutu"],"lokasi":"Tokyo / Kawasan Pasifik","hasil":"Jepang menyerah tanpa syarat kepada Sekutu, menciptakan kekosongan kekuasaan (vacuum of power) di Indonesia.","korban":"Ratusan ribu korban perang di kawasan Asia Pasifik"}',
+    ),
+    'HIS-160845-1': (
+      periode: 'REV',
+      jenis: 'PRG',
+      detail:
+          '{"pihakTerlibat":["Golongan Muda (Sukarni, Chaerul Saleh, Wikana)","Golongan Tua (Ir. Soekarno, Drs. Moh. Hatta)"],"lokasi":"Rengasdengklok, Karawang, Jawa Barat","hasil":"Soekarno dan Hatta menyetujui percepatan pelaksanaan proklamasi kemerdekaan.","korban":"Tidak ada korban fisik"}',
+    ),
+    'HIS-160845-2': (
+      periode: 'REV',
+      jenis: 'NSK',
+      detail:
+          '{"penulis":"Soekarno, Moh. Hatta, Achmad Soebardjo","tahun":"16-17 Agustus 1945 dini hari","isiPokok":"Rumusan naskah proklamasi yang otentik dan disepakati bersama para tokoh pergerakan.","tempatSimpan":"Arsip Nasional Republik Indonesia (ANRI)"}',
+    ),
+    'HIS-200845-1': (
+      periode: 'REV',
+      jenis: 'ORG',
+      detail:
+          '{"pendiri":["Panitia Persiapan Kemerdekaan Indonesia (PPKI)"],"tahunBerdiri":"20-22 Agustus 1945","tujuan":"Memelihara keamanan bersama rakyat dan menjaga keselamatan negara yang baru lahir.","tokohPenting":["Kasman Singodimedjo","Chaeroel Saleh","Kaprawi","Sutjipto"]}',
+    ),
+    'HIS-281028-1': (
+      periode: 'NAS',
+      jenis: 'PRJ',
+      detail:
+          '{"tempat":"Gedung Indonesische Clubgebouw, Jl. Kramat Raya 106, Jakarta","penandatangan":["Soegondo Djojopoespito (Ketua)","R.M. Djoko Marsaid (Wakil)","Mohammad Yamin (Sekretaris)","Amir Sjarifoeddin (Bendahara)"],"isiPokok":"Ikrar persatuan satu tanah air, satu bangsa, dan menjunjung bahasa persatuan bahasa Indonesia."}',
+    ),
+  };
+
+  Future<void> _isiKategoriSejarahBawaan(Database db) async {
+    try {
+      for (final entry in _kategoriSejarahBawaan.entries) {
+        await db.update(
+          'sejarah',
+          {
+            'periode': entry.value.periode,
+            'jenisPeristiwa': entry.value.jenis,
+            'detailPeristiwa': entry.value.detail,
+          },
+          where: 'kodeTag = ? AND (periode IS NULL OR periode = ?)',
+          whereArgs: [entry.key, ''],
+        );
+      }
+    } catch (_) {}
+  }
 
   // Penanda sub-kategori untuk tema kuis bawaan. Tema yang isinya menjangkau
   // banyak daerah tidak didaftarkan di sini dan masuk kelompok "Lainnya".
@@ -566,12 +655,28 @@ class DbHelper {
     )''';
 
   // Satu baris per hari aktif, dipakai menghitung runtun.
-  static const String _kunjunganTableSql =
-      '''CREATE TABLE IF NOT EXISTS kunjungan (
+  static const String _kunjunganTableSql = '''CREATE TABLE IF NOT EXISTS kunjungan (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       userEmail TEXT,
       tanggal TEXT,
+      beku INTEGER DEFAULT 0,
       UNIQUE(userEmail, tanggal)
+    )''';
+
+  static const String _runtunPembekuTableSql = '''CREATE TABLE IF NOT EXISTS runtun_pembeku (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      tanggal TEXT,
+      alasan TEXT,
+      UNIQUE(userId, tanggal)
+    )''';
+
+  static const String _soalSalahTableSql = '''CREATE TABLE IF NOT EXISTS soal_salah (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      quizId INTEGER,
+      tanggal INTEGER,
+      UNIQUE(userId, quizId)
     )''';
 
   // Lencana yang sudah terbuka beserta waktunya.
@@ -618,7 +723,53 @@ class DbHelper {
       gambarUtama TEXT,
       alurPeristiwa TEXT,
       provinsi TEXT,
-      kontributor TEXT
+      kontributor TEXT,
+      periode TEXT,
+      jenisPeristiwa TEXT,
+      detailPeristiwa TEXT,
+      jenisMedia TEXT DEFAULT 'gambar',
+      mediaUrl TEXT
+    )''';
+
+  static const String _diskusiTableSql = '''CREATE TABLE IF NOT EXISTS diskusi (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      penulis TEXT,
+      judul TEXT,
+      isi TEXT,
+      kategori TEXT,
+      refArsip TEXT,
+      dibuatPada INTEGER,
+      diperbaruiPada INTEGER
+    )''';
+
+  static const String _jawabanTableSql = '''CREATE TABLE IF NOT EXISTS jawaban (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      diskusiId INTEGER,
+      userId INTEGER,
+      penulis TEXT,
+      isi TEXT,
+      dibuatPada INTEGER
+    )''';
+
+  static const String _suaraTableSql = '''CREATE TABLE IF NOT EXISTS suara (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      targetTipe TEXT,
+      targetId INTEGER,
+      userId INTEGER,
+      nilai INTEGER,
+      UNIQUE(targetTipe, targetId, userId)
+    )''';
+
+  static const String _laporanTableSql = '''CREATE TABLE IF NOT EXISTS laporan (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      targetTipe TEXT,
+      targetId TEXT,
+      kontenTeks TEXT,
+      pelapor TEXT,
+      alasan TEXT,
+      status TEXT DEFAULT 'menunggu',
+      dibuatPada INTEGER
     )''';
 
   static const String _budayaTableSql = '''CREATE TABLE IF NOT EXISTS budaya (
@@ -637,7 +788,9 @@ class DbHelper {
       gambarKonteksBudaya TEXT,
       provinsi TEXT,
       detailKategori TEXT,
-      kontributor TEXT
+      kontributor TEXT,
+      jenisMedia TEXT DEFAULT 'gambar',
+      mediaUrl TEXT
     )''';
 
   Future<void> _createTables(Database db) async {
@@ -651,12 +804,18 @@ class DbHelper {
     await db.execute(_kuisRekapTableSql);
     await db.execute(_kuisRekorTableSql);
     await db.execute(_kunjunganTableSql);
+    await db.execute(_runtunPembekuTableSql);
+    await db.execute(_soalSalahTableSql);
     await db.execute(_lencanaTableSql);
     await db.execute(_progresWilayahTableSql);
     await db.execute(_arsipDibacaTableSql);
     await db.execute(_lencanaIkonTableSql);
     await db.execute(_usulanTableSql);
     await db.execute(_kategoriTableSql);
+    await db.execute(_diskusiTableSql);
+    await db.execute(_jawabanTableSql);
+    await db.execute(_suaraTableSql);
+    await db.execute(_laporanTableSql);
     await _siapkanKolomPemilik(db);
     await _siapkanIndeksUnikUser(db);
     await _siapkanIndeksKuisRiwayat(db);
@@ -761,6 +920,12 @@ class DbHelper {
             s.alurPeristiwa.map((item) => item.toMap()).toList(),
           ),
           'provinsi': s.provinsi,
+          'kontributor': s.kontributor,
+          'periode': s.periode,
+          'jenisPeristiwa': s.jenisPeristiwa,
+          'detailPeristiwa': s.detailPeristiwaJson,
+          'jenisMedia': s.jenisMedia,
+          'mediaUrl': s.mediaUrl,
         });
       }
     }
@@ -774,5 +939,47 @@ class DbHelper {
         await db.insert('budaya', b.toKolom());
       }
     }
+
+    await _sisipkanDiskusiBawaan(db);
+  }
+
+  Future<void> _sisipkanDiskusiBawaan(Database db) async {
+    try {
+      final hitung = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM diskusi'),
+      );
+      if (hitung == 0) {
+        final kini = DateTime.now().millisecondsSinceEpoch;
+        final id1 = await db.insert('diskusi', {
+          'userId': 1,
+          'penulis': 'Admin Renjana',
+          'judul': 'Makna Filosofis Luk dan Pamor pada Keris Nusantara',
+          'isi': 'Bagaimana pandangan kawan-kawan mengenai makna filosofis lekukan (luk) dan motif pamor pada sebilah keris pusaka? Apakah ada perbedaan signifikan antara keris Jawa dan Bali?',
+          'kategori': 'Budaya',
+          'refArsip': 'BUD-SNJT-1',
+          'dibuatPada': kini - 86400000 * 2,
+          'diperbaruiPada': kini - 86400000 * 2,
+        });
+
+        await db.insert('jawaban', {
+          'diskusiId': id1,
+          'userId': 2,
+          'penulis': 'Budayawan Nusantara',
+          'isi': 'Lekukan (luk) pada keris melambangkan dinamika kehidupan, sedangkan lurus melambangkan keteguhan iman dan fokus spiritual.',
+          'dibuatPada': kini - 86400000,
+        });
+
+        await db.insert('diskusi', {
+          'userId': 1,
+          'penulis': 'Admin Renjana',
+          'judul': 'Peristiwa Rengasdengklok: Peran Penting Pemuda Menjelang Proklamasi',
+          'isi': 'Mari kita diskusikan bagaimana keberanian para pemuda di Rengasdengklok berhasil mempercepat momentum kemerdekaan Republik Indonesia.',
+          'kategori': 'Sejarah',
+          'refArsip': 'HIS-01',
+          'dibuatPada': kini - 86400000,
+          'diperbaruiPada': kini - 86400000,
+        });
+      }
+    } catch (_) {}
   }
 }

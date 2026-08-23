@@ -8,6 +8,7 @@ import '../../core/widgets/app_image.dart';
 import '../../data/models/hasil_kuis_model.dart';
 import '../../data/models/quiz_model.dart';
 import '../../data/repositories/hasil_kuis_repository.dart';
+import '../../data/repositories/quiz_repository.dart';
 import 'quiz_result_page.dart';
 
 class PlayQuestionItem {
@@ -136,11 +137,19 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
     _timer?.cancel();
     int correct = 0;
     int incorrect = 0;
+    final quizRepo = QuizRepository();
+
     for (final item in _playItems) {
       if (item.isCorrect) {
         correct++;
+        if (item.original.id != null) {
+          await quizRepo.hapusSoalSalah(item.original.id!);
+        }
       } else {
         incorrect++;
+        if (item.original.id != null) {
+          await quizRepo.catatSoalSalah(item.original.id!);
+        }
       }
     }
 

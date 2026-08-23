@@ -80,10 +80,63 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     String selectedImage = isEditing
         ? sejarahToEdit.gambarUtama
         : 'assets/images/170845history.png';
+    String selectedJenisMedia = isEditing ? sejarahToEdit.jenisMedia : 'gambar';
+    final mediaUrlController = TextEditingController(
+      text: isEditing ? (sejarahToEdit.mediaUrl ?? '') : '',
+    );
 
     String? selectedProvinsi = provinsiDariNama(
       isEditing ? sejarahToEdit.provinsi : null,
     )?.nama;
+
+    String? selectedPeriode = isEditing
+        ? (periodeByKode(sejarahToEdit.periode ?? '')?.kode ??
+            (sejarahToEdit.periode?.isNotEmpty == true
+                ? sejarahToEdit.periode
+                : null))
+        : (periodeSejarahList.isNotEmpty
+            ? periodeSejarahList.first.kode
+            : null);
+
+    String? selectedJenisPeristiwa = isEditing
+        ? (peristiwaByKode(sejarahToEdit.jenisPeristiwa ?? '')?.kode ??
+            (sejarahToEdit.jenisPeristiwa?.isNotEmpty == true
+                ? sejarahToEdit.jenisPeristiwa
+                : null))
+        : (peristiwaSejarahList.isNotEmpty
+            ? peristiwaSejarahList.first.kode
+            : null);
+
+    final Map<String, String> nilaiDetailPeristiwa = {};
+    if (isEditing && sejarahToEdit.jenisPeristiwa != null) {
+      for (final field in fieldPeristiwa(sejarahToEdit.jenisPeristiwa!)) {
+        nilaiDetailPeristiwa[field.kunci] = field.tipe == TipeField.daftar
+            ? sejarahToEdit.daftarDetail(field.kunci).join('\n')
+            : sejarahToEdit.teksDetail(field.kunci);
+      }
+    }
+
+    Map<String, TextEditingController> detailControllers = {};
+
+    void simpanNilaiDetailPeristiwa() {
+      detailControllers.forEach(
+        (kunci, c) => nilaiDetailPeristiwa[kunci] = c.text,
+      );
+    }
+
+    void bangunControllerDetailPeristiwa() {
+      for (final c in detailControllers.values) {
+        c.dispose();
+      }
+      detailControllers = {
+        for (final field in fieldPeristiwa(selectedJenisPeristiwa ?? ''))
+          field.kunci: TextEditingController(
+            text: nilaiDetailPeristiwa[field.kunci] ?? '',
+          ),
+      };
+    }
+
+    bangunControllerDetailPeristiwa();
 
     // salinan alur peristiwa yang bisa diedit di dalam dialog
     List<TimelineItemModel> timelineItems = isEditing
@@ -116,6 +169,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
             tanggalKeyController,
             urutanController,
             ringkasanController,
+            mediaUrlController,
+            ...detailControllers.values,
           ]),
           child: StatefulBuilder(
             builder: (ctx, setModalState) {
@@ -283,7 +338,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
 
                           // pemilih gambar utama
                           AppImagePickerWidget(
-                            label: 'Gambar Utama Sejarah',
+                            label: 'Gambar Sampul / Cover Utama',
                             isRequired: true,
                             currentImagePath: selectedImage,
                             onImageSelected: (path) {
@@ -292,6 +347,55 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               }
                             },
                           ),
+                          const SizedBox(height: 14),
+
+                          // pilihan format media
+                          Text(
+                            'Format Media Utama',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            initialValue: selectedJenisMedia,
+                            isExpanded: true,
+                            decoration: _inputDecoration(''),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'gambar',
+                                child: Text('Foto / Gambar Saja'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'video',
+                                child: Text('Video Berkas / Galeri'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'youtube',
+                                child: Text('Video Tautan YouTube'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val == null) return;
+                              setModalState(() => selectedJenisMedia = val);
+                            },
+                          ),
+                          if (selectedJenisMedia != 'gambar') ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              selectedJenisMedia == 'youtube'
+                                  ? 'Tautan / ID Video YouTube'
+                                  : 'Path / URL Berkas Video',
+                              style: AppTypography.labelBold(fontSize: 13),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: mediaUrlController,
+                              decoration: _inputDecoration(
+                                selectedJenisMedia == 'youtube'
+                                    ? 'Contoh: https://www.youtube.com/watch?v=...'
+                                    : 'Contoh: assets/videos/candi.mp4 atau https://...',
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 14),
 
                           // pilihan provinsi asal
@@ -332,7 +436,124 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                             onChanged: (val) =>
                                 setModalState(() => selectedProvinsi = val),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 14),
+
+                          // pilihan periode & jenis peristiwa
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Periode Sejarah',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    DropdownButtonFormField<String?>(
+                                      initialValue: selectedPeriode,
+                                      isExpanded: true,
+                                      decoration: _inputDecoration(''),
+                                      items: [
+                                        DropdownMenuItem<String?>(
+                                          value: null,
+                                          child: Text(
+                                            'Tidak ditentukan',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                        ...periodeSejarahList.map(
+                                          (p) => DropdownMenuItem<String?>(
+                                            value: p.kode,
+                                            child: Text(
+                                              p.nama,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    color: AppColors.textPrimary,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (val) => setModalState(
+                                        () => selectedPeriode = val,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Jenis Peristiwa',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    DropdownButtonFormField<String?>(
+                                      initialValue: selectedJenisPeristiwa,
+                                      isExpanded: true,
+                                      decoration: _inputDecoration(''),
+                                      items: [
+                                        DropdownMenuItem<String?>(
+                                          value: null,
+                                          child: Text(
+                                            'Tidak ditentukan',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                        ...peristiwaSejarahList.map(
+                                          (p) => DropdownMenuItem<String?>(
+                                            value: p.kode,
+                                            child: Text(
+                                              p.nama,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    color: AppColors.textPrimary,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (val) {
+                                        simpanNilaiDetailPeristiwa();
+                                        setModalState(() {
+                                          selectedJenisPeristiwa = val;
+                                          bangunControllerDetailPeristiwa();
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // section field khas peristiwa
+                          ..._buildFieldPeristiwa(
+                            selectedJenisPeristiwa,
+                            detailControllers,
+                          ),
+                          const SizedBox(height: 16),
 
                           // section alur peristiwa
                           Row(
@@ -584,6 +805,18 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                   gambarUtama: selectedImage,
                                   alurPeristiwa: timelineItems,
                                   provinsi: selectedProvinsi,
+                                  periode: selectedPeriode,
+                                  jenisPeristiwa: selectedJenisPeristiwa,
+                                  detailPeristiwa: _rakitDetailPeristiwa(
+                                    selectedJenisPeristiwa,
+                                    detailControllers,
+                                  ),
+                                  jenisMedia: selectedJenisMedia,
+                                  mediaUrl: selectedJenisMedia == 'gambar'
+                                      ? null
+                                      : (mediaUrlController.text.trim().isEmpty
+                                          ? null
+                                          : mediaUrlController.text.trim()),
                                 );
 
                                 if (isEditing) {
@@ -771,6 +1004,78 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     );
   }
 
+  // Section isian khas jenis peristiwa sejarah.
+  List<Widget> _buildFieldPeristiwa(
+    String? jenis,
+    Map<String, TextEditingController> controllers,
+  ) {
+    if (jenis == null || jenis.isEmpty) return const [];
+    final daftarField = fieldPeristiwa(jenis);
+    if (daftarField.isEmpty) return const [];
+
+    return [
+      Text(
+        'Rincian Khas Peristiwa (${namaPeristiwa(jenis)})',
+        style: GoogleFonts.dmSerifDisplay(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ),
+      const SizedBox(height: 8),
+      ...daftarField.map((field) {
+        final controller = controllers[field.kunci];
+        final isDaftar = field.tipe == TipeField.daftar;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isDaftar ? '${field.label} (satu per baris)' : field.label,
+                style: AppTypography.labelBold(fontSize: 13),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: controller,
+                maxLines: isDaftar
+                    ? 5
+                    : (field.tipe == TipeField.teksPanjang ? 3 : 1),
+                decoration: _inputDecoration(field.petunjuk ?? ''),
+              ),
+            ],
+          ),
+        );
+      }),
+      const SizedBox(height: 4),
+    ];
+  }
+
+  Map<String, dynamic> _rakitDetailPeristiwa(
+    String? jenis,
+    Map<String, TextEditingController> controllers,
+  ) {
+    if (jenis == null || jenis.isEmpty) return const {};
+    final hasil = <String, dynamic>{};
+
+    for (final field in fieldPeristiwa(jenis)) {
+      final teks = controllers[field.kunci]?.text.trim() ?? '';
+      if (teks.isEmpty) continue;
+
+      if (field.tipe == TipeField.daftar) {
+        final baris = teks
+            .split('\n')
+            .map((b) => b.trim())
+            .where((b) => b.isNotEmpty)
+            .toList();
+        if (baris.isNotEmpty) hasil[field.kunci] = baris;
+      } else {
+        hasil[field.kunci] = teks;
+      }
+    }
+    return hasil;
+  }
+
   // Input field khas kategori, dibangkitkan dari katalog kategori. Field
   // bertipe daftar memakai satu kotak multibaris, satu entri per baris.
   List<Widget> _buildFieldKategori(
@@ -917,6 +1222,10 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     String selectedImage = isEditing
         ? budayaToEdit.gambarUtama
         : 'assets/images/kerisB.jpg';
+    String selectedJenisMedia = isEditing ? budayaToEdit.jenisMedia : 'gambar';
+    final mediaUrlController = TextEditingController(
+      text: isEditing ? (budayaToEdit.mediaUrl ?? '') : '',
+    );
     String? selectedMaknaSpiritualImage = isEditing
         ? budayaToEdit.gambarMaknaSpiritual
         : null;
@@ -979,6 +1288,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
             deskripsiController,
             maknaSpiritualController,
             konteksBudayaController,
+            mediaUrlController,
             ...detailControllers.values,
           ]),
           child: StatefulBuilder(
@@ -1226,7 +1536,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
 
                           // pemilih gambar utama
                           AppImagePickerWidget(
-                            label: 'Gambar Utama Budaya',
+                            label: 'Gambar Sampul / Cover Utama',
                             isRequired: true,
                             currentImagePath: selectedImage,
                             onImageSelected: (path) {
@@ -1235,6 +1545,55 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               }
                             },
                           ),
+                          const SizedBox(height: 14),
+
+                          // pilihan format media
+                          Text(
+                            'Format Media Utama',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            initialValue: selectedJenisMedia,
+                            isExpanded: true,
+                            decoration: _inputDecoration(''),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'gambar',
+                                child: Text('Foto / Gambar Saja'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'video',
+                                child: Text('Video Berkas / Galeri'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'youtube',
+                                child: Text('Video Tautan YouTube'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val == null) return;
+                              setModalState(() => selectedJenisMedia = val);
+                            },
+                          ),
+                          if (selectedJenisMedia != 'gambar') ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              selectedJenisMedia == 'youtube'
+                                  ? 'Tautan / ID Video YouTube'
+                                  : 'Path / URL Berkas Video',
+                              style: AppTypography.labelBold(fontSize: 13),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: mediaUrlController,
+                              decoration: _inputDecoration(
+                                selectedJenisMedia == 'youtube'
+                                    ? 'Contoh: https://www.youtube.com/watch?v=...'
+                                    : 'Contoh: assets/videos/candi.mp4 atau https://...',
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 14),
 
                           // pilihan provinsi asal
@@ -1401,6 +1760,12 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                       : null,
                                   gambarKonteksBudaya:
                                       selectedKonteksBudayaImage,
+                                  jenisMedia: selectedJenisMedia,
+                                  mediaUrl: selectedJenisMedia == 'gambar'
+                                      ? null
+                                      : (mediaUrlController.text.trim().isEmpty
+                                          ? null
+                                          : mediaUrlController.text.trim()),
                                 );
 
                                 if (isEditing) {

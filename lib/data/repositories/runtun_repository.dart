@@ -11,12 +11,16 @@ class RingkasanRuntun {
   final int terpanjang;
   final int totalHari;
   final bool hadirHariIni;
+  final int pembekuTersedia;
+  final bool runtunDibekukan;
 
   const RingkasanRuntun({
     this.berjalan = 0,
     this.terpanjang = 0,
     this.totalHari = 0,
     this.hadirHariIni = false,
+    this.pembekuTersedia = 2,
+    this.runtunDibekukan = false,
   });
 }
 
@@ -94,40 +98,104 @@ class RuntunRepository {
         .toSet();
   }
 
+  Future<Set<String>> _tanggalBeku() async {
+    final pemilik = _pemilik;
+    if (pemilik <= 0) return <String>{};
+
+    final db = await _dbHelper.database;
+    try {
+      final baris = await db.query(
+        'runtun_pembeku',
+        columns: ['tanggal'],
+        where: 'userId = ?',
+        whereArgs: [pemilik],
+      );
+      return baris
+          .map((r) => r['tanggal'] as String? ?? '')
+          .where((t) => t.isNotEmpty)
+          .toSet();
+    } catch (_) {
+      return <String>{};
+    }
+  }
+
+  Future<bool> gunakanPembeku(DateTime tanggal, {String alasan = 'Pembeku Runtun'}) async {
+    final pemilik = _pemilik;
+    if (pemilik <= 0) return false;
+
+    final db = await _dbHelper.database;
+    try {
+      await db.insert('runtun_pembeku', {
+        'userId': pemilik,
+        'tanggal': _kunci(tanggal),
+        'alasan': alasan,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      await db.insert('kunjungan', {
+        'userId': pemilik,
+        'tanggal': _kunci(tanggal),
+        'beku': 1,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Runtun berjalan dihitung mundur dari hari ini. Hari ini yang belum
   // tercatat tidak langsung memutus runtun selama kemarin hadir.
+  // Bila kemarin terlewat, pembeku runtun otomatis aktif bila kuota tersedia.
   Future<RingkasanRuntun> ringkasan() async {
     final tanggal = await _tanggalKunjungan();
-    if (tanggal.isEmpty) return const RingkasanRuntun();
+    final beku = await _tanggalBeku();
+    final gabungan = <String>{...tanggal, ...beku};
+
+    if (gabungan.isEmpty) return const RingkasanRuntun();
 
     final hariIni = DateTime.now();
     final awal = DateTime(hariIni.year, hariIni.month, hariIni.day);
-    final hadirHariIni = tanggal.contains(_kunci(awal));
+    final hadirHariIni = gabungan.contains(_kunci(awal));
 
     var mulai = awal;
+    var runtunDibekukan = false;
+
     if (!hadirHariIni) {
       final kemarin = awal.subtract(const Duration(days: 1));
-      if (!tanggal.contains(_kunci(kemarin))) {
-        return RingkasanRuntun(
-          terpanjang: _runtunTerpanjang(tanggal),
-          totalHari: tanggal.length,
-        );
+      if (!gabungan.contains(_kunci(kemarin))) {
+        // Coba bekukan hari kemarin bila kuota pembeku tersedia
+        if (beku.length < 2) {
+          await gunakanPembeku(kemarin, alasan: 'Pembeku Otomatis');
+          gabungan.add(_kunci(kemarin));
+          runtunDibekukan = true;
+          mulai = kemarin;
+        } else {
+          return RingkasanRuntun(
+            terpanjang: _runtunTerpanjang(gabungan),
+            totalHari: gabungan.length,
+            pembekuTersedia: (2 - beku.length).clamp(0, 2),
+          );
+        }
+      } else {
+        mulai = kemarin;
       }
-      mulai = kemarin;
     }
 
     var berjalan = 0;
     var cursor = mulai;
-    while (tanggal.contains(_kunci(cursor))) {
+    while (gabungan.contains(_kunci(cursor))) {
       berjalan++;
       cursor = cursor.subtract(const Duration(days: 1));
     }
 
+    final sisaPembeku = (2 - beku.length).clamp(0, 2);
+
     return RingkasanRuntun(
       berjalan: berjalan,
-      terpanjang: _runtunTerpanjang(tanggal),
-      totalHari: tanggal.length,
+      terpanjang: _runtunTerpanjang(gabungan),
+      totalHari: gabungan.length,
       hadirHariIni: hadirHariIni,
+      pembekuTersedia: sisaPembeku,
+      runtunDibekukan: runtunDibekukan,
     );
   }
 

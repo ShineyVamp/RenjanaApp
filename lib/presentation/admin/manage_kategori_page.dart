@@ -155,9 +155,8 @@ class _AdminManageKategoriPageState extends State<AdminManageKategoriPage> {
                 child: _daftar.isEmpty
                     ? const PesanKosong(
                         ikon: Icons.category_outlined,
-                        judul: 'Katalog masih kosong',
-                        pesan: 'Tambahkan kategori pertama lewat tombol di '
-                            'sudut kanan bawah.',
+                        pesan:
+                            'Katalog masih kosong. Tambahkan kategori pertama lewat tombol di sudut kanan bawah.',
                       )
                     : Column(
                         children: [
@@ -202,6 +201,7 @@ class _AdminManageKategoriPageState extends State<AdminManageKategoriPage> {
     return ReorderableListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 92),
       itemCount: _daftar.length,
+      // ignore: deprecated_member_use
       onReorder: _pindahkan,
       buildDefaultDragHandles: false,
       itemBuilder: (context, index) {
@@ -583,10 +583,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Bentuk isian',
-            style: AppTypography.labelBold(fontSize: 12.5),
-          ),
+          Text('Bentuk isian', style: AppTypography.labelBold(fontSize: 12.5)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,

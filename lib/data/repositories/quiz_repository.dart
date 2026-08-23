@@ -1,10 +1,77 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../local/db_helper.dart';
 import '../models/quiz_model.dart';
+import 'pemilik_akun.dart';
 
 class QuizRepository {
   final DbHelper _dbHelper;
 
   QuizRepository({DbHelper? dbHelper}) : _dbHelper = dbHelper ?? DbHelper();
+
+  int get _pemilik => idAkunAktif;
+
+  Future<void> catatSoalSalah(int quizId) async {
+    final pemilik = _pemilik;
+    if (pemilik <= 0 || quizId <= 0) return;
+
+    final db = await _dbHelper.database;
+    try {
+      await db.insert('soal_salah', {
+        'userId': pemilik,
+        'quizId': quizId,
+        'tanggal': DateTime.now().millisecondsSinceEpoch,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    } catch (_) {}
+  }
+
+  Future<void> hapusSoalSalah(int quizId) async {
+    final pemilik = _pemilik;
+    if (pemilik <= 0 || quizId <= 0) return;
+
+    final db = await _dbHelper.database;
+    try {
+      await db.delete(
+        'soal_salah',
+        where: 'userId = ? AND quizId = ?',
+        whereArgs: [pemilik, quizId],
+      );
+    } catch (_) {}
+  }
+
+  Future<int> getJumlahSoalSalah() async {
+    final pemilik = _pemilik;
+    if (pemilik <= 0) return 0;
+
+    final db = await _dbHelper.database;
+    try {
+      final res = await db.rawQuery(
+        'SELECT COUNT(*) as total FROM soal_salah WHERE userId = ?',
+        [pemilik],
+      );
+      if (res.isNotEmpty && res.first['total'] != null) {
+        return (res.first['total'] as num).toInt();
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  Future<List<QuizSQLModel>> getSoalSalahList() async {
+    final pemilik = _pemilik;
+    if (pemilik <= 0) return const [];
+
+    final db = await _dbHelper.database;
+    try {
+      final List<Map<String, dynamic>> results = await db.rawQuery(
+        'SELECT q.* FROM quiz q INNER JOIN soal_salah s ON q.id = s.quizId '
+        'WHERE s.userId = ? ORDER BY s.tanggal DESC',
+        [pemilik],
+      );
+      return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
 
   Future<bool> tambahQuiz(QuizSQLModel quiz) async {
     final db = await _dbHelper.database;
