@@ -37,8 +37,8 @@ class _QuizPageState extends State<QuizPage> {
   // grid rekomendasi: 3 baris ke bawah, 3 kolom ke samping
   static const int _maxRecommendations = 9;
   static const int _recommendationRows = 3;
-  static const double _recommendationCardWidth = 350;
-  static const double _recommendationCardHeight = 140;
+  static const double _recommendationCardWidth = 370;
+  static const double _recommendationCardHeight = 160;
 
   // nama tema yang sedang direkomendasikan
   List<String> _recommendedThemes = [];
@@ -136,7 +136,27 @@ class _QuizPageState extends State<QuizPage> {
           bottom: false,
           child: Column(
             children: [
-              const HeaderHalaman(judul: 'Kuis', garisBawah: false),
+              Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      onPressed: () => context.pop(),
+                    ),
+                    Expanded(
+                      child: const HeaderHalaman(
+                        judul: 'Kuis',
+                        garisBawah: false,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -207,10 +227,10 @@ class _QuizPageState extends State<QuizPage> {
                                               '$_jumlahSoalSalah soal perlu dilatih kembali',
                                               style:
                                                   GoogleFonts.plusJakartaSans(
-                                                fontSize: 12,
-                                                color:
-                                                    AppColors.textSecondary,
-                                              ),
+                                                    fontSize: 12,
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -223,8 +243,9 @@ class _QuizPageState extends State<QuizPage> {
                                             vertical: 10,
                                           ),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                         ),
                                         onPressed: _mulaiLatihanSoalSalah,
