@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/extensions/navigation.dart';
-import '../../main.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/repositories/budaya_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
+import '../../main.dart';
 import '../bookmark/bookmark_page.dart';
 import '../kontribusi/kontribusi_page.dart';
 import '../quiz/quiz_page.dart';
@@ -71,7 +72,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
   // Header menghilang begitu pengguna menggulir turun, dan baru kembali
   // setelah digulir naik sejauh ambangnya. Keduanya diukur dari jarak gerakan,
   // bukan posisi mutlak, supaya perilakunya sama di bagian mana pun halaman.
-  static const double _ambangMunculHeader = 150;
+  static const double _ambangMunculHeader = 350;
   static const double _ambangSembunyiHeader = 40;
   static const double _tinggiHeader = 58;
 
@@ -138,7 +139,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
   }
 
   Future<void> _bukaKuis() async {
-    await context.push(const QuizPage());
+    await context.push(QuizPage());
     if (!mounted) return;
     setState(() => _revisiMisi++);
   }
@@ -186,6 +187,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        // top: false,
         bottom: false,
         child: Stack(
           children: [
@@ -252,15 +254,15 @@ class _HomePageState extends State<HomePage> with RouteAware {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: MisiHarianCard(key: ValueKey(_revisiMisi)),
                     ),
-                    const SizedBox(height: 44),
+                    const SizedBox(height: 28),
 
                     // section garis waktu nusantara (era sejarah)
                     const GarisWaktuList(),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 28),
 
                     // section koleksi budaya
                     const KoleksiBudayaList(),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 28),
 
                     // section pilihan destinasi
                     const PilihanDestinasiList(),
@@ -280,7 +282,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
             // header mengambang, tersembunyi selagi pengguna membaca
             AnimatedSlide(
-              offset: _headerTampil ? Offset.zero : const Offset(0, -1),
+              offset: _headerTampil ? Offset.zero : const Offset(0, -2),
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOutCubic,
               child: _buildHeader(),

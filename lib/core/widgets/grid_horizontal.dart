@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../constants/app_colors.dart';
+import 'package:renjana/core/constants/app_colors.dart';
 
 // Kartu disusun beberapa baris ke bawah, kolom berikutnya diakses dengan
 // menggeser ke samping. Dipakai rekomendasi kuis dan daftar arsip daerah.
@@ -74,25 +73,26 @@ class _GridHorizontalState extends State<GridHorizontal> {
   Widget build(BuildContext context) {
     if (widget.jumlahItem == 0) return const SizedBox.shrink();
 
+    // Hitung apakah konten melebihi batas 1 kolom (perlu scroll horizontal atau tidak)
+    final bool butuhScroll = widget.jumlahItem > widget.baris;
+
     return ScrollbarTheme(
       data: const ScrollbarThemeData(
         thumbColor: WidgetStatePropertyAll(AppColors.primary),
       ),
       child: Scrollbar(
         controller: _scroll,
-        thumbVisibility: true,
-        trackVisibility: true,
+        thumbVisibility: butuhScroll,
+        trackVisibility: butuhScroll,
         scrollbarOrientation: ScrollbarOrientation.bottom,
         thickness: 4,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: SingleChildScrollView(
-            controller: _scroll,
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _buildKolom(),
-            ),
+        child: SingleChildScrollView(
+          controller: _scroll,
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.only(bottom: butuhScroll ? 40 : 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _buildKolom(),
           ),
         ),
       ),

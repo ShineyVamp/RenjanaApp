@@ -32,7 +32,7 @@ class _KategoriKuisPageState extends State<KategoriKuisPage> {
   final TextEditingController _controller = TextEditingController();
 
   static const String _semuaPenyaring = 'SEMUA';
-  static const double _lebarKartu = 350;
+  static const double _lebarKartu = 370;
   static const double _tinggiKartu = 140;
 
   List<TemaKuis> _semuaTema = [];
