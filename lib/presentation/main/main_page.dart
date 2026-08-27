@@ -12,7 +12,6 @@ import '../home/home_page.dart';
 import '../jelajah/jelajah_page.dart';
 import '../komunitas/komunitas_page.dart';
 import '../peta/peta_page.dart';
-import '../quiz/quiz_page.dart';
 
 class MainPage extends StatefulWidget {
   final UserSQLModel? currentUser;
@@ -57,7 +56,6 @@ class _MainPageState extends State<MainPage> {
     'Beranda',
     'Jelajah',
     'Peta',
-    'Kuis',
     'Komunitas',
     'Profil',
   ];
@@ -66,7 +64,6 @@ class _MainPageState extends State<MainPage> {
     'assets/animations/home.json',
     'assets/animations/compass.json',
     'assets/animations/map.json',
-    'assets/animations/quiz.json',
     '',
     'assets/animations/person.json',
   ];
@@ -75,7 +72,6 @@ class _MainPageState extends State<MainPage> {
     Icons.home_outlined,
     Icons.explore_outlined,
     Icons.map_outlined,
-    Icons.quiz_outlined,
     Icons.forum_outlined,
     Icons.person_outline,
   ];
@@ -89,7 +85,6 @@ class _MainPageState extends State<MainPage> {
       ),
       JelajahPage(onBukaPeta: () => setState(() => _selectedIndex = 2)),
       const PetaPage(),
-      const QuizPage(),
       const KomunitasPage(),
       const ProfilePage(),
     ];

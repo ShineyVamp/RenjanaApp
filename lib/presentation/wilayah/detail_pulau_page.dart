@@ -8,11 +8,9 @@ import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
-import '../../core/widgets/tombol_suara_arsip.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/wilayah_repository.dart';
-import '../../services/pembaca_arsip.dart';
 import '../../services/pembagi_arsip.dart';
 import 'detail_provinsi_page.dart';
 import 'widgets/kartu_statistik.dart';
@@ -43,7 +41,6 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
 
   @override
   void dispose() {
-    PembacaArsip().berhenti();
     super.dispose();
   }
 
@@ -224,11 +221,6 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                   DetailSectionBlock(
                     title: 'Tentang Pulau',
                     content: pulau.deskripsi,
-                  ),
-                  TombolSuaraArsip(
-                    teksNarasi:
-                        '${pulau.nama}. ${pulau.deskripsi}. Gugus pulau ini mencakup ${pulau.provinsi.length} provinsi yaitu ${pulau.provinsi.map((p) => p.nama).join(', ')}.',
-                    judul: pulau.nama,
                   ),
                 ],
 

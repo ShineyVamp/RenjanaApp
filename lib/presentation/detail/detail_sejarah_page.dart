@@ -15,12 +15,10 @@ import '../../core/widgets/detail_spec_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
 import '../../core/widgets/media_arsip.dart';
 import '../../core/widgets/tombol_koreksi.dart';
-import '../../core/widgets/tombol_suara_arsip.dart';
 import '../../data/models/sejarah_model.dart';
 import '../../data/models/usulan_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
-import '../../services/pembaca_arsip.dart';
 import '../../services/pembagi_arsip.dart';
 import '../../services/pencatat_bacaan.dart';
 import '../kontribusi/form_usulan_page.dart';
@@ -74,26 +72,11 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
 
   @override
   void dispose() {
-    PembacaArsip().berhenti();
     _pencatat.batalkan();
     _scrollRelated.dispose();
     super.dispose();
   }
 
-  String get _narasiLengkap {
-    final data = widget.sejarah;
-    final buffer = StringBuffer();
-    buffer.write('${data.judul}. ');
-    if (data.subtitle.isNotEmpty) buffer.write('${data.subtitle}. ');
-    buffer.write('${data.ringkasan}. ');
-    if (data.alurPeristiwa.isNotEmpty) {
-      buffer.write('Alur peristiwa: ');
-      for (final p in data.alurPeristiwa) {
-        buffer.write('${p.date}: ${p.title}. ${p.desc}. ');
-      }
-    }
-    return buffer.toString();
-  }
 
   Future<void> _usulkanKoreksi(SejarahModel data) async {
     await context.push(FormUsulanPage(usulanAwal: Usulan.koreksiSejarah(data)));
@@ -348,12 +331,6 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                       ],
                     ),
                   ],
-                ),
-
-                // pemutar audio text-to-speech
-                TombolSuaraArsip(
-                  teksNarasi: _narasiLengkap,
-                  judul: data.judul,
                 ),
 
                 // section field khas jenis peristiwa
