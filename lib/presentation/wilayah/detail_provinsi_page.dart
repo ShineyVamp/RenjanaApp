@@ -10,14 +10,12 @@ import '../../core/widgets/app_image.dart';
 import '../../core/widgets/detail_section_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
 import '../../core/widgets/kartu_hasil.dart';
-import '../../core/widgets/tombol_suara_arsip.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/models/hasil_jelajah_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
 import '../../data/repositories/progres_wilayah_repository.dart';
 import '../../data/repositories/quiz_repository.dart';
 import '../../data/repositories/wilayah_repository.dart';
-import '../../services/pembaca_arsip.dart';
 import '../../services/pembagi_arsip.dart';
 import '../navigasi_arsip.dart';
 import '../quiz/mulai_kuis.dart';
@@ -55,7 +53,6 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
 
   @override
   void dispose() {
-    PembacaArsip().berhenti();
     super.dispose();
   }
 
@@ -439,11 +436,6 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                   DetailSectionBlock(
                     title: 'Tentang Daerah',
                     content: provinsi.deskripsi,
-                  ),
-                  TombolSuaraArsip(
-                    teksNarasi:
-                        '${provinsi.nama}. ${provinsi.julukan.isNotEmpty ? 'Dijuluki ${provinsi.julukan}. ' : ''}Ibukota ${provinsi.ibukota}. ${provinsi.deskripsi}',
-                    judul: provinsi.nama,
                   ),
                 ],
 

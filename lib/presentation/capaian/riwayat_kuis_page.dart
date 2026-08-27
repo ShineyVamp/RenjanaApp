@@ -6,8 +6,10 @@ import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/widgets/app_bar_halaman.dart';
 import '../../core/widgets/pesan_kosong.dart';
+import '../../core/extensions/navigation.dart';
 import '../../data/models/hasil_kuis_model.dart';
 import '../../data/repositories/hasil_kuis_repository.dart';
+import '../quiz/quiz_page.dart';
 
 // Rekor per tema dan daftar percobaan kuis milik akun yang sedang login.
 class RiwayatKuisPage extends StatefulWidget {
@@ -83,7 +85,24 @@ class _RiwayatKuisPageState extends State<RiwayatKuisPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBarHalaman(judul: 'Rekor Kuis'),
+      appBar: AppBarHalaman(
+        judul: 'Rekor Kuis',
+        aksi: [
+          IconButton(
+            icon: const Icon(
+              Icons.play_circle_outline_rounded,
+              color: AppColors.primary,
+              size: 22,
+            ),
+            tooltip: 'Mulai Kuis',
+            onPressed: () async {
+              await context.push(const QuizPage());
+              if (!mounted) return;
+              await _muatData();
+            },
+          ),
+        ],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),

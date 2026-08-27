@@ -11,6 +11,8 @@ import '../../data/repositories/budaya_repository.dart';
 import '../../data/repositories/sejarah_repository.dart';
 import '../bookmark/bookmark_page.dart';
 import '../kontribusi/kontribusi_page.dart';
+import '../quiz/quiz_page.dart';
+import 'widgets/banner_kuis.dart';
 import 'widgets/banner_melestarikan.dart';
 import 'widgets/budaya_highlight_card.dart';
 import 'widgets/garis_waktu_list.dart';
@@ -135,6 +137,12 @@ class _HomePageState extends State<HomePage> with RouteAware {
     await _segarkan();
   }
 
+  Future<void> _bukaKuis() async {
+    await context.push(const QuizPage());
+    if (!mounted) return;
+    setState(() => _revisiMisi++);
+  }
+
   Future<void> _segarkan() async {
     await _loadFromRepository();
     if (!mounted) return;
@@ -257,6 +265,10 @@ class _HomePageState extends State<HomePage> with RouteAware {
                     // section pilihan destinasi
                     const PilihanDestinasiList(),
                     const SizedBox(height: 36),
+
+                    // section banner kuis interaktif
+                    BannerKuis(onStartQuiz: _bukaKuis),
+                    const SizedBox(height: 24),
 
                     // section banner melestarikan
                     BannerMelestarikan(onContribute: _bukaKontribusi),
