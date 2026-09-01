@@ -35,9 +35,11 @@ class DetailSpecBlock extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: AppDekorasi.panel(),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: List.generate(items.length, (index) {
             final terakhir = index == items.length - 1;
             return Container(
+              width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 border: terakhir

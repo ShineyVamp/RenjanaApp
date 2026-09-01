@@ -519,6 +519,15 @@ class UsulanRepository {
         : sekelompok.map((s) => s.urutan).reduce((a, b) => a > b ? a : b) + 1;
     final kodeTag = 'HIS-$tanggalKey-$urutan';
 
+    final detailP = (usulan.isi[KunciUsulan.detailPeristiwa] is Map)
+        ? Map<String, dynamic>.from(
+            usulan.isi[KunciUsulan.detailPeristiwa] as Map,
+          )
+        : <String, dynamic>{};
+    if (usulan.isi[KunciUsulan.blokKonten] != null) {
+      detailP['blokKonten'] = usulan.isi[KunciUsulan.blokKonten];
+    }
+
     await _sejarahRepository.tambahSejarah(
       SejarahModel(
         kodeTag: kodeTag,
@@ -537,11 +546,7 @@ class UsulanRepository {
         jenisPeristiwa: usulan.teks(KunciUsulan.jenisPeristiwa).isEmpty
             ? null
             : usulan.teks(KunciUsulan.jenisPeristiwa),
-        detailPeristiwa: (usulan.isi[KunciUsulan.detailPeristiwa] is Map)
-            ? Map<String, dynamic>.from(
-                usulan.isi[KunciUsulan.detailPeristiwa] as Map,
-              )
-            : const {},
+        detailPeristiwa: detailP,
         jenisMedia: usulan.teks(KunciUsulan.jenisMedia).isEmpty
             ? 'gambar'
             : usulan.teks(KunciUsulan.jenisMedia),
@@ -575,6 +580,11 @@ class UsulanRepository {
       isDestinasi: destinasi,
     );
 
+    final detailB = _detailDari(usulan);
+    if (usulan.isi[KunciUsulan.blokKonten] != null) {
+      detailB['blokKonten'] = usulan.isi[KunciUsulan.blokKonten];
+    }
+
     await _budayaRepository.tambahBudaya(
       BudayaModel(
         kodeTag: kodeTag,
@@ -590,7 +600,7 @@ class UsulanRepository {
         ),
         konteksBudaya: _kosongJadiNull(usulan.teks(KunciUsulan.konteksBudaya)),
         provinsi: usulan.provinsi,
-        detailKategori: _detailDari(usulan),
+        detailKategori: detailB,
         kontributor: nama,
         jenisMedia: usulan.teks(KunciUsulan.jenisMedia).isEmpty
             ? 'gambar'
@@ -702,11 +712,17 @@ class UsulanRepository {
               usulan.teks(KunciUsulan.jenisPeristiwa),
               arsip.jenisPeristiwa ?? '',
             ),
-            detailPeristiwa: (usulan.isi[KunciUsulan.detailPeristiwa] is Map)
-                ? Map<String, dynamic>.from(
-                    usulan.isi[KunciUsulan.detailPeristiwa] as Map,
-                  )
-                : arsip.detailPeristiwa,
+            detailPeristiwa: () {
+              final dp = (usulan.isi[KunciUsulan.detailPeristiwa] is Map)
+                  ? Map<String, dynamic>.from(
+                      usulan.isi[KunciUsulan.detailPeristiwa] as Map,
+                    )
+                  : Map<String, dynamic>.from(arsip.detailPeristiwa);
+              if (usulan.isi[KunciUsulan.blokKonten] != null) {
+                dp['blokKonten'] = usulan.isi[KunciUsulan.blokKonten];
+              }
+              return dp;
+            }(),
             jenisMedia: _pilih(
               usulan.teks(KunciUsulan.jenisMedia),
               arsip.jenisMedia,
@@ -727,6 +743,9 @@ class UsulanRepository {
         if (simpanCadangan) await _simpanCadanganBudaya(usulan, arsip);
 
         final detail = _detailDari(usulan);
+        if (usulan.isi[KunciUsulan.blokKonten] != null) {
+          detail['blokKonten'] = usulan.isi[KunciUsulan.blokKonten];
+        }
         await _budayaRepository.updateBudaya(
           BudayaModel(
             id: arsip.id,

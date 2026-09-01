@@ -6,6 +6,7 @@ import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/budaya_kategori.dart';
 import '../../../core/constants/kuis_kategori.dart';
 import '../../../core/widgets/app_image.dart';
+import '../../../data/models/blok_konten_model.dart';
 import '../../../data/models/usulan_model.dart';
 
 // Isi usulan dalam bentuk baca-saja. Dipakai halaman detail usulan milik
@@ -52,6 +53,7 @@ class PratinjauUsulan extends StatelessWidget {
 
   List<Widget> _isiSejarah() {
     final peristiwa = usulan.daftar(KunciUsulan.alurPeristiwa);
+    final blokList = usulan.daftarBlokKonten;
 
     return [
       _baris('Judul', usulan.teks(KunciUsulan.judul)),
@@ -69,12 +71,17 @@ class PratinjauUsulan extends StatelessWidget {
           ]),
         ),
       ],
+      if (blokList.isNotEmpty) ...[
+        _judul('Seksi Tambahan'),
+        ...blokList.map((b) => _renderBlok(b)),
+      ],
     ];
   }
 
   List<Widget> _isiBudaya() {
     final kode = usulan.teks(KunciUsulan.kategori);
     final detail = usulan.isi[KunciUsulan.detailKategori];
+    final blokList = usulan.daftarBlokKonten;
 
     return [
       _baris('Nama', usulan.teks(KunciUsulan.judul)),
@@ -99,7 +106,45 @@ class PratinjauUsulan extends StatelessWidget {
 
       _blok('Makna Spiritual', usulan.teks(KunciUsulan.maknaSpiritual)),
       _blok('Konteks Budaya', usulan.teks(KunciUsulan.konteksBudaya)),
+      if (blokList.isNotEmpty) ...[
+        _judul('Seksi Tambahan'),
+        ...blokList.map((b) => _renderBlok(b)),
+      ],
     ];
+  }
+
+  Widget _renderBlok(dynamic b) {
+    if (b is! BlokKontenModel) return const SizedBox.shrink();
+    switch (b.tipe) {
+      case TipeBlokKonten.teksPanjang:
+        return _blok(b.judul, b.teks);
+      case TipeBlokKonten.daftar:
+        return _daftar(b.judul, b.daftar);
+      case TipeBlokKonten.timeline:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _judul(b.judul),
+            ...b.timeline.map(
+              (p) => _kotak([
+                _baris('Tanggal', p.date),
+                _baris('Judul', p.title),
+                _blok('Keterangan', p.desc),
+              ]),
+            ),
+          ],
+        );
+      case TipeBlokKonten.spesifikasi:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _judul(b.judul),
+            ...b.spesifikasi.map(
+              (s) => _baris(s.label, s.nilai),
+            ),
+          ],
+        );
+    }
   }
 
   List<Widget> _isiKuis() {

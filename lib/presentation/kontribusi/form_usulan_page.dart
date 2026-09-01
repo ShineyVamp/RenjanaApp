@@ -8,9 +8,11 @@ import '../../core/constants/kuis_kategori.dart';
 import '../../core/constants/wilayah_nusantara.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_bar_halaman.dart';
+import '../../data/models/blok_konten_model.dart';
 import '../../data/models/usulan_model.dart';
 import '../../data/repositories/usulan_repository.dart';
 import '../../services/pemilih_gambar.dart';
+import 'widgets/editor_blok_konten.dart';
 import 'widgets/isian_form.dart';
 
 // Form pengajuan usulan konten. Dipakai untuk usulan baru maupun untuk
@@ -50,6 +52,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   String _jenisPeristiwa = peristiwaSejarahList.first.kode;
   final Map<String, TextEditingController> _detailPeristiwa = {};
   final List<_EntriPeristiwa> _peristiwa = [];
+  List<BlokKontenModel> _blokKontenSejarah = [];
 
   // budaya
   final _judulBudaya = TextEditingController();
@@ -59,6 +62,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   final _konteksBudaya = TextEditingController();
   String _kategoriBudaya = budayaKategoriList.first.kode;
   bool _destinasi = false;
+  List<BlokKontenModel> _blokKontenBudaya = [];
 
   // Isian khas kategori budaya, dibuat sekali untuk seluruh kategori supaya
   // isian yang sudah diketik tidak hilang saat kategorinya diganti.
@@ -140,6 +144,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
           _peristiwa.add(_EntriPeristiwa.dariMap(p));
         }
         if (_peristiwa.isEmpty) _peristiwa.add(_EntriPeristiwa());
+        _blokKontenSejarah = List.from(awal.daftarBlokKonten);
 
       case JenisUsulan.budaya:
         _judulBudaya.text = awal.teks(KunciUsulan.judul);
@@ -161,6 +166,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
                 : nilai.toString();
           });
         }
+        _blokKontenBudaya = List.from(awal.daftarBlokKonten);
 
       case JenisUsulan.kuis:
         _tema.text = awal.teks(KunciUsulan.tema);
@@ -245,6 +251,8 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         isi[KunciUsulan.mediaUrl] = _jenisMedia == 'gambar'
             ? ''
             : _mediaUrl.text.trim();
+        isi[KunciUsulan.blokKonten] =
+            BlokKontenModel.listToMapList(_blokKontenSejarah);
         final daftar = _peristiwa
             .map((p) => p.toMap())
             .where((m) => (m['judul'] as String).isNotEmpty)
@@ -264,6 +272,8 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         isi[KunciUsulan.mediaUrl] = _jenisMedia == 'gambar'
             ? ''
             : _mediaUrl.text.trim();
+        isi[KunciUsulan.blokKonten] =
+            BlokKontenModel.listToMapList(_blokKontenBudaya);
 
       case JenisUsulan.kuis:
         isi[KunciUsulan.tema] = _tema.text.trim();
@@ -764,6 +774,11 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         'Tambah peristiwa',
         () => setState(() => _peristiwa.add(_EntriPeristiwa())),
       ),
+      const SizedBox(height: 18),
+      EditorBlokKonten(
+        daftarAwal: _blokKontenSejarah,
+        onChanged: (list) => _blokKontenSejarah = List.from(list),
+      ),
     ];
   }
 
@@ -896,6 +911,11 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         baris: 4,
       ),
       IsianTeks(label: 'Konteks Budaya', controller: _konteksBudaya, baris: 4),
+      const SizedBox(height: 18),
+      EditorBlokKonten(
+        daftarAwal: _blokKontenBudaya,
+        onChanged: (list) => _blokKontenBudaya = List.from(list),
+      ),
     ];
   }
 

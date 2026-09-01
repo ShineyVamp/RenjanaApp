@@ -15,6 +15,7 @@ import '../../core/widgets/detail_spec_block.dart';
 import '../../core/widgets/detail_top_bar.dart';
 import '../../core/widgets/media_arsip.dart';
 import '../../core/widgets/tombol_koreksi.dart';
+import '../../data/models/blok_konten_model.dart';
 import '../../data/models/budaya_model.dart';
 import '../../data/models/usulan_model.dart';
 import '../../data/repositories/bookmark_repository.dart';
@@ -24,6 +25,7 @@ import '../../services/pembuka_peta.dart';
 import '../../services/pencatat_bacaan.dart';
 import '../kontribusi/form_usulan_page.dart';
 import '../wilayah/detail_provinsi_page.dart';
+import 'widgets/timeline_item_widget.dart';
 
 class DetailBudayaPage extends StatefulWidget {
   final BudayaModel budaya;
@@ -171,6 +173,68 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
       if (ringkas.isNotEmpty) DetailSpecBlock(items: ringkas),
       ...panjang,
     ];
+  }
+
+  List<Widget> _buildBlokDinamis(BudayaModel data) {
+    final raw = data.detailKategori['blokKonten'];
+    final blokList = BlokKontenModel.listFromDynamic(raw);
+    if (blokList.isEmpty) return const [];
+
+    final widgets = <Widget>[];
+    for (final b in blokList) {
+      switch (b.tipe) {
+        case TipeBlokKonten.teksPanjang:
+          widgets.add(
+            DetailSectionBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              title: b.judul,
+              content: b.teks,
+            ),
+          );
+        case TipeBlokKonten.daftar:
+          widgets.add(
+            DetailListBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              title: b.judul,
+              items: b.daftar,
+            ),
+          );
+        case TipeBlokKonten.timeline:
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DetailSectionBlock(
+                    padding: EdgeInsets.zero,
+                    title: b.judul,
+                    content: '',
+                  ),
+                  const SizedBox(height: 12),
+                  ...b.timeline.asMap().entries.map((e) {
+                    return TimelineItemWidget(
+                      date: e.value.date,
+                      title: e.value.title,
+                      description: e.value.desc,
+                      imagePath: e.value.hasImage ? e.value.imgPath : null,
+                      isLast: e.key == b.timeline.length - 1,
+                    );
+                  }),
+                ],
+              ),
+            ),
+          );
+        case TipeBlokKonten.spesifikasi:
+          widgets.add(
+            DetailSpecBlock(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+              items: b.spesifikasi,
+            ),
+          );
+      }
+    }
+    return widgets;
   }
 
   @override
@@ -380,6 +444,9 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                         ),
                       ),
                   ],
+
+                  // seksi konten dinamis
+                  ..._buildBlokDinamis(data),
 
                   // section asal daerah
                   AsalDaerahBlock(
