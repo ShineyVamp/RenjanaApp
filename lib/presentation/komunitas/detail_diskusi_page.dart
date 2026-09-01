@@ -67,9 +67,231 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
     await _muatData();
   }
 
+  bool get _isAdmin =>
+      PreferenceHandler.isAdmin ||
+      (PreferenceHandler.user?.isAdminAccount ?? false);
+
+  Future<void> _hapusDiskusi() async {
+    if (_diskusi == null) return;
+    final setuju = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.delete_forever_rounded,
+              color: AppColors.error,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Hapus Diskusi?',
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Postingan ini beserta seluruh komentarnya akan dihapus secara permanen dari komunitas.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            height: 1.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (setuju == true && _diskusi!.id != null) {
+      await _repository.hapusDiskusi(_diskusi!.id!);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Diskusi berhasil dihapus',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          ),
+          backgroundColor: AppColors.primaryDark,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  Future<void> _hapusJawaban(JawabanModel jawaban) async {
+    final setuju = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.error,
+              size: 22,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Hapus Komentar?',
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Komentar ini akan dihapus secara permanen.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (setuju == true && jawaban.id != null) {
+      await _repository.hapusJawaban(jawaban.id!);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Komentar berhasil dihapus',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          ),
+          backgroundColor: AppColors.primaryDark,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      await _muatData();
+    }
+  }
+
   Future<void> _kirimJawaban() async {
     final teks = _jawabanController.text.trim();
     if (teks.isEmpty || _isSubmitting) return;
+
+    if (teks.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Komentar terlalu pendek (minimal 3 karakter).',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          ),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final userId = idAkunAktif;
+    if (!_isAdmin && userId > 0) {
+      final jawabanTerakhir = await _repository.getJawabanTerakhirUser(
+        userId,
+        widget.diskusiId,
+      );
+      if (jawabanTerakhir != null) {
+        // Cek duplikasi teks
+        if (jawabanTerakhir.isi.trim().toLowerCase() ==
+            teks.toLowerCase()) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Anda baru saja mengirim komentar yang sama.',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+              backgroundColor: AppColors.warning,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+
+        // Cek cooldown 45 detik
+        final selisihDetik =
+            DateTime.now().difference(jawabanTerakhir.dibuatPada).inSeconds;
+        const cooldown = 45;
+        if (selisihDetik < cooldown) {
+          final sisaDetik = cooldown - selisihDetik;
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Tunggu $sisaDetik detik sebelum mengirim komentar berikutnya.',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+              backgroundColor: AppColors.warning,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      }
+    }
 
     setState(() => _isSubmitting = true);
     final user = PreferenceHandler.user;
@@ -80,7 +302,7 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
     await _repository.tambahJawaban(
       JawabanModel(
         diskusiId: widget.diskusiId,
-        userId: idAkunAktif,
+        userId: userId,
         penulis: nama.isNotEmpty ? nama : 'Pengguna Renjana',
         isi: teks,
         dibuatPada: DateTime.now(),
@@ -135,6 +357,9 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
   @override
   Widget build(BuildContext context) {
     final diskusi = _diskusi;
+    final userId = PreferenceHandler.userId;
+    final bisaHapusDiskusi =
+        _isAdmin || (diskusi != null && diskusi.userId == userId);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -155,6 +380,16 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
         ),
         centerTitle: true,
         actions: [
+          if (bisaHapusDiskusi && diskusi != null)
+            IconButton(
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.error,
+                size: 22,
+              ),
+              tooltip: 'Hapus Diskusi',
+              onPressed: _hapusDiskusi,
+            ),
           IconButton(
             icon: const Icon(
               Icons.flag_outlined,
@@ -446,15 +681,32 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                             ),
                                           ),
                                         ),
-                                        Text(
-                                          _formatWaktu(jwb.dibuatPada),
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10,
-                                            color: AppColors.textMuted,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                         Text(
+                                           _formatWaktu(jwb.dibuatPada),
+                                           style: GoogleFonts.plusJakartaSans(
+                                             fontSize: 10,
+                                             color: AppColors.textMuted,
+                                           ),
+                                         ),
+                                         if (_isAdmin ||
+                                             (userId > 0 &&
+                                                 jwb.userId == userId)) ...[
+                                           const SizedBox(width: 4),
+                                           IconButton(
+                                             icon: const Icon(
+                                               Icons.delete_outline_rounded,
+                                               size: 16,
+                                               color: AppColors.error,
+                                             ),
+                                             padding: EdgeInsets.zero,
+                                             constraints: const BoxConstraints(),
+                                             tooltip: 'Hapus Komentar',
+                                             onPressed: () =>
+                                                 _hapusJawaban(jwb),
+                                           ),
+                                         ],
+                                       ],
+                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       jwb.isi,

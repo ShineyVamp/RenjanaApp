@@ -76,8 +76,45 @@ class _FormDiskusiPageState extends State<FormDiskusiPage> {
     );
   }
 
+  bool get _isAdmin =>
+      PreferenceHandler.isAdmin ||
+      (PreferenceHandler.user?.isAdminAccount ?? false);
+
+  String _formatSisaWaktu(Duration d) {
+    final jam = d.inHours;
+    final menit = d.inMinutes % 60;
+    if (jam > 0) {
+      return '$jam jam ${menit > 0 ? '$menit menit' : ''}';
+    }
+    return '$menit menit';
+  }
+
   Future<void> _simpanDiskusi() async {
     if (!_formKey.currentState!.validate() || _menyimpan) return;
+
+    final userId = idAkunAktif;
+    if (!_isAdmin && userId > 0) {
+      final terakhir = await _repository.getWaktuDiskusiTerakhir(userId);
+      if (terakhir != null) {
+        final selisih = DateTime.now().difference(terakhir);
+        const batas = Duration(hours: 10);
+        if (selisih < batas) {
+          final sisa = batas - selisih;
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Anda dapat membuat diskusi baru dalam ${_formatSisaWaktu(sisa)} lagi.',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+              backgroundColor: AppColors.warning,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      }
+    }
 
     setState(() => _menyimpan = true);
 
@@ -89,7 +126,7 @@ class _FormDiskusiPageState extends State<FormDiskusiPage> {
     final kini = DateTime.now();
     await _repository.tambahDiskusi(
       DiskusiModel(
-        userId: idAkunAktif,
+        userId: userId,
         penulis: nama.isNotEmpty ? nama : 'Pengguna Renjana',
         judul: _judulController.text.trim(),
         isi: _isiController.text.trim(),

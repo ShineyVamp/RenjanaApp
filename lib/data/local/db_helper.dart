@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../core/constants/katalog_kategori.dart';
 import 'seed/budaya_seed.dart';
+import 'seed/demo_user_seed.dart';
 import 'seed/quiz_seed.dart';
 import 'seed/sejarah_seed.dart';
 
@@ -60,6 +61,7 @@ class DbHelper {
       },
       onOpen: (db) async {
         await _migrateSchema(db);
+        await DemoUserSeed.seedDemoUser(db);
       },
     );
   }
@@ -941,6 +943,7 @@ class DbHelper {
     }
 
     await _sisipkanDiskusiBawaan(db);
+    await DemoUserSeed.seedDemoUser(db);
   }
 
   Future<void> _sisipkanDiskusiBawaan(Database db) async {

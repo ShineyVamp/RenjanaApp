@@ -7,6 +7,7 @@ import '../../core/extensions/navigation.dart';
 import '../../core/widgets/header_halaman.dart';
 import '../../data/models/komunitas_model.dart';
 import '../../data/repositories/komunitas_repository.dart';
+import '../../services/preference_handler.dart';
 import 'detail_diskusi_page.dart';
 import 'form_diskusi_page.dart';
 
@@ -73,9 +74,162 @@ class _KomunitasPageState extends State<KomunitasPage> {
     }
   }
 
+  bool get _isAdmin =>
+      PreferenceHandler.isAdmin ||
+      (PreferenceHandler.user?.isAdminAccount ?? false);
+
+  String _formatSisaWaktu(Duration d) {
+    final jam = d.inHours;
+    final menit = d.inMinutes % 60;
+    if (jam > 0) {
+      return '$jam jam ${menit > 0 ? '$menit menit' : ''}';
+    }
+    return '$menit menit';
+  }
+
   Future<void> _bukaFormDiskusi() async {
+    final userId = PreferenceHandler.userId;
+    if (!_isAdmin && userId > 0) {
+      final terakhir = await _repository.getWaktuDiskusiTerakhir(userId);
+      if (terakhir != null) {
+        final selisih = DateTime.now().difference(terakhir);
+        const batas = Duration(hours: 10);
+        if (selisih < batas) {
+          final sisa = batas - selisih;
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  const Icon(
+                    Icons.timer_outlined,
+                    color: AppColors.warning,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Batas Waktu Diskusi',
+                    style: GoogleFonts.dmSerifDisplay(
+                      fontSize: 18,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                'Untuk mencegah spam dan menjaga kualitas komunitas, setiap penjelajah hanya dapat membuat 1 diskusi setiap 10 jam.\n\nAnda dapat membuat diskusi baru dalam ${_formatSisaWaktu(sisa)} lagi.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'Mengerti',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    if (!mounted) return;
     final dibuat = await context.push(const FormDiskusiPage());
     if (dibuat == true && mounted) {
+      await _muatData(showLoader: false);
+    }
+  }
+
+  Future<void> _hapusDiskusi(DiskusiModel item) async {
+    final setuju = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.delete_forever_rounded,
+              color: AppColors.error,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Hapus Diskusi?',
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Postingan "${item.judul}" beserta seluruh jawabannya akan dihapus secara permanen dari komunitas.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            height: 1.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (setuju == true && item.id != null) {
+      await _repository.hapusDiskusi(item.id!);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Diskusi berhasil dihapus',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          ),
+          backgroundColor: AppColors.primaryDark,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       await _muatData(showLoader: false);
     }
   }
@@ -245,9 +399,15 @@ class _KomunitasPageState extends State<KomunitasPage> {
                               separatorBuilder: (context, index) => const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final item = _daftarDiskusi[index];
+                                final userId = PreferenceHandler.userId;
+                                final bisaModerasi =
+                                    _isAdmin ||
+                                    (userId > 0 && item.userId == userId);
                                 return _KartuDiskusi(
                                   item: item,
                                   waktuTeks: _formatWaktu(item.dibuatPada),
+                                  bisaModerasi: bisaModerasi,
+                                  onHapus: () => _hapusDiskusi(item),
                                   onTap: () => _bukaDetail(item),
                                   onVote: () => _toggleSuara(item),
                                 );
@@ -265,12 +425,16 @@ class _KomunitasPageState extends State<KomunitasPage> {
 class _KartuDiskusi extends StatelessWidget {
   final DiskusiModel item;
   final String waktuTeks;
+  final bool bisaModerasi;
+  final VoidCallback? onHapus;
   final VoidCallback onTap;
   final VoidCallback onVote;
 
   const _KartuDiskusi({
     required this.item,
     required this.waktuTeks,
+    this.bisaModerasi = false,
+    this.onHapus,
     required this.onTap,
     required this.onVote,
   });
@@ -342,6 +506,20 @@ class _KartuDiskusi extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (bisaModerasi) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Hapus Diskusi',
+                    onPressed: onHapus,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),

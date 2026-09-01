@@ -7,10 +7,12 @@ import '../../../core/widgets/app_image.dart';
 import '../../../core/constants/budaya_kategori.dart';
 import '../../../core/constants/wilayah_nusantara.dart';
 import '../../../core/widgets/pembersih_dialog.dart';
+import '../../../data/models/blok_konten_model.dart';
 import '../../../data/models/budaya_model.dart';
 import '../../../data/models/sejarah_model.dart';
 import '../../../data/repositories/budaya_repository.dart';
 import '../../../data/repositories/sejarah_repository.dart';
+import '../kontribusi/widgets/editor_blok_konten.dart';
 import 'widgets/app_image_picker_widget.dart';
 
 class AdminManageContentPage extends StatefulWidget {
@@ -137,6 +139,12 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     }
 
     bangunControllerDetailPeristiwa();
+
+    List<BlokKontenModel> blokKonten = isEditing
+        ? BlokKontenModel.listFromDynamic(
+            sejarahToEdit.detailPeristiwa['blokKonten'],
+          )
+        : [];
 
     // salinan alur peristiwa yang bisa diedit di dalam dialog
     List<TimelineItemModel> timelineItems = isEditing
@@ -772,6 +780,14 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               );
                             }),
 
+                          const SizedBox(height: 18),
+                          EditorBlokKonten(
+                            daftarAwal: blokKonten,
+                            onChanged: (list) {
+                              blokKonten = List.from(list);
+                            },
+                          ),
+
                           const SizedBox(height: 24),
 
                           // tombol simpan
@@ -790,6 +806,15 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               onPressed: () async {
                                 if (!formKey.currentState!.validate()) return;
 
+                                final detailP = _rakitDetailPeristiwa(
+                                  selectedJenisPeristiwa,
+                                  detailControllers,
+                                );
+                                if (blokKonten.isNotEmpty) {
+                                  detailP['blokKonten'] =
+                                      BlokKontenModel.listToMapList(blokKonten);
+                                }
+
                                 final model = SejarahModel(
                                   id: isEditing ? sejarahToEdit.id : null,
                                   kodeTag: kodeTagController.text.trim(),
@@ -807,10 +832,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                   provinsi: selectedProvinsi,
                                   periode: selectedPeriode,
                                   jenisPeristiwa: selectedJenisPeristiwa,
-                                  detailPeristiwa: _rakitDetailPeristiwa(
-                                    selectedJenisPeristiwa,
-                                    detailControllers,
-                                  ),
+                                  detailPeristiwa: detailP,
                                   jenisMedia: selectedJenisMedia,
                                   mediaUrl: selectedJenisMedia == 'gambar'
                                       ? null
@@ -1269,6 +1291,12 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
 
     bangunControllerDetail();
 
+    List<BlokKontenModel> blokKonten = isEditing
+        ? BlokKontenModel.listFromDynamic(
+            budayaToEdit.detailKategori['blokKonten'],
+          )
+        : [];
+
     final formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
@@ -1700,6 +1728,13 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               );
                             },
                           ),
+                          const SizedBox(height: 18),
+                          EditorBlokKonten(
+                            daftarAwal: blokKonten,
+                            onChanged: (list) {
+                              blokKonten = List.from(list);
+                            },
+                          ),
                           const SizedBox(height: 24),
 
                           // tombol simpan
@@ -1717,6 +1752,15 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               ),
                               onPressed: () async {
                                 if (!formKey.currentState!.validate()) return;
+
+                                final detailK = _rakitDetailKategori(
+                                  selectedJenis,
+                                  detailControllers,
+                                );
+                                if (blokKonten.isNotEmpty) {
+                                  detailK['blokKonten'] =
+                                      BlokKontenModel.listToMapList(blokKonten);
+                                }
 
                                 final urutan =
                                     int.tryParse(
@@ -1746,10 +1790,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                       ? maknaSpiritualController.text.trim()
                                       : null,
                                   provinsi: selectedProvinsi,
-                                  detailKategori: _rakitDetailKategori(
-                                    selectedJenis,
-                                    detailControllers,
-                                  ),
+                                  detailKategori: detailK,
                                   gambarMaknaSpiritual:
                                       selectedMaknaSpiritualImage,
                                   konteksBudaya:

@@ -76,26 +76,91 @@ class _GridHorizontalState extends State<GridHorizontal> {
     // Hitung apakah konten melebihi batas 1 kolom (perlu scroll horizontal atau tidak)
     final bool butuhScroll = widget.jumlahItem > widget.baris;
 
-    return ScrollbarTheme(
-      data: const ScrollbarThemeData(
-        thumbColor: WidgetStatePropertyAll(AppColors.primary),
-      ),
-      child: Scrollbar(
-        controller: _scroll,
-        thumbVisibility: butuhScroll,
-        trackVisibility: butuhScroll,
-        scrollbarOrientation: ScrollbarOrientation.bottom,
-        thickness: 4,
-        child: SingleChildScrollView(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
           controller: _scroll,
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.only(bottom: butuhScroll ? 40 : 0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: _buildKolom(),
           ),
         ),
-      ),
+        if (butuhScroll) ...[
+          const SizedBox(height: 10),
+          _IndikatorScrollHorizontal(controller: _scroll),
+        ],
+      ],
+    );
+  }
+}
+
+// Indikator posisi gulir horizontal yang diletakkan terpisah di bawah konten,
+// sehingga tidak akan pernah menimpa kartu atau menyisakan ruang kosong besar.
+class _IndikatorScrollHorizontal extends StatelessWidget {
+  final ScrollController controller;
+
+  const _IndikatorScrollHorizontal({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) {
+            final double totalWidth = constraints.maxWidth;
+            double progress = 0.0;
+            double thumbWidth = totalWidth * 0.4;
+
+            if (controller.hasClients &&
+                controller.position.maxScrollExtent > 0) {
+              final maxScroll = controller.position.maxScrollExtent;
+              final viewport = controller.position.viewportDimension;
+              final currentScroll = controller.position.pixels.clamp(
+                0.0,
+                maxScroll,
+              );
+              final contentRatio = viewport / (viewport + maxScroll);
+              thumbWidth = (totalWidth * contentRatio).clamp(36.0, totalWidth);
+              progress = currentScroll / maxScroll;
+            }
+
+            final double maxOffset = totalWidth - thumbWidth;
+            final double thumbOffset = (progress * maxOffset).clamp(
+              0.0,
+              maxOffset,
+            );
+
+            return Container(
+              width: totalWidth,
+              height: 3.5,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(2),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: thumbOffset,
+                    top: 0,
+                    bottom: 0,
+                    width: thumbWidth,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

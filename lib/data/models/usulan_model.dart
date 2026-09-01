@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import 'blok_konten_model.dart';
 import 'budaya_model.dart';
 import 'sejarah_model.dart';
 
@@ -99,6 +100,9 @@ class KunciUsulan {
   static const String jenisMedia = 'jenisMedia';
   static const String mediaUrl = 'mediaUrl';
 
+  // blok konten dinamis (fleksibel untuk sejarah & budaya)
+  static const String blokKonten = 'blokKonten';
+
   // sejarah
   static const String subtitle = 'subtitle';
   static const String tanggalKey = 'tanggalKey';
@@ -176,6 +180,9 @@ class Usulan {
   bool get koreksi => maksud == MaksudUsulan.koreksi;
 
   String teks(String kunci) => (isi[kunci] as Object?)?.toString().trim() ?? '';
+
+  List<BlokKontenModel> get daftarBlokKonten =>
+      BlokKontenModel.listFromDynamic(isi[KunciUsulan.blokKonten]);
 
   // Nilai daftar pada muatan, mis. pilihan jawaban atau alur peristiwa.
   List<Map<String, dynamic>> daftar(String kunci) {

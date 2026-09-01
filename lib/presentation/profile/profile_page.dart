@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dekorasi.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/constants/lencana_katalog.dart';
 import '../../core/extensions/navigation.dart';
 import '../../core/widgets/app_image.dart';
 import '../../core/widgets/header_halaman.dart';
@@ -12,6 +13,7 @@ import '../../data/repositories/arsip_dibaca_repository.dart';
 import '../../data/models/usulan_model.dart';
 import '../../data/repositories/hasil_kuis_repository.dart';
 import '../../data/repositories/jelajah_repository.dart';
+import '../../data/repositories/lencana_repository.dart';
 import '../../data/repositories/runtun_repository.dart';
 import '../../data/repositories/usulan_repository.dart';
 import '../../data/repositories/user_repository.dart';
@@ -37,10 +39,12 @@ class _ProfilePageState extends State<ProfilePage> {
   final RuntunRepository _runtunRepository = RuntunRepository();
   final HasilKuisRepository _hasilKuisRepository = HasilKuisRepository();
   final UsulanRepository _usulanRepository = UsulanRepository();
+  final LencanaRepository _lencanaRepository = LencanaRepository();
 
   UserSQLModel? _user;
   int _jumlahDibuka = 0;
   int _jumlahProvinsi = 0;
+  String _gelar = 'Pelajar';
   RingkasanRuntun _runtun = const RingkasanRuntun();
   RingkasanKuis _ringkasanKuis = const RingkasanKuis();
   int _usulanTotal = 0;
@@ -80,11 +84,16 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     final usulanDisetujui = await _usulanRepository.jumlahDisetujui();
 
+    final statusLencana = await _lencanaRepository.evaluasi();
+    final terbuka = statusLencana.where((s) => s.terbuka).length;
+    final gelar = gelarDariLencana(terbuka);
+
     if (!mounted) return;
     setState(() {
       _user = user;
       _jumlahDibuka = refs.length;
       _jumlahProvinsi = provinsi.length;
+      _gelar = gelar.nama;
       _runtun = runtun;
       _ringkasanKuis = kuis;
       _usulanTotal = usulanTotal;
@@ -217,7 +226,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  isAdmin ? 'PENGELOLA ARSIP' : 'PENJELAJAH NUSANTARA',
+                  isAdmin ? 'PENGELOLA ARSIP' : _gelar.toUpperCase(),
                   style: AppTypography.eyebrow(fontSize: 10.5),
                 ),
                 const SizedBox(height: 6),

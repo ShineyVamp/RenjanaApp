@@ -203,6 +203,47 @@ class KomunitasRepository {
     return await db.insert('jawaban', model.toMap());
   }
 
+  Future<DateTime?> getWaktuDiskusiTerakhir(int userId) async {
+    if (userId <= 0) return null;
+    final db = await _dbHelper.database;
+    final rows = await db.query(
+      'diskusi',
+      columns: ['dibuatPada'],
+      where: 'userId = ?',
+      whereArgs: [userId],
+      orderBy: 'dibuatPada DESC',
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final raw = rows.first['dibuatPada'] as String?;
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<int> hapusJawaban(int id) async {
+    final db = await _dbHelper.database;
+    await db.delete(
+      'suara',
+      where: 'targetTipe = ? AND targetId = ?',
+      whereArgs: ['jawaban', id],
+    );
+    return await db.delete('jawaban', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<JawabanModel?> getJawabanTerakhirUser(int userId, int diskusiId) async {
+    if (userId <= 0) return null;
+    final db = await _dbHelper.database;
+    final rows = await db.query(
+      'jawaban',
+      where: 'userId = ? AND diskusiId = ?',
+      whereArgs: [userId, diskusiId],
+      orderBy: 'dibuatPada DESC',
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return JawabanModel.fromMap(rows.first);
+  }
+
   Future<void> toggleSuara(String targetTipe, int targetId) async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return;
