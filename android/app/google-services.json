@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "695068448787",
+    "project_id": "renjana-project-2460c",
+    "storage_bucket": "renjana-project-2460c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695068448787:android:dc14fa85dcbad042bc87e6",
+        "android_client_info": {
+          "package_name": "com.kitabesti.renjana"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRqqtPg63toRTU9o09xjJewFgPGAiNob4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

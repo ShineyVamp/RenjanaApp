@@ -1,6 +1,8 @@
 ﻿import 'package:device_preview/device_preview.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:renjana/firebase_options.dart';
 import 'package:renjana/presentation/splash/splash_page.dart';
 import 'package:renjana/services/preference_handler.dart';
 
@@ -16,6 +18,7 @@ final RouteObserver<ModalRoute<void>> pengamatRute =
 void main() async {
   DevicePreview();
   await initializeDateFormatting('id_ID', null);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await PreferenceHandler.init();
   await LayananNotifikasi().inisialisasi();
   // Katalog kategori dibaca lebih dulu karena beranda dan form isi konten
