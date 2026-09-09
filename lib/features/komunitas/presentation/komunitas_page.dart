@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:renjana/features/komunitas/data/models/komunitas_model.dart';
+import 'package:renjana/features/komunitas/data/repositories/komunitas_repository.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/storage/preference_handler.dart';
 import '../../../core/widgets/header_halaman.dart';
-import 'package:renjana/features/komunitas/data/models/komunitas_model.dart';
-import 'package:renjana/features/komunitas/data/repositories/komunitas_repository.dart';
 import 'detail_diskusi_page.dart';
 import 'form_diskusi_page.dart';
+import 'notifikasi_komunitas_page.dart';
+import 'widgets/badge_penulis.dart';
 
 class KomunitasPage extends StatefulWidget {
   const KomunitasPage({super.key});
@@ -23,6 +25,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
   final TextEditingController _searchController = TextEditingController();
 
   List<DiskusiModel> _daftarDiskusi = [];
+  int _jumlahNotifBelumDibaca = 0;
   bool _isLoading = true;
   String _kategoriTerpilih = 'Semua';
 
@@ -52,9 +55,24 @@ class _KomunitasPageState extends State<KomunitasPage> {
       kategori: _kategoriTerpilih == 'Semua' ? null : _kategoriTerpilih,
       kataKunci: _searchController.text.trim(),
     );
+
+    // hitung notifikasi belum dibaca
+    final username = PreferenceHandler.userUsername;
+    final userId = PreferenceHandler.userId;
+    final nama = PreferenceHandler.userName;
+    final target = username.isNotEmpty ? username : nama;
+    int unread = 0;
+    if (target.isNotEmpty) {
+      unread = await _repository.getJumlahNotifikasiBelumDibaca(
+        targetIdentifier: target,
+        targetUserId: userId > 0 ? userId : null,
+      );
+    }
+
     if (!mounted) return;
     setState(() {
       _daftarDiskusi = hasil;
+      _jumlahNotifBelumDibaca = unread;
       _isLoading = false;
     });
   }
@@ -267,7 +285,64 @@ class _KomunitasPageState extends State<KomunitasPage> {
         bottom: false,
         child: Column(
           children: [
-            const HeaderHalaman(judul: 'Komunitas', garisBawah: false),
+            HeaderHalaman(
+              judul: 'Komunitas',
+              garisBawah: false,
+              aksi: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      await context.push(const NotifikasiKomunitasPage());
+                      if (mounted) {
+                        _muatData(showLoader: false);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                  if (_jumlahNotifBelumDibaca > 0)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.surface,
+                            width: 1.5,
+                          ),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Center(
+                          child: Text(
+                            _jumlahNotifBelumDibaca > 99
+                                ? '99+'
+                                : '$_jumlahNotifBelumDibaca',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
 
             // Search Bar & Filter Chips
             Padding(
@@ -334,7 +409,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
                     backgroundColor: AppColors.surface,
                     labelStyle: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                       color: isSelected ? Colors.white : AppColors.textPrimary,
                     ),
                     side: BorderSide(
@@ -355,7 +432,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     )
                   : RefreshIndicator(
                       color: AppColors.primary,
@@ -396,13 +475,19 @@ class _KomunitasPageState extends State<KomunitasPage> {
                           : ListView.separated(
                               padding: const EdgeInsets.fromLTRB(20, 8, 20, 80),
                               itemCount: _daftarDiskusi.length,
-                              separatorBuilder: (context, index) => const SizedBox(height: 12),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final item = _daftarDiskusi[index];
                                 final userId = PreferenceHandler.userId;
+                                final userName =
+                                    PreferenceHandler.user?.nama ?? '';
                                 final bisaModerasi =
                                     _isAdmin ||
-                                    (userId > 0 && item.userId == userId);
+                                    (userId > 0 && item.userId == userId) ||
+                                    (userName.isNotEmpty &&
+                                        item.penulis.toLowerCase() ==
+                                            userName.toLowerCase());
                                 return _KartuDiskusi(
                                   item: item,
                                   waktuTeks: _formatWaktu(item.dibuatPada),
@@ -460,7 +545,9 @@ class _KartuDiskusi extends StatelessWidget {
                   radius: 14,
                   backgroundColor: AppColors.primaryDark.withAlpha(30),
                   child: Text(
-                    item.penulis.isNotEmpty ? item.penulis[0].toUpperCase() : 'P',
+                    item.penulis.isNotEmpty
+                        ? item.penulis[0].toUpperCase()
+                        : 'P',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -481,18 +568,22 @@ class _KartuDiskusi extends StatelessWidget {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      Text(
-                        waktuTeks,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          color: AppColors.textMuted,
-                        ),
+                      const SizedBox(height: 2),
+                      // role dan lencana di bawah nama
+                      BadgePenulis(
+                        role: item.role,
+                        gelar: item.gelar,
+                        badgePilihan: item.badgePilihan,
+                        waktuTeks: waktuTeks,
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight.withAlpha(50),
                     borderRadius: BorderRadius.circular(12),
@@ -552,7 +643,10 @@ class _KartuDiskusi extends StatelessWidget {
             if (adaRef) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(8),
@@ -587,7 +681,10 @@ class _KartuDiskusi extends StatelessWidget {
                   onTap: onVote,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: isVoted
                           ? AppColors.primary.withAlpha(25)
@@ -605,7 +702,9 @@ class _KartuDiskusi extends StatelessWidget {
                               ? Icons.arrow_upward_rounded
                               : Icons.arrow_upward_outlined,
                           size: 14,
-                          color: isVoted ? AppColors.primary : AppColors.textMuted,
+                          color: isVoted
+                              ? AppColors.primary
+                              : AppColors.textMuted,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -613,7 +712,9 @@ class _KartuDiskusi extends StatelessWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
-                            color: isVoted ? AppColors.primary : AppColors.textPrimary,
+                            color: isVoted
+                                ? AppColors.primary
+                                : AppColors.textPrimary,
                           ),
                         ),
                       ],

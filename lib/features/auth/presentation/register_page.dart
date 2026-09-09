@@ -18,8 +18,8 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _noHpController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _konfirmasiController = TextEditingController();
 
@@ -36,8 +36,8 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     _namaController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
-    _noHpController.dispose();
     _passwordController.dispose();
     _konfirmasiController.dispose();
     super.dispose();
@@ -60,20 +60,21 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     final nama = _namaController.text.trim();
+    final username = _usernameController.text.trim().toLowerCase();
     final email = _emailController.text.trim();
 
-    // Username dan email harus belum dipakai akun lain.
-    final namaDipakai = await _userRepository.usernameDipakai(nama);
+    // username dan email harus belum dipakai akun lain
+    final usernameDipakai = await _userRepository.usernameDipakai(username);
     final emailDipakai = await _userRepository.emailDipakai(email);
     if (!mounted) return;
 
-    if (namaDipakai || emailDipakai) {
+    if (usernameDipakai || emailDipakai) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            namaDipakai
-                ? 'Username "$nama" sudah dipakai. Pilih yang lain.'
+            usernameDipakai
+                ? 'Username "$username" sudah dipakai. Pilih yang lain.'
                 : 'Email tersebut sudah terdaftar.',
           ),
           backgroundColor: AppColors.primaryDark,
@@ -84,8 +85,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final user = UserSQLModel(
       nama: nama,
+      username: username,
       email: email,
-      noHp: _noHpController.text.trim(),
       password: _passwordController.text.trim(),
     );
 
@@ -169,14 +170,35 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 28),
 
-                // input username
+                // input nama lengkap
                 AppTextField(
                   controller: _namaController,
-                  labelText: 'Username',
-                  hintText: 'Nama tampilan Anda, harus unik',
+                  labelText: 'Nama Lengkap',
+                  hintText: 'Masukkan Nama Lengkap Anda',
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
-                      return 'Nama wajib diisi';
+                      return 'Nama lengkap wajib diisi';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // input username
+                AppTextField(
+                  controller: _usernameController,
+                  labelText: 'Username',
+                  hintText: 'Username unik tanpa spasi (misal: arya123)',
+                  validator: (val) {
+                    final v = val?.trim() ?? '';
+                    if (v.isEmpty) {
+                      return 'Username wajib diisi';
+                    }
+                    if (v.contains(' ')) {
+                      return 'Username tidak boleh mengandung spasi';
+                    }
+                    if (v.length < 3) {
+                      return 'Username minimal 3 karakter';
                     }
                     return null;
                   },
@@ -195,24 +217,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     }
                     if (!val.contains('@')) {
                       return 'Format email tidak valid';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // input no hp
-                AppTextField(
-                  controller: _noHpController,
-                  labelText: 'No. Handphone',
-                  hintText: 'Masukkan Nomor Handphone',
-                  keyboardType: TextInputType.phone,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Nomor handphone wajib diisi';
-                    }
-                    if (int.tryParse(val) == null) {
-                      return 'Nomor handphone hanya boleh berisi angka';
                     }
                     return null;
                   },

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+
 import '../../../../data/local/db_helper.dart';
 import '../../../../data/local/seed/sejarah_seed.dart';
 import '../models/sejarah_model.dart';
@@ -56,7 +57,9 @@ class SejarahRepository {
   Future<List<SejarahModel>> getSejarahByPeriode(String periode) async {
     final list = await getAllSejarah();
     final target = periode.trim().toUpperCase();
-    return list.where((s) => (s.periode?.trim().toUpperCase() ?? '') == target).toList();
+    return list
+        .where((s) => (s.periode?.trim().toUpperCase() ?? '') == target)
+        .toList();
   }
 
   Future<SejarahModel> getSejarahHariIni() async {
@@ -183,4 +186,3 @@ class SejarahRepository {
     return count;
   }
 }
-
