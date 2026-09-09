@@ -213,189 +213,158 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
         child: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              children: [
-                // gambar utama
-                Column(
-                  mainAxisSize: MainAxisSize.min,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final imageWidth = constraints.maxWidth;
+                final imageHeight = imageWidth / 1.1;
+                const overlap = 95.0;
+
+                return Stack(
                   children: [
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 1.1,
-                          child: MediaArsipView(
-                            gambarUtama: data.gambarUtama,
-                            jenisMedia: data.jenisMedia,
-                            mediaUrl: data.mediaUrl,
-                            judul: data.judul,
-                            aspectRatio: 1.1,
+                    // gambar utama
+                    SizedBox(
+                      height: imageHeight,
+                      width: imageWidth,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          Positioned.fill(
+                            child: MediaArsipView(
+                              gambarUtama: data.gambarUtama,
+                              jenisMedia: data.jenisMedia,
+                              mediaUrl: data.mediaUrl,
+                              judul: data.judul,
+                              aspectRatio: 1.1,
+                            ),
                           ),
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppColors.backgroundTransparent,
-                                  AppColors.background,
-                                ],
-                                stops: [0, 1],
+                          Positioned.fill(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    AppColors.backgroundTransparent,
+                                    AppColors.background,
+                                  ],
+                                  stops: [0.25, 1],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-
-                        // tombol back, home, bookmark
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: DetailTopBar(
-                            isBookmarked: _isBookmarked,
-                            onShare: () => _bagikan(data),
-                            onBookmarkToggle: () async {
-                              final messenger = ScaffoldMessenger.of(context);
-                              final nowBookmarked = await _bookmarkRepository
-                                  .toggleBookmark('sejarah', data.kodeTag);
-                              if (!mounted) return;
-                              setState(() {
-                                _isBookmarked = nowBookmarked;
-                              });
-                              messenger.clearSnackBars();
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    nowBookmarked
-                                        ? 'Berhasil disimpan ke Bookmark'
-                                        : 'Berhasil dihapus dari Bookmark',
-                                  ),
-                                  duration: const Duration(milliseconds: 1200),
-                                  behavior: SnackBarBehavior.floating,
-                                  backgroundColor: AppColors.success,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    Stack(
-                      clipBehavior: Clip.none,
+
+                    // konten halaman
+                    Column(
                       children: [
-                        Positioned(
-                          top: -100,
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 22),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
+                        SizedBox(height: imageHeight - overlap),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 22),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (data.subtitle.isNotEmpty)
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Text(
                                     data.subtitle,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 54,
+                                      fontSize: 48,
                                       fontWeight: FontWeight.w900,
                                       color: AppColors.primaryDark,
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  data.judul,
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.playfairDisplay(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
-                                  ),
+                              const SizedBox(height: 4),
+                              Text(
+                                data.judul,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.playfairDisplay(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                  letterSpacing: 0.5,
+                                  height: 1.15,
                                 ),
-                                if ((data.periode != null &&
-                                        data.periode!.isNotEmpty) ||
-                                    (data.jenisPeristiwa != null &&
-                                        data.jenisPeristiwa!.isNotEmpty)) ...[
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 6,
-                                    alignment: WrapAlignment.center,
-                                    children: [
-                                      if (data.periode != null &&
-                                          data.periode!.isNotEmpty)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
+                              ),
+                              if ((data.periode != null &&
+                                      data.periode!.isNotEmpty) ||
+                                  (data.jenisPeristiwa != null &&
+                                      data.jenisPeristiwa!.isNotEmpty)) ...[
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  alignment: WrapAlignment.center,
+                                  children: [
+                                    if (data.periode != null &&
+                                        data.periode!.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryDark
+                                              .withAlpha(25),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryDark
-                                                .withAlpha(25),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.borderPrimary,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            data.namaPeriodeLabel,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryDark,
-                                            ),
+                                          border: Border.all(
+                                            color: AppColors.borderPrimary,
                                           ),
                                         ),
-                                      if (data.jenisPeristiwa != null &&
-                                          data.jenisPeristiwa!.isNotEmpty)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.surface,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.border,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            data.namaPeristiwaLabel,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.textSecondary,
-                                            ),
+                                        child: Text(
+                                          data.namaPeriodeLabel,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryDark,
                                           ),
                                         ),
-                                    ],
-                                  ),
-                                ],
+                                      ),
+                                    if (data.jenisPeristiwa != null &&
+                                        data.jenisPeristiwa!.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surface,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.border,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          data.namaPeristiwaLabel,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ],
-                            ),
+                            ],
                           ),
                         ),
 
                         // ringkasan
                         DetailSectionBlock(
-                          padding: const EdgeInsets.fromLTRB(22, 80, 22, 20),
+                          padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
                           title: 'Ringkasan',
                           content: data.ringkasan,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
 
-                // section field khas jenis peristiwa
+                // section field jenis peristiwa
                 ..._buildSectionPeristiwa(data),
 
                 // section alur peristiwa
@@ -588,9 +557,46 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
+
+            // 3. Tombol navigasi atas (Back, Home, Bookmark, Share)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: DetailTopBar(
+                isBookmarked: _isBookmarked,
+                onShare: () => _bagikan(data),
+                onBookmarkToggle: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final nowBookmarked = await _bookmarkRepository
+                      .toggleBookmark('sejarah', data.kodeTag);
+                  if (!mounted) return;
+                  setState(() {
+                    _isBookmarked = nowBookmarked;
+                  });
+                  messenger.clearSnackBars();
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        nowBookmarked
+                            ? 'Berhasil disimpan ke Bookmark'
+                            : 'Berhasil dihapus dari Bookmark',
+                      ),
+                      duration: const Duration(milliseconds: 1200),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  ),
+),
+),
+);
+}
 }

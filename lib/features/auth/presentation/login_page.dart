@@ -37,16 +37,16 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    final email = _emailController.text.trim();
+    // proses login
+    final identifier = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final user = await _userRepository.loginUser(email, password);
+    final user = await _userRepository.loginUser(identifier, password);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Messenger hidup di atas Navigator, jadi pesan yang tertinggal akan ikut
-    // terbawa ke halaman berikutnya bila tidak dibersihkan.
+    // bersihkan pesan lama
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
@@ -59,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
 
     messenger.showSnackBar(
       const SnackBar(
-        content: Text('Email atau password tidak ditemukan'),
+        content: Text('Username/Email atau password salah'),
         duration: Duration(milliseconds: 1800),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.primaryDark,
@@ -89,18 +89,14 @@ class _LoginPageState extends State<LoginPage> {
                 Container(width: 100, height: 2, color: AppColors.primary),
                 const SizedBox(height: 36),
 
-                // input email
+                // input username atau email
                 AppTextField(
                   controller: _emailController,
-                  labelText: 'Email',
-                  hintText: 'Masukkan Email Anda',
-                  keyboardType: TextInputType.emailAddress,
+                  labelText: 'Username atau Email',
+                  hintText: 'Masukkan Username atau Email Anda',
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Email tidak boleh kosong';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Email tidak valid';
+                      return 'Username atau email tidak boleh kosong';
                     }
                     return null;
                   },

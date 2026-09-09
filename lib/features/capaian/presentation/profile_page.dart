@@ -198,6 +198,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final nama = (user?.nama ?? '').trim().isNotEmpty
         ? user!.nama
         : PreferenceHandler.userName;
+    final username = (user?.username ?? '').trim().isNotEmpty
+        ? user!.username
+        : PreferenceHandler.userUsername;
     final email = (user?.email ?? '').trim().isNotEmpty
         ? user!.email
         : PreferenceHandler.userEmail;
@@ -214,17 +217,30 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // nama lebih besar
                 Text(
                   nama,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.dmSerifDisplay(
-                    fontSize: 26,
-                    height: 1.1,
+                    fontSize: 24,
+                    height: 1.15,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
+
+                // username lebih kecil
+                Text(
+                  '@$username',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+
                 Text(
                   isAdmin ? 'PENGELOLA ARSIP' : _gelar.toUpperCase(),
                   style: AppTypography.eyebrow(fontSize: 10.5),
@@ -244,7 +260,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
+                          fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),

@@ -1,23 +1,20 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 
-/// Seeder akun demo untuk kebutuhan screenshot Play Store.
-/// Akun ini memiliki statistik lengkap: Gelar Sejarawan, 20 Lencana,
-/// 35 Hari Streak, 240 Soal Kuis (97% akurasi), 7 Usulan (5 Disetujui),
-/// serta 58 Arsip Dibaca lintas 28 Provinsi.
+// akun demo
 class DemoUserSeed {
   static const String email = 'arya.penjelajah@renjana.id';
   static const String nama = 'Arya Daniswara';
-  static const String noHp = '081234567890';
+  static const String username = 'aryadaniswara';
   static const String password = 'renjana123';
 
   static Future<void> seedDemoUser(Database db) async {
     try {
-      // 1. Cek atau Buat User
+      // cek atau buat user
       final userQuery = await db.query(
         'user',
-        where: 'LOWER(email) = ?',
-        whereArgs: [email.toLowerCase()],
+        where: 'LOWER(email) = ? OR LOWER(username) = ?',
+        whereArgs: [email.toLowerCase(), username.toLowerCase()],
         limit: 1,
       );
 
@@ -28,8 +25,9 @@ class DemoUserSeed {
           'user',
           {
             'nama': nama,
-            'noHp': noHp,
+            'username': username,
             'password': password,
+            'role': 'user',
           },
           where: 'id = ?',
           whereArgs: [userId],
@@ -37,10 +35,11 @@ class DemoUserSeed {
       } else {
         userId = await db.insert('user', {
           'nama': nama,
+          'username': username,
           'email': email,
-          'noHp': noHp,
           'password': password,
           'fotoProfil': null,
+          'role': 'user',
         });
       }
 

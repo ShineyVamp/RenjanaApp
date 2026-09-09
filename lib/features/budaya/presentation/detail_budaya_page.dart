@@ -134,9 +134,6 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
     context.push(DetailProvinsiPage(provinsi: provinsi));
   }
 
-  // Section khas kategori, dibangkitkan dari daftar field di katalog.
-  // Keterangan pendek dikumpulkan jadi satu kotak data di atas, sisanya
-  // mengikuti urutan field pada katalog.
   List<Widget> _buildSectionKategori(BudayaModel data) {
     final daftarField = fieldKategori(data.jenis);
     if (daftarField.isEmpty) return const [];
@@ -250,88 +247,55 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
-              child: Column(
-                children: [
-                  // header utama
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final imageWidth = constraints.maxWidth;
+                  final imageHeight = imageWidth;
+                  const overlap = 95.0;
+
+                  return Stack(
                     children: [
-                      // gambar utama
-                      Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          AspectRatio(
-                            aspectRatio: 1,
-                            child: MediaArsipView(
-                              gambarUtama: data.gambarUtama,
-                              jenisMedia: data.jenisMedia,
-                              mediaUrl: data.mediaUrl,
-                              judul: data.judul,
-                              aspectRatio: 1,
+                      SizedBox(
+                        height: imageHeight,
+                        width: imageWidth,
+                        child: Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            Positioned.fill(
+                              child: MediaArsipView(
+                                gambarUtama: data.gambarUtama,
+                                jenisMedia: data.jenisMedia,
+                                mediaUrl: data.mediaUrl,
+                                judul: data.judul,
+                                aspectRatio: 1,
+                              ),
                             ),
-                          ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    AppColors.backgroundTransparent,
-                                    AppColors.background,
-                                  ],
-                                  stops: [0, 1],
+                            Positioned.fill(
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      AppColors.backgroundTransparent,
+                                      AppColors.background,
+                                    ],
+                                    stops: [0.25, 1],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-
-                          // tombol back, home, bookmark
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: DetailTopBar(
-                              isBookmarked: _isBookmarked,
-                              onShare: () => _bagikan(data),
-                              onBookmarkToggle: () async {
-                                final messenger = ScaffoldMessenger.of(context);
-                                final nowBookmarked = await _bookmarkRepository
-                                    .toggleBookmark('budaya', data.kodeTag);
-                                if (!mounted) return;
-                                setState(() {
-                                  _isBookmarked = nowBookmarked;
-                                });
-                                messenger.clearSnackBars();
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      nowBookmarked
-                                          ? 'Berhasil disimpan ke Bookmark'
-                                          : 'Berhasil dihapus dari Bookmark',
-                                    ),
-                                    duration: const Duration(
-                                      milliseconds: 1200,
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: AppColors.success,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
 
-                      // judul & tagline
-                      Stack(
-                        clipBehavior: Clip.none,
+                      // konten halaman
+                      Column(
                         children: [
-                          Positioned(
-                            top: -100,
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
+                          SizedBox(height: imageHeight - overlap),
+                          // Header: kategori, judul, garis divider, dan tagline
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 22),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -344,55 +308,53 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                     letterSpacing: 1.4,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 4),
                                 Text(
                                   data.judul,
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.playfairDisplay(
-                                    fontSize: 36,
+                                    fontSize: 34,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.textPrimary,
-                                    letterSpacing: 1.0,
+                                    letterSpacing: 0.5,
+                                    height: 1.15,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 6),
                                 Container(
                                   height: 1.5,
                                   width: 36,
                                   color: AppColors.primaryDark,
                                 ),
-                                const SizedBox(height: 10),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  child: Text(
-                                    data.tagline,
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.playfairDisplay(
-                                      fontSize: 14,
-                                      fontStyle: FontStyle.italic,
-                                      height: 1.4,
-                                      color: AppColors.textDeep,
+                                if (data.tagline.isNotEmpty) ...[
+                                  const SizedBox(height: 10),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    child: Text(
+                                      data.tagline,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.playfairDisplay(
+                                        fontSize: 14,
+                                        fontStyle: FontStyle.italic,
+                                        height: 1.4,
+                                        color: AppColors.textDeep,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
 
-                          // deskripsi
+                          // Deskripsi
                           DetailSectionBlock(
-                            padding: const EdgeInsets.fromLTRB(22, 60, 22, 24),
+                            padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
                             title: 'Deskripsi',
                             content: data.deskripsi,
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
 
-                  // section field khas kategori
                   ..._buildSectionKategori(data),
 
                   // section makna spiritual
@@ -601,10 +563,49 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
+
+              // 3. Tombol navigasi atas (Back, Home, Bookmark, Share)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: DetailTopBar(
+                  isBookmarked: _isBookmarked,
+                  onShare: () => _bagikan(data),
+                  onBookmarkToggle: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final nowBookmarked = await _bookmarkRepository
+                        .toggleBookmark('budaya', data.kodeTag);
+                    if (!mounted) return;
+                    setState(() {
+                      _isBookmarked = nowBookmarked;
+                    });
+                    messenger.clearSnackBars();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          nowBookmarked
+                              ? 'Berhasil disimpan ke Bookmark'
+                              : 'Berhasil dihapus dari Bookmark',
+                        ),
+                        duration: const Duration(
+                          milliseconds: 1200,
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
-    );
-  }
+    ),
+  ),
+),
+),
+);
+}
 }

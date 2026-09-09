@@ -1,4 +1,5 @@
 ﻿import 'package:device_preview/device_preview.dart';
+import 'package:device_preview/presets.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:renjana/core/storage/preference_handler.dart';
@@ -19,9 +20,9 @@ void main() async {
   // Katalog kategori dibaca lebih dulu karena beranda dan form isi konten
   // sudah membutuhkannya sejak layar pertama.
   await KategoriRepository().muat();
-  // final c = DevicePreview.controller;
-  // await c.applyPreset(DevicePresets.iPhone16e);
-  // await c.setOrientation(Orientation.portrait);
+  final c = DevicePreview.controller;
+  await c.applyPreset(DevicePresets.pixel10);
+  await c.setOrientation(Orientation.portrait);
   runApp(const RenjanaApp());
 }
 
