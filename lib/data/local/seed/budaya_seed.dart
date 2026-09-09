@@ -1,5 +1,5 @@
 // Data awal untuk tabel `budaya`, dipakai sekali saat database dibuat.
-import '../../models/budaya_model.dart';
+import 'package:renjana/features/budaya/data/models/budaya_model.dart';
 
 final List<BudayaModel> defaultBudayaList = [
   const BudayaModel(
