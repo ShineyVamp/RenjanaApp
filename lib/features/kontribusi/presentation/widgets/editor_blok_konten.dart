@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/detail_spec_block.dart';
 import '../../../sejarah/data/models/sejarah_model.dart';
-import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
 
 class EditorBlokKonten extends StatefulWidget {
   final List<BlokKontenModel> daftarAwal;
@@ -52,18 +52,12 @@ class _EditorBlokKontenState extends State<EditorBlokKonten> {
       case TipeBlokKonten.timeline:
         judulAwal = 'Alur Peristiwa';
         dataAwal = <TimelineItemModel>[
-          const TimelineItemModel(
-            date: '',
-            title: '',
-            desc: '',
-          ),
+          const TimelineItemModel(date: '', title: '', desc: ''),
         ];
         break;
       case TipeBlokKonten.spesifikasi:
         judulAwal = 'Informasi Singkat';
-        dataAwal = <SpecItem>[
-          const SpecItem('', ''),
-        ];
+        dataAwal = <SpecItem>[const SpecItem('', '')];
         break;
     }
 
@@ -142,35 +136,46 @@ class _EditorBlokKontenState extends State<EditorBlokKonten> {
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    decoration: AppDekorasi.panel(garis: AppColors.border),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 4,
+                    child: Material(
+                      color: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: AppDekorasi.radiusKartu,
+                        side: const BorderSide(color: AppColors.border, width: 1),
                       ),
-                      leading: CircleAvatar(
-                        backgroundColor: AppColors.primaryLight.withAlpha(50),
-                        child: Icon(ikon, color: AppColors.primaryDark, size: 22),
-                      ),
-                      title: Text(
-                        tipe.label,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
                         ),
-                      ),
-                      subtitle: Text(
-                        tipe.deskripsi,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          color: AppColors.textSecondary,
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primaryLight.withAlpha(50),
+                          child: Icon(
+                            ikon,
+                            color: AppColors.primaryDark,
+                            size: 22,
+                          ),
                         ),
+                        title: Text(
+                          tipe.label,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          tipe.deskripsi,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _tambahBlokBaru(tipe);
+                        },
                       ),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _tambahBlokBaru(tipe);
-                      },
                     ),
                   );
                 }),
@@ -196,7 +201,10 @@ class _EditorBlokKontenState extends State<EditorBlokKonten> {
             ),
             Text(
               '${_daftarBlok.length} Seksi',
-              style: AppTypography.caption(fontSize: 11, color: AppColors.textMuted),
+              style: AppTypography.caption(
+                fontSize: 11,
+                color: AppColors.textMuted,
+              ),
             ),
           ],
         ),
@@ -209,7 +217,10 @@ class _EditorBlokKontenState extends State<EditorBlokKonten> {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+              border: Border.all(
+                color: AppColors.border,
+                style: BorderStyle.solid,
+              ),
             ),
             child: Column(
               children: [
@@ -272,9 +283,8 @@ class _EditorBlokKontenState extends State<EditorBlokKonten> {
               backgroundColor: AppColors.primaryLight.withAlpha(20),
             ),
             onPressed: _tampilkanPilihanTipeBlok,
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryDark),
             label: Text(
-              '+ Tambah Seksi / Blok Konten',
+              'Tambah Seksi / Blok Konten',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -367,7 +377,9 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
             padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
             decoration: BoxDecoration(
               color: AppColors.surfaceMuted.withAlpha(25),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
               border: const Border(
                 bottom: BorderSide(color: AppColors.border, width: 0.8),
               ),
@@ -386,7 +398,10 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withAlpha(20),
                     borderRadius: BorderRadius.circular(6),
@@ -429,8 +444,13 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                 const SizedBox(height: 5),
                 TextFormField(
                   controller: _judulController,
-                  decoration: _inputDeco('Contoh: Makna Spiritual, Bahan & Tata Cara, Latar Belakang...'),
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                  decoration: _inputDeco(
+                    'Contoh: Makna Spiritual, Bahan & Tata Cara, Latar Belakang...',
+                  ),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                   onChanged: (val) {
                     widget.blok.judul = val;
                     widget.onUpdated();
@@ -474,7 +494,9 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
         TextFormField(
           initialValue: widget.blok.teks,
           maxLines: 4,
-          decoration: _inputDeco('Tuliskan uraian atau penjelasan detail pada seksi ini...'),
+          decoration: _inputDeco(
+            'Tuliskan uraian atau penjelasan detail pada seksi ini...',
+          ),
           style: GoogleFonts.plusJakartaSans(fontSize: 12.5, height: 1.4),
           onChanged: (val) {
             widget.blok.data = val;
@@ -532,7 +554,11 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: AppColors.error),
+                  icon: const Icon(
+                    Icons.remove_circle_outline_rounded,
+                    size: 18,
+                    color: AppColors.error,
+                  ),
                   onPressed: () {
                     final updated = List<String>.from(widget.blok.daftar);
                     if (updated.length > 1) {
@@ -609,15 +635,25 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.error),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 16,
+                        color: AppColors.error,
+                      ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       onPressed: () {
-                        final updated = List<TimelineItemModel>.from(widget.blok.timeline);
+                        final updated = List<TimelineItemModel>.from(
+                          widget.blok.timeline,
+                        );
                         if (updated.length > 1) {
                           updated.removeAt(idx);
                         } else {
-                          updated[0] = const TimelineItemModel(date: '', title: '', desc: '');
+                          updated[0] = const TimelineItemModel(
+                            date: '',
+                            title: '',
+                            desc: '',
+                          );
                         }
                         widget.blok.data = updated;
                         widget.onUpdated();
@@ -629,10 +665,14 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                 const SizedBox(height: 6),
                 TextFormField(
                   initialValue: item.date,
-                  decoration: _inputDeco('Tanggal / Waktu (misal: 17 AGUSTUS 1945 · 10:00 WIB)'),
+                  decoration: _inputDeco(
+                    'Tanggal / Waktu (misal: 17 AGUSTUS 1945 · 10:00 WIB)',
+                  ),
                   style: GoogleFonts.plusJakartaSans(fontSize: 12),
                   onChanged: (val) {
-                    final updated = List<TimelineItemModel>.from(widget.blok.timeline);
+                    final updated = List<TimelineItemModel>.from(
+                      widget.blok.timeline,
+                    );
                     updated[idx] = TimelineItemModel(
                       date: val,
                       title: item.title,
@@ -648,9 +688,14 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                 TextFormField(
                   initialValue: item.title,
                   decoration: _inputDeco('Judul Peristiwa'),
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                   onChanged: (val) {
-                    final updated = List<TimelineItemModel>.from(widget.blok.timeline);
+                    final updated = List<TimelineItemModel>.from(
+                      widget.blok.timeline,
+                    );
                     updated[idx] = TimelineItemModel(
                       date: item.date,
                       title: val,
@@ -669,7 +714,9 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                   decoration: _inputDeco('Deskripsi / Keterangan peristiwa'),
                   style: GoogleFonts.plusJakartaSans(fontSize: 12),
                   onChanged: (val) {
-                    final updated = List<TimelineItemModel>.from(widget.blok.timeline);
+                    final updated = List<TimelineItemModel>.from(
+                      widget.blok.timeline,
+                    );
                     updated[idx] = TimelineItemModel(
                       date: item.date,
                       title: item.title,
@@ -730,9 +777,14 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                   child: TextFormField(
                     initialValue: item.label,
                     decoration: _inputDeco('Label (mis. Arsitek)'),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                     onChanged: (val) {
-                      final updated = List<SpecItem>.from(widget.blok.spesifikasi);
+                      final updated = List<SpecItem>.from(
+                        widget.blok.spesifikasi,
+                      );
                       updated[idx] = SpecItem(val, item.nilai);
                       widget.blok.data = updated;
                       widget.onUpdated();
@@ -747,7 +799,9 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                     decoration: _inputDeco('Nilai (mis. F. Silaban)'),
                     style: GoogleFonts.plusJakartaSans(fontSize: 12),
                     onChanged: (val) {
-                      final updated = List<SpecItem>.from(widget.blok.spesifikasi);
+                      final updated = List<SpecItem>.from(
+                        widget.blok.spesifikasi,
+                      );
                       updated[idx] = SpecItem(item.label, val);
                       widget.blok.data = updated;
                       widget.onUpdated();
@@ -755,9 +809,15 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: AppColors.error),
+                  icon: const Icon(
+                    Icons.remove_circle_outline_rounded,
+                    size: 18,
+                    color: AppColors.error,
+                  ),
                   onPressed: () {
-                    final updated = List<SpecItem>.from(widget.blok.spesifikasi);
+                    final updated = List<SpecItem>.from(
+                      widget.blok.spesifikasi,
+                    );
                     if (updated.length > 1) {
                       updated.removeAt(idx);
                     } else {

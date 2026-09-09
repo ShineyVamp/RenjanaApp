@@ -27,11 +27,8 @@ class DbHelper {
   factory DbHelper() => _instance;
   DbHelper._internal();
 
-  // Wajib dinaikkan bukan hanya saat skema berubah, tetapi juga setiap kali
-  // isi berkas seed bertambah. Penyisipan konten bawaan menumpang pada
-  // onUpgrade, yang hanya jalan bila angka ini lebih besar dari versi yang
-  // tersimpan di perangkat.
-  static const int _dbVersion = 23;
+  // versi database
+  static const int _dbVersion = 25;
 
   static Database? _database;
 
@@ -217,9 +214,22 @@ class DbHelper {
     await db.execute(_laporanTableSql);
     await _sisipkanDiskusiBawaan(db);
 
-    // Penyisipan konten bawaan, selalu dijalankan terakhir agar seluruh kolom
-    // yang dibutuhkan sudah ada. Ketiganya memeriksa isi database dulu,
-    // sehingga aman dipanggil berulang.
+    // v24: role admin dan reply jawaban
+    await _tambahKolom(db, 'user', 'role', tipe: "TEXT DEFAULT 'user'");
+    await _tambahKolom(db, 'jawaban', 'indukId', tipe: "INTEGER DEFAULT NULL");
+    await _tambahKolom(db, 'jawaban', 'balasKe', tipe: "TEXT DEFAULT NULL");
+
+    // v25: username tanpa spasi dan notifikasi komunitas
+    await _tambahKolom(db, 'user', 'username', tipe: "TEXT DEFAULT NULL");
+    try {
+      await db.execute(
+        "UPDATE user SET username = LOWER(REPLACE(nama, ' ', '_')) WHERE username IS NULL OR username = ''",
+      );
+    } catch (_) {}
+    await db.execute(_notifikasiKomunitasTableSql);
+    await _sisipkanAdminBawaan(db);
+
+    // penyisipan konten bawaan
     await _sisipkanKategoriBawaan(db);
     await _sisipkanBudayaBaru(db);
     await _sisipkanKuisBaru(db);
@@ -547,10 +557,30 @@ class DbHelper {
   static const String _userTableSql = '''CREATE TABLE IF NOT EXISTS user (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nama TEXT,
+      username TEXT UNIQUE,
       email TEXT UNIQUE,
-      noHp TEXT,
       password TEXT,
-      fotoProfil TEXT
+      fotoProfil TEXT,
+      role TEXT DEFAULT 'user'
+    )''';
+
+  static const String _notifikasiKomunitasTableSql =
+      '''CREATE TABLE IF NOT EXISTS notifikasi_komunitas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      userNama TEXT NOT NULL,
+      userUsername TEXT NOT NULL,
+      pengirimId INTEGER,
+      pengirimNama TEXT NOT NULL,
+      pengirimUsername TEXT NOT NULL,
+      tipe TEXT NOT NULL,
+      diskusiId INTEGER NOT NULL,
+      jawabanId INTEGER,
+      indukJawabanId INTEGER,
+      judulDiskusi TEXT NOT NULL,
+      cuplikanTeks TEXT NOT NULL,
+      sudahDibaca INTEGER DEFAULT 0,
+      dibuatPada INTEGER NOT NULL
     )''';
 
   static const String _riwayatTableSql = '''CREATE TABLE IF NOT EXISTS riwayat (
@@ -748,6 +778,8 @@ class DbHelper {
   static const String _jawabanTableSql = '''CREATE TABLE IF NOT EXISTS jawaban (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       diskusiId INTEGER,
+      indukId INTEGER,
+      balasKe TEXT,
       userId INTEGER,
       penulis TEXT,
       isi TEXT,
@@ -818,6 +850,7 @@ class DbHelper {
     await db.execute(_jawabanTableSql);
     await db.execute(_suaraTableSql);
     await db.execute(_laporanTableSql);
+    await db.execute(_notifikasiKomunitasTableSql);
     await _siapkanKolomPemilik(db);
     await _siapkanIndeksUnikUser(db);
     await _siapkanIndeksKuisRiwayat(db);
@@ -887,6 +920,9 @@ class DbHelper {
   }
 
   Future<void> _seedInitialData(Database db) async {
+    // seed admin bawaan
+    await _sisipkanAdminBawaan(db);
+
     // seed katalog kategori
     await _sisipkanKategoriBawaan(db);
 
@@ -984,5 +1020,54 @@ class DbHelper {
         });
       }
     } catch (_) {}
+  }
+
+  // seed admin bawaan
+  Future<void> _sisipkanAdminBawaan(Database db) async {
+    final admins = [
+      {
+        'nama': 'Admin 1',
+        'username': 'admin1',
+        'email': 'admin1@renjana.id',
+        'password': 'admin123',
+        'role': 'admin',
+      },
+      {
+        'nama': 'Admin 2',
+        'username': 'admin2',
+        'email': 'admin2@renjana.id',
+        'password': 'admin123',
+        'role': 'admin',
+      },
+    ];
+
+    for (final adm in admins) {
+      try {
+        final cek = await db.query(
+          'user',
+          where:
+              'LOWER(username) = ? OR LOWER(nama) = ? OR LOWER(email) = ?',
+          whereArgs: [
+            adm['username']!.toLowerCase(),
+            adm['nama']!.toLowerCase(),
+            adm['email']!.toLowerCase(),
+          ],
+        );
+        if (cek.isEmpty) {
+          await db.insert('user', adm);
+        } else {
+          await db.update(
+            'user',
+            {
+              'nama': adm['nama'],
+              'username': adm['username'],
+              'role': 'admin',
+            },
+            where: 'id = ?',
+            whereArgs: [cek.first['id']],
+          );
+        }
+      } catch (_) {}
+    }
   }
 }

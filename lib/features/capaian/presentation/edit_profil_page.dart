@@ -27,8 +27,8 @@ class _EditProfilPageState extends State<EditProfilPage> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nama;
+  late final TextEditingController _username;
   late final TextEditingController _email;
-  late final TextEditingController _noHp;
 
   String? _foto;
   bool _hapusFoto = false;
@@ -38,16 +38,16 @@ class _EditProfilPageState extends State<EditProfilPage> {
   void initState() {
     super.initState();
     _nama = TextEditingController(text: widget.user.nama);
+    _username = TextEditingController(text: widget.user.username);
     _email = TextEditingController(text: widget.user.email);
-    _noHp = TextEditingController(text: widget.user.noHp);
     _foto = widget.user.fotoProfil;
   }
 
   @override
   void dispose() {
     _nama.dispose();
+    _username.dispose();
     _email.dispose();
-    _noHp.dispose();
     super.dispose();
   }
 
@@ -74,8 +74,8 @@ class _EditProfilPageState extends State<EditProfilPage> {
     final hasil = await _userRepository.perbaruiProfil(
       id: widget.user.id ?? PreferenceHandler.userId,
       nama: _nama.text,
+      username: _username.text,
       email: _email.text,
-      noHp: _noHp.text,
       fotoProfil: _foto,
       hapusFoto: _hapusFoto,
     );
@@ -128,12 +128,26 @@ class _EditProfilPageState extends State<EditProfilPage> {
                 const SizedBox(height: 28),
 
                 _buildIsian(
-                  label: 'Username',
+                  label: 'Nama Lengkap',
                   controller: _nama,
-                  petunjuk: 'Dipakai sebagai nama tampilan, harus unik',
+                  petunjuk: 'Nama yang tampil pada profil dan diskusi',
+                  validator: (nilai) {
+                    final teks = (nilai ?? '').trim();
+                    if (teks.isEmpty) return 'Nama lengkap tidak boleh kosong';
+                    return null;
+                  },
+                ),
+                _buildIsian(
+                  label: 'Username',
+                  controller: _username,
+                  petunjuk:
+                      'Username unik tanpa spasi untuk mention (@username)',
                   validator: (nilai) {
                     final teks = (nilai ?? '').trim();
                     if (teks.isEmpty) return 'Username tidak boleh kosong';
+                    if (teks.contains(' ')) {
+                      return 'Username tidak boleh mengandung spasi';
+                    }
                     if (teks.length < 3) return 'Minimal 3 karakter';
                     return null;
                   },
@@ -151,12 +165,6 @@ class _EditProfilPageState extends State<EditProfilPage> {
                     }
                     return null;
                   },
-                ),
-                _buildIsian(
-                  label: 'Nomor HP',
-                  controller: _noHp,
-                  petunjuk: 'Boleh dikosongkan',
-                  keyboard: TextInputType.phone,
                 ),
 
                 const SizedBox(height: 12),

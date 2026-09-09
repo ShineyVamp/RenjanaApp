@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
@@ -213,11 +214,10 @@ class _HomePageState extends State<HomePage> with RouteAware {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Senin, 17 Agustus 2026",
-                            // DateFormat(
-                            //   'EEEE, dd MMMM yyyy',
-                            //   'id_ID',
-                            // ).format(DateTime.now()),
+                            DateFormat(
+                              'EEEE, dd MMMM yyyy',
+                              'id_ID',
+                            ).format(DateTime.now()),
                             style: AppTypography.labelBold(
                               color: AppColors.primary,
                               fontSize: 16,
