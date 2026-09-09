@@ -1,19 +1,17 @@
-﻿import 'package:device_preview/device_preview.dart';
+import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:renjana/firebase_options.dart';
-import 'package:renjana/presentation/splash/splash_page.dart';
-import 'package:renjana/services/preference_handler.dart';
+import 'package:renjana/features/splash/presentation/splash_page.dart';
+import 'package:renjana/core/storage/preference_handler.dart';
 
+import 'app/routes/app_routes.dart';
 import 'core/constants/app_theme.dart';
-import 'data/repositories/kategori_repository.dart';
-import 'services/layanan_notifikasi.dart';
+import 'features/budaya/data/repositories/kategori_repository.dart';
+import 'core/services/notification_service.dart';
 
-// Dipakai halaman yang perlu memuat ulang datanya setiap kali halaman di
-// atasnya ditutup, mis. beranda setelah pengguna membaca sebuah arsip.
-final RouteObserver<ModalRoute<void>> pengamatRute =
-    RouteObserver<ModalRoute<void>>();
+export 'app/routes/app_routes.dart';
 
 void main() async {
   DevicePreview();
