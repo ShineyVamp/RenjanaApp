@@ -27,12 +27,15 @@ class UserRepository {
     }
   }
 
-  Future<UserSQLModel?> loginUser(String email, String password) async {
+  // login pengguna
+  Future<UserSQLModel?> loginUser(String identifier, String password) async {
     final db = await _dbHelper.database;
+    final bersih = identifier.trim().toLowerCase();
     final List<Map<String, dynamic>> results = await db.query(
       'user',
-      where: 'email = ? AND password = ?',
-      whereArgs: [email, password],
+      where:
+          '(LOWER(email) = ? OR LOWER(username) = ? OR LOWER(nama) = ?) AND password = ?',
+      whereArgs: [bersih, bersih, bersih, password],
     );
     if (results.isNotEmpty) {
       return UserSQLModel.fromMap(results.first);
@@ -88,8 +91,8 @@ class UserRepository {
     return hasil.isNotEmpty;
   }
 
-  Future<bool> usernameDipakai(String nama, {int? kecualiId}) =>
-      _sudahDipakai('nama', nama, kecualiId: kecualiId);
+  Future<bool> usernameDipakai(String username, {int? kecualiId}) =>
+      _sudahDipakai('username', username, kecualiId: kecualiId);
 
   Future<bool> emailDipakai(String email, {int? kecualiId}) =>
       _sudahDipakai('email', email, kecualiId: kecualiId);
@@ -105,28 +108,37 @@ class UserRepository {
     );
   }
 
-  // Menyunting profil berdasarkan id. Data milik akun disimpan dengan kunci
-  // id, jadi mengganti username maupun email tidak memutus capaian apa pun.
+  // sunting profil
   Future<HasilSuntingProfil> perbaruiProfil({
     required int id,
     required String nama,
+    required String username,
     required String email,
-    required String noHp,
     String? fotoProfil,
     bool hapusFoto = false,
   }) async {
     if (id <= 0) return const HasilSuntingProfil.gagal('Sesi tidak ditemukan.');
 
     final namaBersih = nama.trim();
+    final usernameBersih = username.trim().toLowerCase();
     final emailBersih = email.trim();
+
     if (namaBersih.isEmpty) {
+      return const HasilSuntingProfil.gagal('Nama tidak boleh kosong.');
+    }
+    if (usernameBersih.isEmpty) {
       return const HasilSuntingProfil.gagal('Username tidak boleh kosong.');
+    }
+    if (usernameBersih.contains(' ')) {
+      return const HasilSuntingProfil.gagal(
+        'Username tidak boleh mengandung spasi.',
+      );
     }
     if (emailBersih.isEmpty) {
       return const HasilSuntingProfil.gagal('Email tidak boleh kosong.');
     }
 
-    if (await usernameDipakai(namaBersih, kecualiId: id)) {
+    if (await usernameDipakai(usernameBersih, kecualiId: id)) {
       return const HasilSuntingProfil.gagal(
         'Username itu sudah dipakai akun lain.',
       );
@@ -138,26 +150,28 @@ class UserRepository {
     }
 
     final db = await _dbHelper.database;
-    try {
-      await db.update(
-        'user',
-        {
-          'nama': namaBersih,
-          'email': emailBersih,
-          'noHp': noHp.trim(),
-          if (hapusFoto || fotoProfil != null) 'fotoProfil': fotoProfil,
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    } catch (_) {
-      return const HasilSuntingProfil.gagal('Gagal menyimpan perubahan.');
+    final nilai = <String, dynamic>{
+      'nama': namaBersih,
+      'username': usernameBersih,
+      'email': emailBersih,
+    };
+    if (hapusFoto) {
+      nilai['fotoProfil'] = null;
+    } else if (fotoProfil != null) {
+      nilai['fotoProfil'] = fotoProfil;
+    }
+
+    final barisDiubah = await db.update(
+      'user',
+      nilai,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (barisDiubah == 0) {
+      return const HasilSuntingProfil.gagal('Pengguna tidak ditemukan.');
     }
 
     final terbaru = await getUserById(id);
-    if (terbaru == null) {
-      return const HasilSuntingProfil.gagal('Akun tidak ditemukan lagi.');
-    }
     return HasilSuntingProfil.berhasil(terbaru);
   }
 }

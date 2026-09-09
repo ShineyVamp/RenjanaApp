@@ -1,39 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_dekorasi.dart';
-import '../../../core/extensions/navigation.dart';
-import '../../../core/storage/preference_handler.dart';
-import '../../../core/storage/user_session.dart';
-import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart';
-import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
-import '../../budaya/presentation/detail_budaya_page.dart';
-import '../../sejarah/presentation/detail_sejarah_page.dart';
-import 'package:renjana/features/komunitas/data/models/komunitas_model.dart';
-import 'package:renjana/features/komunitas/data/repositories/komunitas_repository.dart';
-import 'widgets/dialog_lapor.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_dekorasi.dart';
+import '../../../../core/storage/preference_handler.dart';
+import '../../../../core/storage/user_session.dart';
+import '../data/models/komunitas_model.dart';
+import '../data/repositories/komunitas_repository.dart';
 import 'widgets/badge_penulis.dart';
 import 'widgets/teks_dengan_mention.dart';
 import 'widgets/panel_saran_mention.dart';
-import 'detail_jawaban_page.dart';
 
-class DetailDiskusiPage extends StatefulWidget {
-  final int diskusiId;
+// halaman detail jawaban dan thread balasan
+class DetailJawabanPage extends StatefulWidget {
+  final int jawabanId;
+  final DiskusiModel diskusi;
 
-  const DetailDiskusiPage({super.key, required this.diskusiId});
+  const DetailJawabanPage({
+    super.key,
+    required this.jawabanId,
+    required this.diskusi,
+  });
 
   @override
-  State<DetailDiskusiPage> createState() => _DetailDiskusiPageState();
+  State<DetailJawabanPage> createState() => _DetailJawabanPageState();
 }
 
-class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
+class _DetailJawabanPageState extends State<DetailJawabanPage> {
   final KomunitasRepository _repository = KomunitasRepository();
-  final TextEditingController _jawabanController = TextEditingController();
-  final FocusNode _jawabanFocusNode = FocusNode();
+  final TextEditingController _balasanController = TextEditingController();
+  final FocusNode _balasanFocusNode = FocusNode();
 
-  DiskusiModel? _diskusi;
-  List<JawabanModel> _daftarJawaban = [];
+  JawabanModel? _komentar;
+  List<JawabanModel> _daftarBalasan = [];
   List<String> _semuaKandidat = [];
   List<Map<String, String>> _saranPengguna = [];
   int _indexAtSaatIni = -1;
@@ -48,28 +47,40 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
 
   @override
   void dispose() {
-    _jawabanFocusNode.dispose();
-    _jawabanController.dispose();
+    _balasanFocusNode.dispose();
+    _balasanController.dispose();
     super.dispose();
   }
 
   // daftar nama prioritas untuk mention
   List<String> _ambilNamaPrioritas() {
     final list = <String>[];
-    if (_diskusi != null) {
-      if (_diskusi!.penulis.isNotEmpty) list.add(_diskusi!.penulis);
-      if (_diskusi!.username != null && _diskusi!.username!.isNotEmpty) {
-        list.add(_diskusi!.username!);
+    if (widget.diskusi.penulis.isNotEmpty) {
+      list.add(widget.diskusi.penulis);
+    }
+    if (widget.diskusi.username != null &&
+        widget.diskusi.username!.isNotEmpty &&
+        !list.contains(widget.diskusi.username)) {
+      list.add(widget.diskusi.username!);
+    }
+    if (_komentar != null) {
+      if (_komentar!.penulis.isNotEmpty && !list.contains(_komentar!.penulis)) {
+        list.add(_komentar!.penulis);
+      }
+      if (_komentar!.username != null &&
+          _komentar!.username!.isNotEmpty &&
+          !list.contains(_komentar!.username)) {
+        list.add(_komentar!.username!);
       }
     }
-    for (final j in _daftarJawaban) {
-      if (j.penulis.isNotEmpty && !list.contains(j.penulis)) {
-        list.add(j.penulis);
+    for (final b in _daftarBalasan) {
+      if (b.penulis.isNotEmpty && !list.contains(b.penulis)) {
+        list.add(b.penulis);
       }
-      if (j.username != null &&
-          j.username!.isNotEmpty &&
-          !list.contains(j.username)) {
-        list.add(j.username!);
+      if (b.username != null &&
+          b.username!.isNotEmpty &&
+          !list.contains(b.username)) {
+        list.add(b.username!);
       }
     }
     for (final k in _semuaKandidat) {
@@ -79,8 +90,8 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
   }
 
   // deteksi pengetikan @ untuk memunculkan saran tag
-  void _onJawabanChanged(String text) {
-    final sel = _jawabanController.selection;
+  void _onBalasanChanged(String text) {
+    final sel = _balasanController.selection;
     if (!sel.isValid || sel.baseOffset <= 0) {
       if (_saranPengguna.isNotEmpty) {
         setState(() => _saranPengguna = []);
@@ -120,9 +131,9 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
 
   // pilih tag dari panel saran
   void _pilihTagPengguna(String nama) {
-    final text = _jawabanController.text;
+    final text = _balasanController.text;
     final atIndex = _indexAtSaatIni;
-    final cursor = _jawabanController.selection.baseOffset;
+    final cursor = _balasanController.selection.baseOffset;
     if (atIndex >= 0 && atIndex <= text.length) {
       final beforeAt = text.substring(0, atIndex);
       final afterCursor =
@@ -130,7 +141,7 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
               ? text.substring(cursor)
               : text.substring(atIndex);
       final newText = '$beforeAt@$nama $afterCursor';
-      _jawabanController.value = TextEditingValue(
+      _balasanController.value = TextEditingValue(
         text: newText,
         selection: TextSelection.collapsed(
           offset: '$beforeAt@$nama '.length,
@@ -142,20 +153,20 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
     setState(() {
       _saranPengguna = [];
     });
-    _jawabanFocusNode.requestFocus();
+    _balasanFocusNode.requestFocus();
   }
 
   // sisipkan tag pengguna ke input
   void _tambahTag(String nama) {
     final tag = '@$nama ';
-    final text = _jawabanController.text;
-    final sel = _jawabanController.selection;
+    final text = _balasanController.text;
+    final sel = _balasanController.selection;
     if (sel.isValid && sel.baseOffset >= 0) {
       final before = text.substring(0, sel.baseOffset);
       final after = text.substring(sel.baseOffset);
       final spasi = before.isNotEmpty && !before.endsWith(' ') ? ' ' : '';
       final newText = '$before$spasi$tag$after';
-      _jawabanController.value = TextEditingValue(
+      _balasanController.value = TextEditingValue(
         text: newText,
         selection: TextSelection.collapsed(
           offset: (before + spasi + tag).length,
@@ -163,313 +174,31 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
       );
     } else {
       final spasi = text.isNotEmpty && !text.endsWith(' ') ? ' ' : '';
-      _jawabanController.text = '$text$spasi$tag';
-      _jawabanController.selection = TextSelection.collapsed(
-        offset: _jawabanController.text.length,
+      _balasanController.text = '$text$spasi$tag';
+      _balasanController.selection = TextSelection.collapsed(
+        offset: _balasanController.text.length,
       );
     }
-    _jawabanFocusNode.requestFocus();
+    _balasanFocusNode.requestFocus();
   }
 
+  // muat data
   Future<void> _muatData() async {
-    final diskusi = await _repository.getDiskusiById(widget.diskusiId);
-    final jawaban = await _repository.getDaftarJawaban(widget.diskusiId);
+    final komentar = await _repository.getJawabanById(widget.jawabanId);
+    final balasan = await _repository.getDaftarBalasan(widget.jawabanId);
     final semuaNama = await _repository.getSemuaNamaPengguna();
     if (!mounted) return;
     setState(() {
-      _diskusi = diskusi;
-      _daftarJawaban = jawaban;
+      _komentar = komentar;
+      _daftarBalasan = balasan;
       _semuaKandidat = semuaNama;
       _isLoading = false;
     });
   }
 
-  Future<void> _toggleSuaraDiskusi() async {
-    if (_diskusi == null) return;
-    await _repository.toggleSuara('diskusi', _diskusi!.id!);
-    await _muatData();
-  }
-
-  Future<void> _toggleSuaraJawaban(JawabanModel jawaban) async {
-    if (jawaban.id == null) return;
-    await _repository.toggleSuara('jawaban', jawaban.id!);
-    await _muatData();
-  }
-
   bool get _isAdmin =>
       PreferenceHandler.isAdmin ||
       (PreferenceHandler.user?.isAdminAccount ?? false);
-
-  Future<void> _hapusDiskusi() async {
-    if (_diskusi == null) return;
-    final setuju = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(
-              Icons.delete_forever_rounded,
-              color: AppColors.error,
-              size: 24,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Hapus Diskusi?',
-              style: GoogleFonts.dmSerifDisplay(
-                fontSize: 18,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Postingan ini beserta seluruh komentarnya akan dihapus secara permanen dari komunitas.',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            height: 1.5,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              'Hapus',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (setuju == true && _diskusi!.id != null) {
-      await _repository.hapusDiskusi(_diskusi!.id!);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Diskusi berhasil dihapus',
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-          ),
-          backgroundColor: AppColors.primaryDark,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.pop(context, true);
-    }
-  }
-
-  Future<void> _hapusJawaban(JawabanModel jawaban) async {
-    final setuju = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(
-              Icons.delete_outline_rounded,
-              color: AppColors.error,
-              size: 22,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Hapus Komentar?',
-              style: GoogleFonts.dmSerifDisplay(
-                fontSize: 18,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Komentar ini akan dihapus secara permanen.',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              'Hapus',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (setuju == true && jawaban.id != null) {
-      await _repository.hapusJawaban(jawaban.id!);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Komentar berhasil dihapus',
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-          ),
-          backgroundColor: AppColors.primaryDark,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      await _muatData();
-    }
-  }
-
-  Future<void> _kirimJawaban() async {
-    final teks = _jawabanController.text.trim();
-    if (teks.isEmpty || _isSubmitting) return;
-
-    if (teks.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Komentar terlalu pendek (minimal 3 karakter).',
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-          ),
-          backgroundColor: AppColors.warning,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    final userId = idAkunAktif;
-    if (!_isAdmin && userId > 0) {
-      final jawabanTerakhir = await _repository.getJawabanTerakhirUser(
-        userId,
-        widget.diskusiId,
-      );
-      if (jawabanTerakhir != null) {
-        // Cek duplikasi teks
-        if (jawabanTerakhir.isi.trim().toLowerCase() ==
-            teks.toLowerCase()) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Anda baru saja mengirim komentar yang sama.',
-                style: GoogleFonts.plusJakartaSans(color: Colors.white),
-              ),
-              backgroundColor: AppColors.warning,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return;
-        }
-
-        // Cek cooldown 45 detik
-        final selisihDetik =
-            DateTime.now().difference(jawabanTerakhir.dibuatPada).inSeconds;
-        const cooldown = 45;
-        if (selisihDetik < cooldown) {
-          final sisaDetik = cooldown - selisihDetik;
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Tunggu $sisaDetik detik sebelum mengirim komentar berikutnya.',
-                style: GoogleFonts.plusJakartaSans(color: Colors.white),
-              ),
-              backgroundColor: AppColors.warning,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return;
-        }
-      }
-    }
-
-    setState(() => _isSubmitting = true);
-    final user = PreferenceHandler.user;
-    final nama = user?.nama.isNotEmpty == true
-        ? user!.nama
-        : PreferenceHandler.userName;
-
-    await _repository.tambahJawaban(
-      JawabanModel(
-        diskusiId: widget.diskusiId,
-        userId: userId,
-        penulis: nama.isNotEmpty ? nama : 'Pengguna Renjana',
-        isi: teks,
-        dibuatPada: DateTime.now(),
-      ),
-    );
-
-    _jawabanController.clear();
-    setState(() {
-      _isSubmitting = false;
-      _saranPengguna = [];
-    });
-    await _muatData();
-  }
-
-  Future<void> _bukaArsipTerkait(String kodeTag) async {
-    final bersih = kodeTag.trim();
-    if (bersih.startsWith('HIS') || bersih.contains('history')) {
-      final item = await SejarahRepository().getSejarahByKodeTag(bersih);
-      if (item != null && mounted) {
-        context.push(DetailSejarahPage(sejarah: item));
-        return;
-      }
-    } else {
-      final item = await BudayaRepository().getBudayaByKodeTag(bersih);
-      if (item != null && mounted) {
-        context.push(DetailBudayaPage(budaya: item));
-        return;
-      }
-    }
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Arsip "$kodeTag" sedang tidak tersedia.'),
-        backgroundColor: AppColors.textSecondary,
-      ),
-    );
-  }
 
   String _formatWaktu(DateTime waktu) {
     final selisih = DateTime.now().difference(waktu);
@@ -486,18 +215,139 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
     }
   }
 
+  // toggle suara komentar utama
+  Future<void> _toggleSuaraKomentar() async {
+    if (_komentar?.id == null) return;
+    await _repository.toggleSuara('jawaban', _komentar!.id!);
+    await _muatData();
+  }
+
+  // toggle suara balasan
+  Future<void> _toggleSuaraBalasan(JawabanModel balasan) async {
+    if (balasan.id == null) return;
+    await _repository.toggleSuara('jawaban', balasan.id!);
+    await _muatData();
+  }
+
+  // hapus balasan
+  Future<void> _hapusBalasan(JawabanModel balasan) async {
+    final setuju = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.error,
+              size: 22,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Hapus Balasan?',
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Balasan ini akan dihapus secara permanen.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (setuju == true && balasan.id != null) {
+      await _repository.hapusJawaban(balasan.id!);
+      if (!mounted) return;
+      await _muatData();
+    }
+  }
+
+  // kirim balasan
+  Future<void> _kirimBalasan() async {
+    final teks = _balasanController.text.trim();
+    if (teks.isEmpty || _isSubmitting || _komentar == null) return;
+
+    if (teks.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Balasan terlalu pendek.',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          ),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    final user = PreferenceHandler.user;
+    final nama = user?.nama.isNotEmpty == true
+        ? user!.nama
+        : PreferenceHandler.userName;
+
+    await _repository.tambahJawaban(
+      JawabanModel(
+        diskusiId: widget.diskusi.id!,
+        indukId: _komentar!.id,
+        balasKe: _komentar!.penulis,
+        userId: idAkunAktif,
+        penulis: nama.isNotEmpty ? nama : 'Pengguna Renjana',
+        isi: teks,
+        dibuatPada: DateTime.now(),
+      ),
+    );
+
+    _balasanController.clear();
+    setState(() {
+      _isSubmitting = false;
+      _saranPengguna = [];
+    });
+    await _muatData();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final diskusi = _diskusi;
-    final userId = PreferenceHandler.userId;
-    final userName = PreferenceHandler.user?.nama ?? '';
-    final bisaHapusDiskusi =
-        _isAdmin ||
-        (diskusi != null &&
-            ((userId > 0 && diskusi.userId == userId) ||
-                (userName.isNotEmpty &&
-                    diskusi.penulis.toLowerCase() ==
-                        userName.toLowerCase())));
+    final komentar = _komentar;
+    final currentUserId = idAkunAktif;
+    final currentUserName = PreferenceHandler.userName.trim().toLowerCase();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -506,10 +356,10 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, true),
         ),
         title: Text(
-          'Detail Diskusi',
+          'Balasan Komentar',
           style: GoogleFonts.dmSerifDisplay(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -517,38 +367,8 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          if (bisaHapusDiskusi && diskusi != null)
-            IconButton(
-              icon: const Icon(
-                Icons.delete_outline_rounded,
-                color: AppColors.error,
-                size: 22,
-              ),
-              tooltip: 'Hapus Diskusi',
-              onPressed: _hapusDiskusi,
-            ),
-          IconButton(
-            icon: const Icon(
-              Icons.flag_outlined,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
-            tooltip: 'Laporkan Diskusi',
-            onPressed: () {
-              if (diskusi != null) {
-                tampilkanDialogLapor(
-                  context,
-                  targetTipe: 'diskusi',
-                  targetId: diskusi.id.toString(),
-                  kontenTeks: '${diskusi.judul} — ${diskusi.isi}',
-                );
-              }
-            },
-          ),
-        ],
       ),
-      body: _isLoading || diskusi == null
+      body: _isLoading || komentar == null
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : Column(
               children: [
@@ -558,7 +378,43 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Kotak Konten Utama Diskusi
+                        // banner konteks diskusi induk
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.borderLight),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.forum_outlined,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Diskusi: ${widget.diskusi.judul}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // kartu komentar utama yang difokuskan
                         Container(
                           padding: const EdgeInsets.all(18),
                           decoration: AppDekorasi.panel(),
@@ -566,14 +422,15 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CircleAvatar(
                                     radius: 16,
                                     backgroundColor:
                                         AppColors.primaryDark.withAlpha(30),
                                     child: Text(
-                                      diskusi.penulis.isNotEmpty
-                                          ? diskusi.penulis[0].toUpperCase()
+                                      komentar.penulis.isNotEmpty
+                                          ? komentar.penulis[0].toUpperCase()
                                           : 'P',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 13,
@@ -589,134 +446,60 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          diskusi.penulis,
+                                          komentar.penulis,
                                           style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 13,
+                                            fontSize: 13.5,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.textPrimary,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
-                                        // role dan lencana di bawah nama
+                                        const SizedBox(height: 3),
+                                        // role ditaruh di bawah nama
                                         BadgePenulis(
-                                          role: diskusi.role,
-                                          gelar: diskusi.gelar,
-                                          badgePilihan: diskusi.badgePilihan,
-                                          waktuTeks:
-                                              _formatWaktu(diskusi.dibuatPada),
+                                          role: komentar.role,
+                                          gelar: komentar.gelar,
+                                          badgePilihan: komentar.badgePilihan,
+                                          waktuTeks: _formatWaktu(
+                                            komentar.dibuatPada,
+                                          ),
                                         ),
                                       ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppColors.primaryLight.withAlpha(50),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      diskusi.kategori,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryDark,
-                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 14),
 
-                              Text(
-                                diskusi.judul,
-                                style: GoogleFonts.dmSerifDisplay(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                  height: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                               TeksDenganMention(
-                                teks: diskusi.isi,
+                              // teks isi komentar utama dengan sorotan mention
+                              TeksDenganMention(
+                                teks: komentar.isi,
                                 kandidatNama: _ambilNamaPrioritas(),
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13.5,
+                                  fontSize: 14,
                                   height: 1.55,
                                   color: AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 16),
 
-                              // Tautan Arsip
-                              if (diskusi.refArsip != null &&
-                                  diskusi.refArsip!.trim().isNotEmpty) ...[
-                                GestureDetector(
-                                  onTap: () =>
-                                      _bukaArsipTerkait(diskusi.refArsip!),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppColors.primary.withAlpha(15),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: AppColors.borderPrimary,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.article_outlined,
-                                          color: AppColors.primary,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            'Arsip Terkait: ${diskusi.refArsip}',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryDark,
-                                            ),
-                                          ),
-                                        ),
-                                        const Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          size: 13,
-                                          color: AppColors.primaryDark,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                              ],
-
-                              // aksi diskusi: upvote dan tag
+                              // aksi komentar utama
                               Row(
                                 children: [
                                   GestureDetector(
-                                    onTap: _toggleSuaraDiskusi,
+                                    onTap: _toggleSuaraKomentar,
                                     behavior: HitTestBehavior.opaque,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 12,
-                                        vertical: 7,
+                                        vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: diskusi.suaraSaya > 0
+                                        color: komentar.suaraSaya > 0
                                             ? AppColors.primary.withAlpha(25)
                                             : AppColors.surface,
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: diskusi.suaraSaya > 0
+                                          color: komentar.suaraSaya > 0
                                               ? AppColors.primary
                                               : AppColors.border,
                                         ),
@@ -725,21 +508,21 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            diskusi.suaraSaya > 0
+                                            komentar.suaraSaya > 0
                                                 ? Icons.arrow_upward_rounded
                                                 : Icons.arrow_upward_outlined,
-                                            size: 16,
-                                            color: diskusi.suaraSaya > 0
+                                            size: 15,
+                                            color: komentar.suaraSaya > 0
                                                 ? AppColors.primary
                                                 : AppColors.textMuted,
                                           ),
-                                          const SizedBox(width: 6),
+                                          const SizedBox(width: 5),
                                           Text(
-                                            'Dukung (${diskusi.jumlahSuara})',
+                                            'Dukung (${komentar.jumlahSuara})',
                                             style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 12,
+                                              fontSize: 11.5,
                                               fontWeight: FontWeight.bold,
-                                              color: diskusi.suaraSaya > 0
+                                              color: komentar.suaraSaya > 0
                                                   ? AppColors.primary
                                                   : AppColors.textPrimary,
                                             ),
@@ -749,13 +532,47 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                     ),
                                   ),
                                   const SizedBox(width: 10),
-                                  // tombol tag penulis diskusi
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: AppColors.borderLight,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.chat_bubble_outline_rounded,
+                                          size: 14,
+                                          color: AppColors.textMuted,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          '${_daftarBalasan.length} Balasan',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  // tombol tag penulis utama
                                   GestureDetector(
                                     onTap: () {
-                                      final targetTag = (diskusi.username != null &&
-                                              diskusi.username!.isNotEmpty)
-                                          ? diskusi.username!
-                                          : diskusi.penulis
+                                      final targetTag = (komentar.username !=
+                                                  null &&
+                                              komentar.username!.isNotEmpty)
+                                          ? komentar.username!
+                                          : komentar.penulis
                                               .replaceAll(RegExp(r'\s+'), '_')
                                               .toLowerCase();
                                       _tambahTag(targetTag);
@@ -763,30 +580,31 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                     behavior: HitTestBehavior.opaque,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 7,
+                                        horizontal: 10,
+                                        vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.surface,
                                         borderRadius: BorderRadius.circular(8),
-                                        border:
-                                            Border.all(color: AppColors.border),
+                                        border: Border.all(
+                                          color: AppColors.borderLight,
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           const Icon(
                                             Icons.alternate_email_rounded,
-                                            size: 15,
-                                            color: AppColors.textMuted,
+                                            size: 13,
+                                            color: AppColors.primary,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
                                             'Tag',
                                             style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 12,
+                                              fontSize: 11.5,
                                               fontWeight: FontWeight.w600,
-                                              color: AppColors.textSecondary,
+                                              color: AppColors.primaryDark,
                                             ),
                                           ),
                                         ],
@@ -798,11 +616,11 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 20),
 
-                        // Bagian Jawaban / Tanggapan
+                        // judul seksi balasan
                         Text(
-                          'Tanggapan (${_daftarJawaban.length})',
+                          'Balasan (${_daftarBalasan.length})',
                           style: GoogleFonts.dmSerifDisplay(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -811,13 +629,14 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                         ),
                         const SizedBox(height: 12),
 
-                        if (_daftarJawaban.isEmpty)
+                        // daftar balasan anak
+                        if (_daftarBalasan.isEmpty)
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: AppDekorasi.panel(),
                             child: Center(
                               child: Text(
-                                'Belum ada tanggapan. Tulis tanggapan pertama Anda di bawah!',
+                                'Belum ada balasan. Jadilah yang pertama membalas!',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12.5,
@@ -830,17 +649,16 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                           ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _daftarJawaban.length,
+                            itemCount: _daftarBalasan.length,
                             separatorBuilder: (context, index) =>
                                 const SizedBox(height: 10),
                             itemBuilder: (context, index) {
-                              final jwb = _daftarJawaban[index];
-                              final isJwbVoted = jwb.suaraSaya > 0;
-                              final bisaHapusJwb = _isAdmin ||
-                                  (userId > 0 && jwb.userId == userId) ||
-                                  (userName.isNotEmpty &&
-                                      jwb.penulis.toLowerCase() ==
-                                          userName.toLowerCase());
+                              final b = _daftarBalasan[index];
+                              final isBVoted = b.suaraSaya > 0;
+                              final bisaHapus = _isAdmin ||
+                                  (currentUserId > 0 && b.userId == currentUserId) ||
+                                  (b.penulis.toLowerCase() == currentUserName);
+
                               return Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: AppDekorasi.panel(),
@@ -848,18 +666,19 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         CircleAvatar(
-                                          radius: 12,
+                                          radius: 13,
                                           backgroundColor: AppColors.primaryDark
                                               .withAlpha(20),
                                           child: Text(
-                                            jwb.penulis.isNotEmpty
-                                                ? jwb.penulis[0].toUpperCase()
+                                            b.penulis.isNotEmpty
+                                                ? b.penulis[0].toUpperCase()
                                                 : 'P',
                                             style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 10.5,
+                                              fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.primaryDark,
                                             ),
@@ -872,7 +691,7 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                jwb.penulis,
+                                                b.penulis,
                                                 style:
                                                     GoogleFonts.plusJakartaSans(
                                                   fontSize: 12,
@@ -881,19 +700,19 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                                 ),
                                               ),
                                               const SizedBox(height: 2),
-                                              // role dan lencana di bawah nama
+                                              // role ditaruh di bawah nama
                                               BadgePenulis(
-                                                role: jwb.role,
-                                                gelar: jwb.gelar,
-                                                badgePilihan: jwb.badgePilihan,
+                                                role: b.role,
+                                                gelar: b.gelar,
+                                                badgePilihan: b.badgePilihan,
                                                 waktuTeks: _formatWaktu(
-                                                    jwb.dibuatPada),
+                                                  b.dibuatPada,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        if (bisaHapusJwb) ...[
-                                          const SizedBox(width: 4),
+                                        if (bisaHapus) ...[
                                           IconButton(
                                             icon: const Icon(
                                               Icons.delete_outline_rounded,
@@ -902,83 +721,48 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                             ),
                                             padding: EdgeInsets.zero,
                                             constraints: const BoxConstraints(),
-                                            tooltip: 'Hapus Komentar',
-                                            onPressed: () =>
-                                                _hapusJawaban(jwb),
+                                            tooltip: 'Hapus Balasan',
+                                            onPressed: () => _hapusBalasan(b),
                                           ),
                                         ],
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    // teks komentar dengan highlight mention
+
+                                    // teks isi balasan
                                     TeksDenganMention(
-                                      teks: jwb.isi,
+                                      teks: b.isi,
                                       kandidatNama: _ambilNamaPrioritas(),
                                     ),
                                     const SizedBox(height: 8),
+
+                                    // tombol aksi balasan
                                     Row(
                                       children: [
                                         GestureDetector(
-                                          onTap: () => _toggleSuaraJawaban(jwb),
+                                          onTap: () => _toggleSuaraBalasan(b),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Icon(
-                                                isJwbVoted
+                                                isBVoted
                                                     ? Icons.arrow_upward_rounded
                                                     : Icons.arrow_upward_outlined,
                                                 size: 14,
-                                                color: isJwbVoted
+                                                color: isBVoted
                                                     ? AppColors.primary
                                                     : AppColors.textMuted,
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                '${jwb.jumlahSuara}',
+                                                '${b.jumlahSuara}',
                                                 style:
                                                     GoogleFonts.plusJakartaSans(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
-                                                  color: isJwbVoted
+                                                  color: isBVoted
                                                       ? AppColors.primary
                                                       : AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        // balas komentar
-                                        GestureDetector(
-                                          onTap: () async {
-                                            await context.push(
-                                              DetailJawabanPage(
-                                                jawabanId: jwb.id!,
-                                                diskusi: diskusi,
-                                              ),
-                                            );
-                                            _muatData();
-                                          },
-                                          behavior: HitTestBehavior.opaque,
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.chat_bubble_outline_rounded,
-                                                size: 13,
-                                                color: AppColors.textMuted,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                jwb.jumlahBalasan > 0
-                                                    ? '${jwb.jumlahBalasan} Balasan'
-                                                    : 'Balas',
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
-                                                  color:
-                                                      AppColors.textSecondary,
                                                 ),
                                               ),
                                             ],
@@ -988,11 +772,11 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                         // tombol tag pengguna
                                         GestureDetector(
                                           onTap: () {
-                                            final targetTag = (jwb.username !=
+                                            final targetTag = (b.username !=
                                                         null &&
-                                                    jwb.username!.isNotEmpty)
-                                                ? jwb.username!
-                                                : jwb.penulis
+                                                    b.username!.isNotEmpty)
+                                                ? b.username!
+                                                : b.penulis
                                                     .replaceAll(
                                                         RegExp(r'\s+'), '_')
                                                     .toLowerCase();
@@ -1039,7 +823,7 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                   onPilih: _pilihTagPengguna,
                 ),
 
-                // Kolom Input Jawaban di Bawah
+                // input balasan di bagian bawah
                 Container(
                   padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                   decoration: const BoxDecoration(
@@ -1054,14 +838,14 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                       children: [
                         Expanded(
                           child: TextField(
-                            controller: _jawabanController,
-                            focusNode: _jawabanFocusNode,
-                            onChanged: _onJawabanChanged,
+                            controller: _balasanController,
+                            focusNode: _balasanFocusNode,
+                            onChanged: _onBalasanChanged,
                             maxLines: null,
                             textInputAction: TextInputAction.send,
-                            onSubmitted: (_) => _kirimJawaban(),
+                            onSubmitted: (_) => _kirimBalasan(),
                             decoration: InputDecoration(
-                              hintText: 'Tulis tanggapan atau jawaban...',
+                              hintText: 'Balas @${komentar.penulis}...',
                               hintStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 color: AppColors.textMuted,
@@ -1106,7 +890,7 @@ class _DetailDiskusiPageState extends State<DetailDiskusiPage> {
                                   Icons.send_rounded,
                                   color: AppColors.primary,
                                 ),
-                          onPressed: _isSubmitting ? null : _kirimJawaban,
+                          onPressed: _isSubmitting ? null : _kirimBalasan,
                         ),
                       ],
                     ),

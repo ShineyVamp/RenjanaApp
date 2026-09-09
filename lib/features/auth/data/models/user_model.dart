@@ -1,81 +1,100 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
-// Nama akun yang diberi hak admin.
+// akun admin
 const Set<String> adminAccountNames = {'admin1', 'admin2'};
 
-// Pengecekan hak admin, dipakai PreferenceHandler dan MainPage.
-bool isAdminAccountName(String nama) =>
-    adminAccountNames.contains(nama.toLowerCase().trim());
+bool isAdminAccountName(String identifier) =>
+    adminAccountNames.contains(identifier.toLowerCase().trim());
 
+// model user
 class UserSQLModel {
   final int? id;
   final String nama;
+  final String username;
   final String email;
-  final String noHp;
   final String password;
-
-  // Path foto profil di penyimpanan perangkat. Null berarti memakai
-  // placeholder huruf depan nama.
   final String? fotoProfil;
+  final String role;
 
   UserSQLModel({
     this.id,
     required this.nama,
+    required this.username,
     required this.email,
-    required this.noHp,
     required this.password,
     this.fotoProfil,
+    this.role = 'user',
   });
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
       'nama': nama,
+      'username': username,
       'email': email,
-      'noHp': noHp,
       'password': password,
       'fotoProfil': fotoProfil,
+      'role': role,
     };
   }
 
   UserSQLModel copyWith({
     int? id,
     String? nama,
+    String? username,
     String? email,
-    String? noHp,
     String? password,
     String? fotoProfil,
+    String? role,
     bool hapusFoto = false,
   }) {
     return UserSQLModel(
       id: id ?? this.id,
       nama: nama ?? this.nama,
+      username: username ?? this.username,
       email: email ?? this.email,
-      noHp: noHp ?? this.noHp,
       password: password ?? this.password,
       fotoProfil: hapusFoto ? null : (fotoProfil ?? this.fotoProfil),
+      role: role ?? this.role,
     );
   }
 
-  // Huruf pertama nama, dipakai saat foto profil belum ada.
+  // inisial nama
   String get inisial {
     final bersih = nama.trim();
-    return bersih.isEmpty ? '?' : bersih[0].toUpperCase();
+    if (bersih.isNotEmpty) return bersih[0].toUpperCase();
+    final u = username.trim();
+    return u.isNotEmpty ? u[0].toUpperCase() : '?';
   }
 
-  // Salinan tanpa password, dipakai saat menyimpan sesi.
+  // sanitasi password
   UserSQLModel sanitized() => copyWith(password: '');
 
-  bool get isAdminAccount => isAdminAccountName(nama);
+  // cek admin
+  bool get isAdmin =>
+      role == 'admin' ||
+      isAdminAccountName(nama) ||
+      isAdminAccountName(username);
+  bool get isAdminAccount => isAdmin;
 
   factory UserSQLModel.fromMap(Map<String, dynamic> map) {
+    final namaVal = map['nama'] as String? ?? '';
+    final rawUsername = map['username'] as String?;
+    final usernameVal = (rawUsername != null && rawUsername.trim().isNotEmpty)
+        ? rawUsername.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_')
+        : namaVal.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+
     return UserSQLModel(
       id: map['id'] != null ? map['id'] as int : null,
-      nama: map['nama'] as String? ?? '',
+      nama: namaVal,
+      username: usernameVal,
       email: map['email'] as String? ?? '',
-      noHp: map['noHp'] as String? ?? '',
       password: map['password'] as String? ?? '',
       fotoProfil: map['fotoProfil'] as String?,
+      role: map['role'] as String? ??
+          (isAdminAccountName(namaVal) || isAdminAccountName(usernameVal)
+              ? 'admin'
+              : 'user'),
     );
   }
 
@@ -84,3 +103,4 @@ class UserSQLModel {
   factory UserSQLModel.fromJson(String source) =>
       UserSQLModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }
+

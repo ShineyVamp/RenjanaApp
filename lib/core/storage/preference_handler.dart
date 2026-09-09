@@ -12,6 +12,7 @@ class PreferenceHandler {
   static const _keyUserData = "userData";
   static const _keyIsAdmin = "isAdmin";
   static const _keyUserName = "userName";
+  static const _keyUserUsername = "userUsername";
   static const _keyUserEmail = "userEmail";
   static const _keyUserId = "userId";
 
@@ -22,6 +23,7 @@ class PreferenceHandler {
 
     await _prefs.setBool(_keyIsAdmin, user.isAdminAccount);
     await _prefs.setString(_keyUserName, user.nama);
+    await _prefs.setString(_keyUserUsername, user.username);
     await _prefs.setString(_keyUserEmail, user.email);
     await _prefs.setInt(_keyUserId, user.id ?? 0);
   }
@@ -30,8 +32,9 @@ class PreferenceHandler {
     return _prefs.getBool(_keyIsLogin) ?? false;
   }
 
+  // cek admin
   static bool get isAdmin {
-    return _prefs.getBool(_keyIsAdmin) ?? false;
+    return (_prefs.getBool(_keyIsAdmin) ?? false) || (user?.isAdmin ?? false);
   }
 
   static String get userName {
@@ -40,6 +43,17 @@ class PreferenceHandler {
       return name;
     }
     return isAdmin ? 'admin1' : 'Agus';
+  }
+
+  static String get userUsername {
+    final u = _prefs.getString(_keyUserUsername);
+    if (u != null && u.trim().isNotEmpty) {
+      return u;
+    }
+    if (user != null && user!.username.isNotEmpty) {
+      return user!.username;
+    }
+    return userName.toLowerCase().replaceAll(RegExp(r'\s+'), '_');
   }
 
   static String get userEmail {
