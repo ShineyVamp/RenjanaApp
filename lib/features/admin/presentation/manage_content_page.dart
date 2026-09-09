@@ -1,0 +1,2336 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_typography.dart';
+import '../../../core/extensions/navigation.dart';
+import '../../../core/widgets/app_image.dart';
+import '../../../core/constants/budaya_kategori.dart';
+import '../../../core/constants/wilayah_nusantara.dart';
+import '../../../core/widgets/pembersih_dialog.dart';
+import '../../kontribusi/data/models/blok_konten_model.dart';
+import '../../budaya/data/models/budaya_model.dart';
+import '../../sejarah/data/models/sejarah_model.dart';
+import '../../budaya/data/repositories/budaya_repository.dart';
+import '../../sejarah/data/repositories/sejarah_repository.dart';
+import '../../kontribusi/presentation/widgets/editor_blok_konten.dart';
+import 'widgets/app_image_picker_widget.dart';
+
+class AdminManageContentPage extends StatefulWidget {
+  const AdminManageContentPage({super.key});
+
+  @override
+  State<AdminManageContentPage> createState() => _AdminManageContentPageState();
+}
+
+class _AdminManageContentPageState extends State<AdminManageContentPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final SejarahRepository _sejarahRepository = SejarahRepository();
+  final BudayaRepository _budayaRepository = BudayaRepository();
+
+  List<SejarahModel> _sejarahList = [];
+  List<BudayaModel> _budayaList = [];
+  bool _isLoading = true;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    setState(() => _isLoading = true);
+    final sejarah = await _sejarahRepository.getAllSejarah();
+    final budaya = await _budayaRepository.getAllBudaya();
+    if (!mounted) return;
+    setState(() {
+      _sejarahList = sejarah;
+      _budayaList = budaya;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // form tambah/edit sejarah
+  void _showSejarahFormDialog({SejarahModel? sejarahToEdit}) {
+    final isEditing = sejarahToEdit != null;
+    final kodeTagController = TextEditingController(
+      text: isEditing ? sejarahToEdit.kodeTag : 'HIS-170845-1',
+    );
+    final judulController = TextEditingController(
+      text: isEditing ? sejarahToEdit.judul : '',
+    );
+    final subtitleController = TextEditingController(
+      text: isEditing ? sejarahToEdit.subtitle : '17.08.45',
+    );
+    final tanggalKeyController = TextEditingController(
+      text: isEditing ? sejarahToEdit.tanggalKey : '170845',
+    );
+    final urutanController = TextEditingController(
+      text: isEditing ? sejarahToEdit.urutan.toString() : '1',
+    );
+    final ringkasanController = TextEditingController(
+      text: isEditing ? sejarahToEdit.ringkasan : '',
+    );
+    String selectedImage = isEditing
+        ? sejarahToEdit.gambarUtama
+        : 'assets/images/170845history.png';
+    String selectedJenisMedia = isEditing ? sejarahToEdit.jenisMedia : 'gambar';
+    final mediaUrlController = TextEditingController(
+      text: isEditing ? (sejarahToEdit.mediaUrl ?? '') : '',
+    );
+
+    String? selectedProvinsi = provinsiDariNama(
+      isEditing ? sejarahToEdit.provinsi : null,
+    )?.nama;
+
+    String? selectedPeriode = isEditing
+        ? (periodeByKode(sejarahToEdit.periode ?? '')?.kode ??
+            (sejarahToEdit.periode?.isNotEmpty == true
+                ? sejarahToEdit.periode
+                : null))
+        : (periodeSejarahList.isNotEmpty
+            ? periodeSejarahList.first.kode
+            : null);
+
+    String? selectedJenisPeristiwa = isEditing
+        ? (peristiwaByKode(sejarahToEdit.jenisPeristiwa ?? '')?.kode ??
+            (sejarahToEdit.jenisPeristiwa?.isNotEmpty == true
+                ? sejarahToEdit.jenisPeristiwa
+                : null))
+        : (peristiwaSejarahList.isNotEmpty
+            ? peristiwaSejarahList.first.kode
+            : null);
+
+    final Map<String, String> nilaiDetailPeristiwa = {};
+    if (isEditing && sejarahToEdit.jenisPeristiwa != null) {
+      for (final field in fieldPeristiwa(sejarahToEdit.jenisPeristiwa!)) {
+        nilaiDetailPeristiwa[field.kunci] = field.tipe == TipeField.daftar
+            ? sejarahToEdit.daftarDetail(field.kunci).join('\n')
+            : sejarahToEdit.teksDetail(field.kunci);
+      }
+    }
+
+    Map<String, TextEditingController> detailControllers = {};
+
+    void simpanNilaiDetailPeristiwa() {
+      detailControllers.forEach(
+        (kunci, c) => nilaiDetailPeristiwa[kunci] = c.text,
+      );
+    }
+
+    void bangunControllerDetailPeristiwa() {
+      for (final c in detailControllers.values) {
+        c.dispose();
+      }
+      detailControllers = {
+        for (final field in fieldPeristiwa(selectedJenisPeristiwa ?? ''))
+          field.kunci: TextEditingController(
+            text: nilaiDetailPeristiwa[field.kunci] ?? '',
+          ),
+      };
+    }
+
+    bangunControllerDetailPeristiwa();
+
+    List<BlokKontenModel> blokKonten = isEditing
+        ? BlokKontenModel.listFromDynamic(
+            sejarahToEdit.detailPeristiwa['blokKonten'],
+          )
+        : [];
+
+    // salinan alur peristiwa yang bisa diedit di dalam dialog
+    List<TimelineItemModel> timelineItems = isEditing
+        ? List.from(sejarahToEdit.alurPeristiwa)
+        : [
+            const TimelineItemModel(
+              date: '16 AGUSTUS 1945 · 03:00 WIB',
+              title: 'Peristiwa Rengasdengklok',
+              desc: 'Golongan muda mendesak percepatan proklamasi.',
+              imgPath: 'assets/images/rengasdengklok.jpg',
+              hasImage: true,
+            ),
+          ];
+
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (modalCtx) {
+        return PembersihDialog(
+          onTutup: () => buangController([
+            kodeTagController,
+            judulController,
+            subtitleController,
+            tanggalKeyController,
+            urutanController,
+            ringkasanController,
+            mediaUrlController,
+            ...detailControllers.values,
+          ]),
+          child: StatefulBuilder(
+            builder: (ctx, setModalState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(modalCtx).viewInsets.bottom,
+                  top: 20,
+                  left: 20,
+                  right: 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(modalCtx).size.height * 0.88,
+                  ),
+                  child: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isEditing
+                                    ? 'Edit Data Sejarah'
+                                    : 'Tambah Sejarah Baru',
+                                style: GoogleFonts.dmSerifDisplay(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(modalCtx),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: AppColors.primary),
+                          const SizedBox(height: 12),
+
+                          // input kode tag, format HIS-ddMMyy-urutan
+                          Text(
+                            'ID Tag (Format: HIS-<ddMMyy>-<urutan>)',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: kodeTagController,
+                            decoration: _inputDecoration(
+                              'Contoh: HIS-150845-1',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Kode tag wajib diisi'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input tanggal key & urutan
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Tanggal Key (ddMMyy)',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: tanggalKeyController,
+                                      decoration: _inputDecoration('150845'),
+                                      validator: (val) =>
+                                          val == null || val.trim().isEmpty
+                                          ? 'Wajib diisi'
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Urutan',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: urutanController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: _inputDecoration('1'),
+                                      validator: (val) =>
+                                          val == null || val.trim().isEmpty
+                                          ? 'Wajib'
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input judul
+                          Text(
+                            'Judul Sejarah',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: judulController,
+                            decoration: _inputDecoration(
+                              'Contoh: Detik Proklamasi',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Judul tidak boleh kosong'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input subtitle
+                          Text(
+                            'Subtitle / Format Tanggal',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: subtitleController,
+                            decoration: _inputDecoration('Contoh: 17.08.45'),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input ringkasan
+                          Text(
+                            'Ringkasan Sejarah',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: ringkasanController,
+                            maxLines: 3,
+                            decoration: _inputDecoration(
+                              'Masukkan narasi ringkasan sejarah...',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Ringkasan tidak boleh kosong'
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // pemilih gambar utama
+                          AppImagePickerWidget(
+                            label: 'Gambar Sampul / Cover Utama',
+                            isRequired: true,
+                            currentImagePath: selectedImage,
+                            onImageSelected: (path) {
+                              if (path != null) {
+                                setModalState(() => selectedImage = path);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // pilihan format media
+                          Text(
+                            'Format Media Utama',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            initialValue: selectedJenisMedia,
+                            isExpanded: true,
+                            decoration: _inputDecoration(''),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'gambar',
+                                child: Text('Foto / Gambar Saja'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'video',
+                                child: Text('Video Berkas / Galeri'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'youtube',
+                                child: Text('Video Tautan YouTube'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val == null) return;
+                              setModalState(() => selectedJenisMedia = val);
+                            },
+                          ),
+                          if (selectedJenisMedia != 'gambar') ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              selectedJenisMedia == 'youtube'
+                                  ? 'Tautan / ID Video YouTube'
+                                  : 'Path / URL Berkas Video',
+                              style: AppTypography.labelBold(fontSize: 13),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: mediaUrlController,
+                              decoration: _inputDecoration(
+                                selectedJenisMedia == 'youtube'
+                                    ? 'Contoh: https://www.youtube.com/watch?v=...'
+                                    : 'Contoh: assets/videos/candi.mp4 atau https://...',
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 14),
+
+                          // pilihan provinsi asal
+                          Text(
+                            'Provinsi Asal',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String?>(
+                            initialValue: selectedProvinsi,
+                            isExpanded: true,
+                            decoration: _inputDecoration(''),
+                            items: [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text(
+                                  'Tidak ditentukan',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              ...semuaProvinsi.map(
+                                (p) => DropdownMenuItem<String?>(
+                                  value: p.nama,
+                                  child: Text(
+                                    p.nama,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            onChanged: (val) =>
+                                setModalState(() => selectedProvinsi = val),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // pilihan periode & jenis peristiwa
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Periode Sejarah',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    DropdownButtonFormField<String?>(
+                                      initialValue: selectedPeriode,
+                                      isExpanded: true,
+                                      decoration: _inputDecoration(''),
+                                      items: [
+                                        DropdownMenuItem<String?>(
+                                          value: null,
+                                          child: Text(
+                                            'Tidak ditentukan',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                        ...periodeSejarahList.map(
+                                          (p) => DropdownMenuItem<String?>(
+                                            value: p.kode,
+                                            child: Text(
+                                              p.nama,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    color: AppColors.textPrimary,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (val) => setModalState(
+                                        () => selectedPeriode = val,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Jenis Peristiwa',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    DropdownButtonFormField<String?>(
+                                      initialValue: selectedJenisPeristiwa,
+                                      isExpanded: true,
+                                      decoration: _inputDecoration(''),
+                                      items: [
+                                        DropdownMenuItem<String?>(
+                                          value: null,
+                                          child: Text(
+                                            'Tidak ditentukan',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                        ...peristiwaSejarahList.map(
+                                          (p) => DropdownMenuItem<String?>(
+                                            value: p.kode,
+                                            child: Text(
+                                              p.nama,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    color: AppColors.textPrimary,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (val) {
+                                        simpanNilaiDetailPeristiwa();
+                                        setModalState(() {
+                                          selectedJenisPeristiwa = val;
+                                          bangunControllerDetailPeristiwa();
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // section field khas peristiwa
+                          ..._buildFieldPeristiwa(
+                            selectedJenisPeristiwa,
+                            detailControllers,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // section alur peristiwa
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Alur Peristiwa (Timeline)',
+                                style: GoogleFonts.dmSerifDisplay(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  _showTimelineItemDialog(
+                                    modalCtx,
+                                    onSave: (newItem) {
+                                      setModalState(() {
+                                        timelineItems.add(newItem);
+                                      });
+                                    },
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.add,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                                label: Text(
+                                  'Tambah Event',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          if (timelineItems.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.borderLight,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Belum ada alur peristiwa. Tekan "Tambah Event".',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            ...List.generate(timelineItems.length, (idx) {
+                              final item = timelineItems[idx];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.borderLight,
+                                  ),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '${idx + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.date,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primary,
+                                            ),
+                                          ),
+                                          Text(
+                                            item.title,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            item.desc,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                          if (item.hasImage &&
+                                              item.imgPath != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 4,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.image,
+                                                    size: 14,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Expanded(
+                                                    child: Text(
+                                                      item.imgPath!
+                                                          .split('/')
+                                                          .last,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 10.5,
+                                                            color: AppColors
+                                                                .primaryDark,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        size: 18,
+                                        color: Colors.blueAccent,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () {
+                                        _showTimelineItemDialog(
+                                          modalCtx,
+                                          itemToEdit: item,
+                                          onSave: (updatedItem) {
+                                            setModalState(() {
+                                              timelineItems[idx] = updatedItem;
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 18,
+                                        color: AppColors.error,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () {
+                                        setModalState(() {
+                                          timelineItems.removeAt(idx);
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+
+                          const SizedBox(height: 18),
+                          EditorBlokKonten(
+                            daftarAwal: blokKonten,
+                            onChanged: (list) {
+                              blokKonten = List.from(list);
+                            },
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // tombol simpan
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                if (!formKey.currentState!.validate()) return;
+
+                                final detailP = _rakitDetailPeristiwa(
+                                  selectedJenisPeristiwa,
+                                  detailControllers,
+                                );
+                                if (blokKonten.isNotEmpty) {
+                                  detailP['blokKonten'] =
+                                      BlokKontenModel.listToMapList(blokKonten);
+                                }
+
+                                final model = SejarahModel(
+                                  id: isEditing ? sejarahToEdit.id : null,
+                                  kodeTag: kodeTagController.text.trim(),
+                                  tanggalKey: tanggalKeyController.text.trim(),
+                                  urutan:
+                                      int.tryParse(
+                                        urutanController.text.trim(),
+                                      ) ??
+                                      1,
+                                  judul: judulController.text.trim(),
+                                  subtitle: subtitleController.text.trim(),
+                                  ringkasan: ringkasanController.text.trim(),
+                                  gambarUtama: selectedImage,
+                                  alurPeristiwa: timelineItems,
+                                  provinsi: selectedProvinsi,
+                                  periode: selectedPeriode,
+                                  jenisPeristiwa: selectedJenisPeristiwa,
+                                  detailPeristiwa: detailP,
+                                  jenisMedia: selectedJenisMedia,
+                                  mediaUrl: selectedJenisMedia == 'gambar'
+                                      ? null
+                                      : (mediaUrlController.text.trim().isEmpty
+                                          ? null
+                                          : mediaUrlController.text.trim()),
+                                );
+
+                                if (isEditing) {
+                                  await _sejarahRepository.updateSejarah(
+                                    model,
+                                    previousKodeTag: sejarahToEdit.kodeTag,
+                                  );
+                                } else {
+                                  await _sejarahRepository.tambahSejarah(model);
+                                }
+
+                                await _loadAllData();
+                                if (!mounted) return;
+                                if (modalCtx.mounted) {
+                                  Navigator.pop(modalCtx);
+                                }
+                                final messenger = ScaffoldMessenger.of(context);
+                                messenger.clearSnackBars();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEditing
+                                          ? 'Data sejarah berhasil diperbarui!'
+                                          : 'Data sejarah baru berhasil ditambahkan!',
+                                    ),
+                                    duration: const Duration(
+                                      milliseconds: 1500,
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                isEditing
+                                    ? 'Simpan Perubahan'
+                                    : 'Tambah Sejarah',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // dialog tambah/edit satu item alur peristiwa
+  void _showTimelineItemDialog(
+    BuildContext parentCtx, {
+    TimelineItemModel? itemToEdit,
+    required ValueChanged<TimelineItemModel> onSave,
+  }) {
+    final isEdit = itemToEdit != null;
+    final dateController = TextEditingController(
+      text: isEdit ? itemToEdit.date : '16 AGUSTUS 1945 · 03:00 WIB',
+    );
+    final titleController = TextEditingController(
+      text: isEdit ? itemToEdit.title : '',
+    );
+    final descController = TextEditingController(
+      text: isEdit ? itemToEdit.desc : '',
+    );
+    String? selectedTimelineImage = isEdit ? itemToEdit.imgPath : null;
+
+    showDialog(
+      context: parentCtx,
+      builder: (dialogCtx) {
+        return PembersihDialog(
+          onTutup: () => buangController([
+            dateController,
+            titleController,
+            descController,
+          ]),
+          child: StatefulBuilder(
+            builder: (dCtx, setDState) {
+              return AlertDialog(
+                backgroundColor: AppColors.background,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: Text(
+                  isEdit ? 'Edit Event Alur' : 'Tambah Event Alur',
+                  style: GoogleFonts.dmSerifDisplay(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Waktu / Tanggal Event',
+                        style: AppTypography.labelBold(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: dateController,
+                        decoration: _inputDecoration(
+                          '16 AGUSTUS 1945 · 03:00 WIB',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Judul Peristiwa',
+                        style: AppTypography.labelBold(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: titleController,
+                        decoration: _inputDecoration(
+                          'Peristiwa Rengasdengklok',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Deskripsi Peristiwa',
+                        style: AppTypography.labelBold(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: descController,
+                        maxLines: 3,
+                        decoration: _inputDecoration('Narasi kejadian alur...'),
+                      ),
+                      const SizedBox(height: 12),
+                      AppImagePickerWidget(
+                        label: 'Gambar Event (Opsional)',
+                        isRequired: false,
+                        currentImagePath: selectedTimelineImage,
+                        onImageSelected: (path) {
+                          setDState(() => selectedTimelineImage = path);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogCtx),
+                    child: const Text('Batal'),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                    onPressed: () {
+                      final item = TimelineItemModel(
+                        date: dateController.text.trim(),
+                        title: titleController.text.trim(),
+                        desc: descController.text.trim(),
+                        imgPath: selectedTimelineImage,
+                        hasImage:
+                            selectedTimelineImage != null &&
+                            selectedTimelineImage!.isNotEmpty,
+                      );
+                      onSave(item);
+                      Navigator.pop(dialogCtx);
+                    },
+                    child: Text(
+                      isEdit ? 'Simpan' : 'Tambah',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // Section isian khas jenis peristiwa sejarah.
+  List<Widget> _buildFieldPeristiwa(
+    String? jenis,
+    Map<String, TextEditingController> controllers,
+  ) {
+    if (jenis == null || jenis.isEmpty) return const [];
+    final daftarField = fieldPeristiwa(jenis);
+    if (daftarField.isEmpty) return const [];
+
+    return [
+      Text(
+        'Rincian Khas Peristiwa (${namaPeristiwa(jenis)})',
+        style: GoogleFonts.dmSerifDisplay(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ),
+      const SizedBox(height: 8),
+      ...daftarField.map((field) {
+        final controller = controllers[field.kunci];
+        final isDaftar = field.tipe == TipeField.daftar;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isDaftar ? '${field.label} (satu per baris)' : field.label,
+                style: AppTypography.labelBold(fontSize: 13),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: controller,
+                maxLines: isDaftar
+                    ? 5
+                    : (field.tipe == TipeField.teksPanjang ? 3 : 1),
+                decoration: _inputDecoration(field.petunjuk ?? ''),
+              ),
+            ],
+          ),
+        );
+      }),
+      const SizedBox(height: 4),
+    ];
+  }
+
+  Map<String, dynamic> _rakitDetailPeristiwa(
+    String? jenis,
+    Map<String, TextEditingController> controllers,
+  ) {
+    if (jenis == null || jenis.isEmpty) return const {};
+    final hasil = <String, dynamic>{};
+
+    for (final field in fieldPeristiwa(jenis)) {
+      final teks = controllers[field.kunci]?.text.trim() ?? '';
+      if (teks.isEmpty) continue;
+
+      if (field.tipe == TipeField.daftar) {
+        final baris = teks
+            .split('\n')
+            .map((b) => b.trim())
+            .where((b) => b.isNotEmpty)
+            .toList();
+        if (baris.isNotEmpty) hasil[field.kunci] = baris;
+      } else {
+        hasil[field.kunci] = teks;
+      }
+    }
+    return hasil;
+  }
+
+  // Input field khas kategori, dibangkitkan dari katalog kategori. Field
+  // bertipe daftar memakai satu kotak multibaris, satu entri per baris.
+  List<Widget> _buildFieldKategori(
+    String jenis,
+    Map<String, TextEditingController> controllers,
+  ) {
+    final daftarField = fieldKategori(jenis);
+    if (daftarField.isEmpty) return const [];
+
+    return [
+      Text(
+        'Detail ${namaKategori(jenis)}',
+        style: GoogleFonts.dmSerifDisplay(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ),
+      const SizedBox(height: 2),
+      Text(
+        'Bagian ini menyesuaikan kategori yang dipilih.',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 11.5,
+          color: AppColors.textSecondary,
+        ),
+      ),
+      const SizedBox(height: 10),
+      ...daftarField.map((field) {
+        final controller = controllers[field.kunci];
+        if (controller == null) return const SizedBox.shrink();
+
+        final isDaftar = field.tipe == TipeField.daftar;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      field.label,
+                      style: AppTypography.labelBold(fontSize: 13),
+                    ),
+                  ),
+                  if (isDaftar)
+                    Text(
+                      'satu per baris',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: controller,
+                maxLines: isDaftar
+                    ? 5
+                    : (field.tipe == TipeField.teksPanjang ? 3 : 1),
+                decoration: _inputDecoration(field.petunjuk ?? ''),
+              ),
+            ],
+          ),
+        );
+      }),
+      const SizedBox(height: 4),
+    ];
+  }
+
+  // Mengubah isi controller jadi peta detailKategori siap simpan. Field
+  // kosong tidak ikut disimpan.
+  Map<String, dynamic> _rakitDetailKategori(
+    String jenis,
+    Map<String, TextEditingController> controllers,
+  ) {
+    final hasil = <String, dynamic>{};
+
+    for (final field in fieldKategori(jenis)) {
+      final teks = controllers[field.kunci]?.text.trim() ?? '';
+      if (teks.isEmpty) continue;
+
+      if (field.tipe == TipeField.daftar) {
+        final baris = teks
+            .split('\n')
+            .map((b) => b.trim())
+            .where((b) => b.isNotEmpty)
+            .toList();
+        if (baris.isNotEmpty) hasil[field.kunci] = baris;
+      } else {
+        hasil[field.kunci] = teks;
+      }
+    }
+    return hasil;
+  }
+
+  // form tambah/edit budaya
+  void _showBudayaFormDialog({BudayaModel? budayaToEdit}) {
+    final isEditing = budayaToEdit != null;
+
+    // kategori dibatasi daftar resmi di budayaKategoriList
+    String selectedJenis =
+        (isEditing ? kategoriByKode(budayaToEdit.jenis) : null)?.kode ??
+        budayaKategoriList.first.kode;
+    bool isDestinasi = isEditing ? budayaToEdit.isDestinasi : false;
+
+    final urutanController = TextEditingController(
+      text: isEditing ? budayaToEdit.urutan.toString() : '1',
+    );
+    final kodeTagController = TextEditingController(
+      text: isEditing
+          ? budayaToEdit.kodeTag
+          : buatKodeTagBudaya(jenis: selectedJenis, urutan: 1),
+    );
+
+    // ID tag diturunkan dari kategori + urutan + status destinasi
+    void syncKodeTag() {
+      kodeTagController.text = buatKodeTagBudaya(
+        jenis: selectedJenis,
+        urutan: int.tryParse(urutanController.text.trim()) ?? 1,
+        isDestinasi: isDestinasi,
+      );
+    }
+
+    final judulController = TextEditingController(
+      text: isEditing ? budayaToEdit.judul : '',
+    );
+    final taglineController = TextEditingController(
+      text: isEditing ? budayaToEdit.tagline : '',
+    );
+    final deskripsiController = TextEditingController(
+      text: isEditing ? budayaToEdit.deskripsi : '',
+    );
+    final maknaSpiritualController = TextEditingController(
+      text: isEditing ? (budayaToEdit.maknaSpiritual ?? '') : '',
+    );
+    final konteksBudayaController = TextEditingController(
+      text: isEditing ? (budayaToEdit.konteksBudaya ?? '') : '',
+    );
+
+    String selectedImage = isEditing
+        ? budayaToEdit.gambarUtama
+        : 'assets/images/kerisB.jpg';
+    String selectedJenisMedia = isEditing ? budayaToEdit.jenisMedia : 'gambar';
+    final mediaUrlController = TextEditingController(
+      text: isEditing ? (budayaToEdit.mediaUrl ?? '') : '',
+    );
+    String? selectedMaknaSpiritualImage = isEditing
+        ? budayaToEdit.gambarMaknaSpiritual
+        : null;
+    String? selectedKonteksBudayaImage = isEditing
+        ? budayaToEdit.gambarKonteksBudaya
+        : null;
+
+    String? selectedProvinsi = provinsiDariNama(
+      isEditing ? budayaToEdit.provinsi : null,
+    )?.nama;
+
+    // Isi field khas kategori sebagai teks mentah per kunci, dipegang
+    // terpisah dari controller. Field bertipe daftar ditulis satu baris per
+    // entri.
+    final Map<String, String> nilaiDetail = {};
+    if (isEditing) {
+      for (final field in fieldKategori(budayaToEdit.jenis)) {
+        nilaiDetail[field.kunci] = field.tipe == TipeField.daftar
+            ? budayaToEdit.daftarDetail(field.kunci).join('\n')
+            : budayaToEdit.teksDetail(field.kunci);
+      }
+    }
+
+    Map<String, TextEditingController> detailControllers = {};
+
+    void simpanNilaiDetail() {
+      detailControllers.forEach((kunci, c) => nilaiDetail[kunci] = c.text);
+    }
+
+    void bangunControllerDetail() {
+      for (final c in detailControllers.values) {
+        c.dispose();
+      }
+      detailControllers = {
+        for (final field in fieldKategori(selectedJenis))
+          field.kunci: TextEditingController(
+            text: nilaiDetail[field.kunci] ?? '',
+          ),
+      };
+    }
+
+    bangunControllerDetail();
+
+    List<BlokKontenModel> blokKonten = isEditing
+        ? BlokKontenModel.listFromDynamic(
+            budayaToEdit.detailKategori['blokKonten'],
+          )
+        : [];
+
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (modalCtx) {
+        return PembersihDialog(
+          onTutup: () => buangController([
+            urutanController,
+            kodeTagController,
+            judulController,
+            taglineController,
+            deskripsiController,
+            maknaSpiritualController,
+            konteksBudayaController,
+            mediaUrlController,
+            ...detailControllers.values,
+          ]),
+          child: StatefulBuilder(
+            builder: (ctx, setModalState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(modalCtx).viewInsets.bottom,
+                  top: 20,
+                  left: 20,
+                  right: 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(modalCtx).size.height * 0.88,
+                  ),
+                  child: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isEditing
+                                    ? 'Edit Data Budaya'
+                                    : 'Tambah Budaya Baru',
+                                style: GoogleFonts.dmSerifDisplay(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(modalCtx),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: AppColors.primary),
+                          const SizedBox(height: 12),
+
+                          // pilihan kategori & urutan
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Kategori Budaya',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    DropdownButtonFormField<String>(
+                                      initialValue: selectedJenis,
+                                      isExpanded: true,
+                                      decoration: _inputDecoration(''),
+                                      items: budayaKategoriList
+                                          .map(
+                                            (k) => DropdownMenuItem<String>(
+                                              value: k.kode,
+                                              child: Text(
+                                                k.nama,
+                                                overflow: TextOverflow.ellipsis,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 13,
+                                                      color:
+                                                          AppColors.textPrimary,
+                                                    ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (val) {
+                                        if (val == null) return;
+                                        setModalState(() {
+                                          simpanNilaiDetail();
+                                          selectedJenis = val;
+                                          bangunControllerDetail();
+                                          syncKodeTag();
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Urutan',
+                                      style: AppTypography.labelBold(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: urutanController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: _inputDecoration('1'),
+                                      onChanged: (_) =>
+                                          setModalState(syncKodeTag),
+                                      validator: (val) =>
+                                          val == null || val.trim().isEmpty
+                                          ? 'Wajib'
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+
+                          // penanda destinasi wisata
+                          SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            activeThumbColor: AppColors.primary,
+                            value: isDestinasi,
+                            title: Text(
+                              'Juga tempat wisata (Destinasi)',
+                              style: AppTypography.labelBold(fontSize: 13),
+                            ),
+                            subtitle: Text(
+                              'Menambahkan akhiran -D pada ID Tag dan menampilkan '
+                              'item ini di bagian Pilihan Destinasi.',
+                              style: AppTypography.bodySmall(),
+                            ),
+                            onChanged: (val) {
+                              setModalState(() {
+                                isDestinasi = val;
+                                syncKodeTag();
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+
+                          // pratinjau ID tag
+                          Text(
+                            'ID Tag (otomatis)',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: kodeTagController,
+                            readOnly: true,
+                            decoration: _inputDecoration('BUD-SNJT-1'),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input judul
+                          Text(
+                            'Judul Budaya',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: judulController,
+                            decoration: _inputDecoration(
+                              'Contoh: Q-RIS / CANDI BOROBUDUR',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Judul tidak boleh kosong'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+
+                          // label kategori, ikut kategori terpilih
+                          Text(
+                            'Kategori Label (otomatis)',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Text(
+                              kategoriByKode(selectedJenis)?.label ??
+                                  selectedJenis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input tagline
+                          Text(
+                            'Tagline / Kalimat Pengantar',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: taglineController,
+                            decoration: _inputDecoration(
+                              'Sebilah logam yang menyimpan wibawa...',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // input deskripsi
+                          Text(
+                            'Deskripsi Utama',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: deskripsiController,
+                            maxLines: 3,
+                            decoration: _inputDecoration(
+                              'Masukkan deskripsi budaya...',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Deskripsi wajib diisi'
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // pemilih gambar utama
+                          AppImagePickerWidget(
+                            label: 'Gambar Sampul / Cover Utama',
+                            isRequired: true,
+                            currentImagePath: selectedImage,
+                            onImageSelected: (path) {
+                              if (path != null) {
+                                setModalState(() => selectedImage = path);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // pilihan format media
+                          Text(
+                            'Format Media Utama',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            initialValue: selectedJenisMedia,
+                            isExpanded: true,
+                            decoration: _inputDecoration(''),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'gambar',
+                                child: Text('Foto / Gambar Saja'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'video',
+                                child: Text('Video Berkas / Galeri'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'youtube',
+                                child: Text('Video Tautan YouTube'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val == null) return;
+                              setModalState(() => selectedJenisMedia = val);
+                            },
+                          ),
+                          if (selectedJenisMedia != 'gambar') ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              selectedJenisMedia == 'youtube'
+                                  ? 'Tautan / ID Video YouTube'
+                                  : 'Path / URL Berkas Video',
+                              style: AppTypography.labelBold(fontSize: 13),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: mediaUrlController,
+                              decoration: _inputDecoration(
+                                selectedJenisMedia == 'youtube'
+                                    ? 'Contoh: https://www.youtube.com/watch?v=...'
+                                    : 'Contoh: assets/videos/candi.mp4 atau https://...',
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 14),
+
+                          // pilihan provinsi asal
+                          Text(
+                            'Provinsi Asal',
+                            style: AppTypography.labelBold(fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String?>(
+                            initialValue: selectedProvinsi,
+                            isExpanded: true,
+                            decoration: _inputDecoration(''),
+                            items: [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text(
+                                  'Tidak ditentukan',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              ...semuaProvinsi.map(
+                                (p) => DropdownMenuItem<String?>(
+                                  value: p.nama,
+                                  child: Text(
+                                    p.nama,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            onChanged: (val) =>
+                                setModalState(() => selectedProvinsi = val),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // section field khas kategori
+                          ..._buildFieldKategori(
+                            selectedJenis,
+                            detailControllers,
+                          ),
+
+                          // section makna spiritual
+                          Text(
+                            'Sub-Bagian 1: Makna Spiritual',
+                            style: GoogleFonts.dmSerifDisplay(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: maknaSpiritualController,
+                            maxLines: 2,
+                            decoration: _inputDecoration(
+                              'Teks makna filosofis / spiritual...',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AppImagePickerWidget(
+                            label: 'Gambar Tambahan: Makna Spiritual',
+                            isRequired: false,
+                            currentImagePath: selectedMaknaSpiritualImage,
+                            onImageSelected: (path) {
+                              setModalState(
+                                () => selectedMaknaSpiritualImage = path,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // section konteks budaya
+                          Text(
+                            'Sub-Bagian 2: Konteks Budaya',
+                            style: GoogleFonts.dmSerifDisplay(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: konteksBudayaController,
+                            maxLines: 2,
+                            decoration: _inputDecoration(
+                              'Teks konteks adat & sosial...',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AppImagePickerWidget(
+                            label: 'Gambar Tambahan: Konteks Budaya',
+                            isRequired: false,
+                            currentImagePath: selectedKonteksBudayaImage,
+                            onImageSelected: (path) {
+                              setModalState(
+                                () => selectedKonteksBudayaImage = path,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 18),
+                          EditorBlokKonten(
+                            daftarAwal: blokKonten,
+                            onChanged: (list) {
+                              blokKonten = List.from(list);
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          // tombol simpan
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                if (!formKey.currentState!.validate()) return;
+
+                                final detailK = _rakitDetailKategori(
+                                  selectedJenis,
+                                  detailControllers,
+                                );
+                                if (blokKonten.isNotEmpty) {
+                                  detailK['blokKonten'] =
+                                      BlokKontenModel.listToMapList(blokKonten);
+                                }
+
+                                final urutan =
+                                    int.tryParse(
+                                      urutanController.text.trim(),
+                                    ) ??
+                                    1;
+                                final model = BudayaModel(
+                                  id: isEditing ? budayaToEdit.id : null,
+                                  kodeTag: buatKodeTagBudaya(
+                                    jenis: selectedJenis,
+                                    urutan: urutan,
+                                    isDestinasi: isDestinasi,
+                                  ),
+                                  jenis: selectedJenis,
+                                  urutan: urutan,
+                                  judul: judulController.text.trim(),
+                                  kategoriLabel:
+                                      kategoriByKode(selectedJenis)?.label ??
+                                      selectedJenis,
+                                  tagline: taglineController.text.trim(),
+                                  deskripsi: deskripsiController.text.trim(),
+                                  gambarUtama: selectedImage,
+                                  maknaSpiritual:
+                                      maknaSpiritualController.text
+                                          .trim()
+                                          .isNotEmpty
+                                      ? maknaSpiritualController.text.trim()
+                                      : null,
+                                  provinsi: selectedProvinsi,
+                                  detailKategori: detailK,
+                                  gambarMaknaSpiritual:
+                                      selectedMaknaSpiritualImage,
+                                  konteksBudaya:
+                                      konteksBudayaController.text
+                                          .trim()
+                                          .isNotEmpty
+                                      ? konteksBudayaController.text.trim()
+                                      : null,
+                                  gambarKonteksBudaya:
+                                      selectedKonteksBudayaImage,
+                                  jenisMedia: selectedJenisMedia,
+                                  mediaUrl: selectedJenisMedia == 'gambar'
+                                      ? null
+                                      : (mediaUrlController.text.trim().isEmpty
+                                          ? null
+                                          : mediaUrlController.text.trim()),
+                                );
+
+                                if (isEditing) {
+                                  await _budayaRepository.updateBudaya(
+                                    model,
+                                    previousKodeTag: budayaToEdit.kodeTag,
+                                  );
+                                } else {
+                                  await _budayaRepository.tambahBudaya(model);
+                                }
+
+                                await _loadAllData();
+                                if (!mounted) return;
+                                if (modalCtx.mounted) {
+                                  Navigator.pop(modalCtx);
+                                }
+                                final messenger = ScaffoldMessenger.of(context);
+                                messenger.clearSnackBars();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEditing
+                                          ? 'Data budaya berhasil diperbarui!'
+                                          : 'Data budaya baru berhasil ditambahkan!',
+                                    ),
+                                    duration: const Duration(
+                                      milliseconds: 1500,
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                isEditing
+                                    ? 'Simpan Perubahan'
+                                    : 'Tambah Budaya',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint.isNotEmpty ? hint : null,
+      filled: true,
+      fillColor: AppColors.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredSejarah = _sejarahList.where((s) {
+      final q = _searchQuery.toLowerCase();
+      return _searchQuery.isEmpty ||
+          s.judul.toLowerCase().contains(q) ||
+          s.kodeTag.toLowerCase().contains(q) ||
+          s.ringkasan.toLowerCase().contains(q);
+    }).toList();
+
+    final filteredBudaya = _budayaList.where((b) {
+      final q = _searchQuery.toLowerCase();
+      return _searchQuery.isEmpty ||
+          b.judul.toLowerCase().contains(q) ||
+          b.kodeTag.toLowerCase().contains(q) ||
+          b.deskripsi.toLowerCase().contains(q);
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        surfaceTintColor: AppColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          'Manage Konten Utama',
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.primary,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          labelStyle: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+          tabs: const [
+            Tab(text: 'Sejarah'),
+            Tab(text: 'Budaya'),
+          ],
+        ),
+        shape: const Border(
+          bottom: BorderSide(color: AppColors.primary, width: 0.8),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // kotak pencarian
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TextField(
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Cari judul, tag, atau deskripsi...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.primary,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // tab sejarah
+                      ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredSejarah.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredSejarah[index];
+                          return _buildSejarahCard(item);
+                        },
+                      ),
+
+                      // tab budaya
+                      ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredBudaya.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredBudaya[index];
+                          return _buildBudayaCard(item);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: () {
+          if (_tabController.index == 0) {
+            _showSejarahFormDialog();
+          } else {
+            _showBudayaFormDialog();
+          }
+        },
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+          _tabController.index == 0 ? 'Tambah Sejarah' : 'Tambah Budaya',
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSejarahCard(SejarahModel item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    item.kodeTag,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Urutan ${item.urutan} · ${item.subtitle}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: () => _showSejarahFormDialog(sejarahToEdit: item),
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      color: Colors.blueAccent,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                InkWell(
+                  onTap: () async {
+                    await _sejarahRepository.deleteSejarah(item.kodeTag);
+                    await _loadAllData();
+                    if (!mounted) return;
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.clearSnackBars();
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Data sejarah berhasil dihapus'),
+                        duration: Duration(milliseconds: 1500),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 75,
+                    height: 75,
+                    child: AppImageView(
+                      imagePath: item.gambarUtama,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.judul,
+                        style: GoogleFonts.dmSerifDisplay(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.ringkasan,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppColors.textSecondary,
+                          height: 1.35,
+                        ),
+                      ),
+                      if (item.alurPeristiwa.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '${item.alurPeristiwa.length} alur peristiwa dicatat',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBudayaCard(BudayaModel item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    item.kodeTag,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    item.kategoriLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: () => _showBudayaFormDialog(budayaToEdit: item),
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      color: Colors.blueAccent,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                InkWell(
+                  onTap: () async {
+                    await _budayaRepository.deleteBudaya(item.kodeTag);
+                    await _loadAllData();
+                    if (!mounted) return;
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.clearSnackBars();
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Data budaya berhasil dihapus'),
+                        duration: Duration(milliseconds: 1500),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 75,
+                    height: 75,
+                    child: AppImageView(
+                      imagePath: item.gambarUtama,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.judul,
+                        style: GoogleFonts.dmSerifDisplay(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.deskripsi,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppColors.textSecondary,
+                          height: 1.35,
+                        ),
+                      ),
+                      if (item.gambarMaknaSpiritual != null ||
+                          item.gambarKonteksBudaya != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Termasuk gambar sub-bagian',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

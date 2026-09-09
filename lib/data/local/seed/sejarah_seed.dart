@@ -1,5 +1,5 @@
 // Data awal untuk tabel `sejarah`, dipakai sekali saat database dibuat.
-import '../../models/sejarah_model.dart';
+import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
 
 final List<SejarahModel> defaultSejarahList = [
   const SejarahModel(

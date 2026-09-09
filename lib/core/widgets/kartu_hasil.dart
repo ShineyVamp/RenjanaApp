@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../data/models/hasil_jelajah_model.dart';
+import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dekorasi.dart';
 import 'app_image.dart';
