@@ -1,5 +1,5 @@
 // Bank soal awal untuk tabel `quiz`, dipakai sekali saat database dibuat.
-import '../../models/quiz_model.dart';
+import 'package:renjana/features/quiz/data/models/quiz_model.dart';
 
 final List<QuizSQLModel> defaultQuizList = [
   // Sejarah - Perjalanan Revolusi
