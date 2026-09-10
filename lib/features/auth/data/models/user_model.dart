@@ -9,6 +9,7 @@ bool isAdminAccountName(String identifier) =>
 // model user
 class UserSQLModel {
   final int? id;
+  final String? uid;
   final String nama;
   final String username;
   final String email;
@@ -18,6 +19,7 @@ class UserSQLModel {
 
   UserSQLModel({
     this.id,
+    this.uid,
     required this.nama,
     required this.username,
     required this.email,
@@ -28,7 +30,7 @@ class UserSQLModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
+      if (id != null) 'id': id,
       'nama': nama,
       'username': username,
       'email': email,
@@ -38,8 +40,20 @@ class UserSQLModel {
     };
   }
 
+  Map<String, dynamic> toFirestore() {
+    return <String, dynamic>{
+      'uid': uid,
+      'nama': nama,
+      'username': username,
+      'email': email,
+      'fotoProfil': fotoProfil,
+      'role': role,
+    };
+  }
+
   UserSQLModel copyWith({
     int? id,
+    String? uid,
     String? nama,
     String? username,
     String? email,
@@ -50,6 +64,7 @@ class UserSQLModel {
   }) {
     return UserSQLModel(
       id: id ?? this.id,
+      uid: uid ?? this.uid,
       nama: nama ?? this.nama,
       username: username ?? this.username,
       email: email ?? this.email,
@@ -86,10 +101,43 @@ class UserSQLModel {
 
     return UserSQLModel(
       id: map['id'] != null ? map['id'] as int : null,
+      uid: map['uid'] as String?,
       nama: namaVal,
       username: usernameVal,
       email: map['email'] as String? ?? '',
       password: map['password'] as String? ?? '',
+      fotoProfil: map['fotoProfil'] as String?,
+      role: map['role'] as String? ??
+          (isAdminAccountName(namaVal) || isAdminAccountName(usernameVal)
+              ? 'admin'
+              : 'user'),
+    );
+  }
+
+  factory UserSQLModel.fromFirestore(
+    Map<String, dynamic> map, {
+    String? docId,
+  }) {
+    final namaVal = map['nama'] as String? ?? '';
+    final rawUsername = map['username'] as String?;
+    final usernameVal = (rawUsername != null && rawUsername.trim().isNotEmpty)
+        ? rawUsername.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_')
+        : namaVal.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+
+    final effectiveUid = docId ?? map['uid'] as String?;
+    final derivedId = map['id'] != null
+        ? (map['id'] as num).toInt()
+        : (effectiveUid != null && effectiveUid.isNotEmpty
+            ? effectiveUid.hashCode.abs()
+            : null);
+
+    return UserSQLModel(
+      id: derivedId,
+      uid: effectiveUid,
+      nama: namaVal,
+      username: usernameVal,
+      email: map['email'] as String? ?? '',
+      password: '',
       fotoProfil: map['fotoProfil'] as String?,
       role: map['role'] as String? ??
           (isAdminAccountName(namaVal) || isAdminAccountName(usernameVal)

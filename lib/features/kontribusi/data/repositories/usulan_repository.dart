@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/budaya_kategori.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
 import '../../../budaya/data/models/budaya_model.dart';
 import '../../../budaya/data/repositories/budaya_repository.dart';
 import '../../../quiz/data/models/quiz_model.dart';
@@ -42,99 +43,136 @@ class BedaKoreksi {
 // Pengguna hanya melihat usulannya sendiri; admin melihat milik semua akun,
 // jadi pembacaannya dipisah antara `milikSaya` dan `semua`.
 class UsulanRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
   final SejarahRepository _sejarahRepository;
   final BudayaRepository _budayaRepository;
   final QuizRepository _quizRepository;
 
+  static List<Usulan>? _cachedUsulan;
+
   UsulanRepository({
-    DbHelper? dbHelper,
+    FirebaseFirestore? firestore,
     SejarahRepository? sejarahRepository,
     BudayaRepository? budayaRepository,
     QuizRepository? quizRepository,
-  }) : _dbHelper = dbHelper ?? DbHelper(),
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _sejarahRepository = sejarahRepository ?? SejarahRepository(),
        _budayaRepository = budayaRepository ?? BudayaRepository(),
        _quizRepository = quizRepository ?? QuizRepository();
 
-  // Banyaknya usulan baru yang boleh dikirim satu akun dalam sehari, penahan
-  // agar antrean tinjauan admin tidak dibanjiri.
   static const int batasUsulanHarian = 5;
 
   int get _pemilik => idAkunAktif;
 
   // section pengiriman oleh pengguna
 
-  // Usulan yang dibuat hari ini, dihitung dari waktu pembuatannya sehingga
-  // memperbaiki usulan lama tidak ikut memakan jatah.
+  // Usulan yang dibuat hari ini
   Future<int> jumlahHariIni() async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return 0;
 
     final kini = DateTime.now();
-    final awalHari = DateTime(kini.year, kini.month, kini.day);
+    final awalHari = DateTime(kini.year, kini.month, kini.day).millisecondsSinceEpoch;
 
-    final db = await _dbHelper.database;
-    final hasil = await db.rawQuery(
-      'SELECT COUNT(*) AS total FROM usulan '
-      'WHERE userId = ? AND dibuatPada >= ?',
-      [pemilik, awalHari.millisecondsSinceEpoch],
-    );
-    return (hasil.first['total'] as num?)?.toInt() ?? 0;
+    final daftar = await milikSaya();
+    return daftar.where((u) => u.dibuatPada.millisecondsSinceEpoch >= awalHari).length;
   }
 
   Future<bool> masihBolehMengusulkan() async =>
       await jumlahHariIni() < batasUsulanHarian;
 
+  // kirim usulan
   Future<bool> kirim(Usulan usulan) async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return false;
 
-    final db = await _dbHelper.database;
-    final id = await db.insert('usulan', usulan.toKolom(pemilik)..remove('id'));
-    return id > 0;
+    try {
+      final docRef = _firestore.collection('usulan').doc();
+      final id = docRef.id.hashCode.abs();
+      final mapData = usulan.toKolom(pemilik);
+      mapData['id'] = id;
+      mapData['userUid'] = PreferenceHandler.userUid;
+      mapData['pengusulNama'] = PreferenceHandler.userName;
+      mapData['pengusulUsername'] = PreferenceHandler.userUsername;
+      mapData['createdAt'] = FieldValue.serverTimestamp();
+      await docRef.set(mapData);
+
+      final baru = Usulan.dariKolom(mapData);
+      _cachedUsulan?.insert(0, baru);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
-  // Mengirim ulang usulan yang diminta diperbaiki. Statusnya kembali menunggu
-  // dan catatan admin dikosongkan, tetapi hanya bila usulannya memang milik
-  // akun ini dan masih boleh disunting.
+  // perbarui usulan
   Future<bool> perbarui(Usulan usulan) async {
     final pemilik = _pemilik;
     final id = usulan.id;
     if (pemilik <= 0 || id == null) return false;
 
-    final db = await _dbHelper.database;
-    final jumlah = await db.update(
-      'usulan',
-      usulan
-          .salin(
-            status: StatusUsulan.menunggu,
-            catatanAdmin: '',
-            diperbaruiPada: DateTime.now(),
-          )
-          .toKolom(pemilik),
-      where: 'id = ? AND userId = ?',
-      whereArgs: [id, pemilik],
+    final salinan = usulan.salin(
+      status: StatusUsulan.menunggu,
+      catatanAdmin: '',
+      diperbaruiPada: DateTime.now(),
     );
-    return jumlah > 0;
+
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+
+      final updateData = {
+        'status': StatusUsulan.menunggu.name,
+        'catatanAdmin': '',
+        'isi': jsonEncode(usulan.isi),
+        'judul': usulan.judul,
+        'provinsi': usulan.provinsi,
+        'diperbaruiPada': DateTime.now().millisecondsSinceEpoch,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (snap.docs.isNotEmpty) {
+        await snap.docs.first.reference.update(updateData);
+      } else {
+        await _firestore.collection('usulan').doc('$id').update(updateData);
+      }
+
+      if (_cachedUsulan != null) {
+        final idx = _cachedUsulan!.indexWhere((u) => u.id == id);
+        if (idx != -1) _cachedUsulan![idx] = salinan;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
+  // batalkan usulan
   Future<bool> batalkan(int id) async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return false;
 
-    final db = await _dbHelper.database;
-    final jumlah = await db.delete(
-      'usulan',
-      where: 'id = ? AND userId = ? AND status IN (?, ?)',
-      whereArgs: [
-        id,
-        pemilik,
-        StatusUsulan.menunggu.name,
-        StatusUsulan.revisi.name,
-      ],
-    );
-    return jumlah > 0;
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+
+      if (snap.docs.isNotEmpty) {
+        await snap.docs.first.reference.delete();
+      } else {
+        await _firestore.collection('usulan').doc('$id').delete();
+      }
+
+      _cachedUsulan?.removeWhere((u) => u.id == id);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   // section pembacaan
@@ -143,53 +181,63 @@ class UsulanRepository {
     final pemilik = _pemilik;
     if (pemilik <= 0) return const [];
 
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'usulan',
-      where: 'userId = ?',
-      whereArgs: [pemilik],
-      orderBy: 'diperbaruiPada DESC, id DESC',
-      limit: batas,
-      offset: lewati > 0 ? lewati : null,
-    );
-    return baris.map(Usulan.dariKolom).toList();
+    final semuaUsulan = await _ambilSemuaUsulan();
+    final milik = semuaUsulan.where((u) => u.toKolom(pemilik)['userId'] == pemilik).toList();
+    milik.sort((a, b) => b.diperbaruiPada.compareTo(a.diperbaruiPada));
+
+    final sisa = lewati > 0 && lewati < milik.length ? milik.sublist(lewati) : milik;
+    return batas != null && sisa.length > batas ? sisa.sublist(0, batas) : sisa;
   }
 
   Future<int> jumlahMilikSaya({StatusUsulan? status}) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return 0;
-
-    final db = await _dbHelper.database;
-    final hasil = await db.rawQuery(
-      'SELECT COUNT(*) AS total FROM usulan WHERE userId = ?'
-      '${status == null ? '' : ' AND status = ?'}',
-      [pemilik, if (status != null) status.name],
-    );
-    return (hasil.first['total'] as num?)?.toInt() ?? 0;
+    final milik = await milikSaya();
+    if (status == null) return milik.length;
+    return milik.where((u) => u.status == status).length;
   }
 
   Future<Usulan?> ambil(int id) async {
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'usulan',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-    if (baris.isEmpty) return null;
-    return Usulan.dariKolom(baris.first);
+    final semuaUsulan = await _ambilSemuaUsulan();
+    for (final u in semuaUsulan) {
+      if (u.id == id) return u;
+    }
+    return null;
   }
 
-  // Nama pengusul, dipakai panel admin dan atribusi pada arsip yang terbit.
   Future<String> namaPengusul(int usulanId) async {
-    final db = await _dbHelper.database;
-    final baris = await db.rawQuery(
-      'SELECT user.nama AS nama FROM usulan '
-      'JOIN user ON user.id = usulan.userId WHERE usulan.id = ?',
-      [usulanId],
-    );
-    if (baris.isEmpty) return '';
-    return baris.first['nama'] as String? ?? '';
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .where('id', isEqualTo: usulanId)
+          .limit(1)
+          .get();
+      if (snap.docs.isNotEmpty) {
+        return snap.docs.first.data()['pengusulNama'] as String? ?? '';
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  // ambil semua dari firestore
+  Future<List<Usulan>> _ambilSemuaUsulan() async {
+    if (_cachedUsulan != null) return _cachedUsulan!;
+
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .orderBy('diperbaruiPada', descending: true)
+          .get();
+
+      final list = snap.docs.map((doc) {
+        final d = doc.data();
+        d['id'] = (d['id'] as num?)?.toInt() ?? int.tryParse(doc.id) ?? doc.id.hashCode.abs();
+        return Usulan.dariKolom(d);
+      }).toList();
+
+      _cachedUsulan = list;
+      return list;
+    } catch (_) {
+      return _cachedUsulan ?? const [];
+    }
   }
 
   // section panel admin
@@ -200,110 +248,135 @@ class UsulanRepository {
     int? batas,
     int lewati = 0,
   }) async {
-    final syarat = <String>[
-      if (status != null) 'status = ?',
-      if (maksud != null) 'maksud = ?',
-    ];
-    final nilai = <Object>[
-      if (status != null) status.name,
-      if (maksud != null) maksud.name,
-    ];
-
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'usulan',
-      where: syarat.isEmpty ? null : syarat.join(' AND '),
-      whereArgs: nilai.isEmpty ? null : nilai,
-      orderBy: 'diperbaruiPada DESC, id DESC',
-      limit: batas,
-      offset: lewati > 0 ? lewati : null,
-    );
-    return baris.map(Usulan.dariKolom).toList();
+    var list = await _ambilSemuaUsulan();
+    if (status != null) {
+      list = list.where((u) => u.status == status).toList();
+    }
+    if (maksud != null) {
+      list = list.where((u) => u.maksud == maksud).toList();
+    }
+    final sisa = lewati > 0 && lewati < list.length ? list.sublist(lewati) : list;
+    return batas != null && sisa.length > batas ? sisa.sublist(0, batas) : sisa;
   }
 
-  // Banyaknya usulan per maksud pada satu status, untuk angka pada penyaring.
+  // Banyaknya usulan per maksud pada satu status
   Future<Map<MaksudUsulan, int>> jumlahPerMaksud(StatusUsulan status) async {
-    final db = await _dbHelper.database;
-    final baris = await db.rawQuery(
-      'SELECT maksud, COUNT(*) AS total FROM usulan '
-      'WHERE status = ? GROUP BY maksud',
-      [status.name],
-    );
-
+    final daftar = await semua(status: status);
     final hasil = {for (final m in MaksudUsulan.values) m: 0};
-    for (final r in baris) {
-      final nama = r['maksud'] as String? ?? '';
-      for (final m in MaksudUsulan.values) {
-        if (m.name == nama) hasil[m] = (r['total'] as num?)?.toInt() ?? 0;
-      }
+    for (final u in daftar) {
+      hasil[u.maksud] = (hasil[u.maksud] ?? 0) + 1;
     }
     return hasil;
   }
 
-  // Banyaknya usulan per status untuk seluruh akun, dipakai angka pada tab
-  // admin dan penanda di drawer.
+  // Banyaknya usulan per status
   Future<Map<StatusUsulan, int>> jumlahPerStatus() async {
-    final db = await _dbHelper.database;
-    final baris = await db.rawQuery(
-      'SELECT status, COUNT(*) AS total FROM usulan GROUP BY status',
-    );
-
+    final daftar = await _ambilSemuaUsulan();
     final hasil = {for (final s in StatusUsulan.values) s: 0};
-    for (final r in baris) {
-      final nama = r['status'] as String? ?? '';
-      for (final s in StatusUsulan.values) {
-        if (s.name == nama) {
-          hasil[s] = (r['total'] as num?)?.toInt() ?? 0;
-        }
-      }
+    for (final u in daftar) {
+      hasil[u.status] = (hasil[u.status] ?? 0) + 1;
     }
     return hasil;
   }
 
-  // Keputusan admin. Catatan wajib diisi untuk penolakan dan permintaan
-  // revisi; pengecekannya ada di halaman admin, bukan di sini.
+  // keputusan admin
   Future<bool> putuskan({
     required int id,
     required StatusUsulan status,
     String catatan = '',
     String kodeTagHasil = '',
   }) async {
-    final db = await _dbHelper.database;
-    final jumlah = await db.update(
-      'usulan',
-      {
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+
+      final updateData = {
         'status': status.name,
         'catatanAdmin': catatan.trim(),
         if (kodeTagHasil.trim().isNotEmpty) 'kodeTagHasil': kodeTagHasil.trim(),
         'diperbaruiPada': DateTime.now().millisecondsSinceEpoch,
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    return jumlah > 0;
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (snap.docs.isNotEmpty) {
+        await snap.docs.first.reference.update(updateData);
+
+        // kirim notifikasi hasil usulan ke pengusul
+        final d = snap.docs.first.data();
+        final userId = (d['userId'] as num?)?.toInt() ?? 0;
+        final userNama = d['pengusulNama'] as String? ?? '';
+        final judul = d['judul'] as String? ?? 'Usulan';
+        if (userId > 0 || userNama.isNotEmpty) {
+          final kini = DateTime.now().millisecondsSinceEpoch;
+          var pesan = 'Usulan "$judul" telah ${status.label.toLowerCase()}.';
+          if (catatan.trim().isNotEmpty) {
+            pesan += ' Catatan: $catatan';
+          }
+          final ref = _firestore.collection('notifikasi_komunitas').doc();
+          ref.set({
+            'id': ref.id.hashCode.abs(),
+            'userId': userId,
+            'userNama': userNama,
+            'userUsername':
+                userNama.toLowerCase().replaceAll(RegExp(r'\s+'), '_'),
+            'pengirimId': 0,
+            'pengirimNama': 'Admin Renjana',
+            'pengirimUsername': 'admin',
+            'tipe': 'usulan',
+            'diskusiId': 0,
+            'jawabanId': id,
+            'indukJawabanId': null,
+            'judulDiskusi': 'Status Usulan: ${status.label}',
+            'cuplikanTeks': pesan,
+            'sudahDibaca': 0,
+            'dibuatPada': kini,
+          }).catchError((_) {});
+        }
+      } else {
+        await _firestore.collection('usulan').doc('$id').update(updateData);
+      }
+
+      _cachedUsulan = null;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
-  // Menyunting isi usulan dari panel admin. Berbeda dari `perbarui` milik
-  // pengguna: status, catatan, dan pemiliknya tidak ikut berubah, sebab admin
-  // sedang merapikan tulisan orang lain.
   Future<bool> perbaruiSebagaiAdmin(Usulan usulan) async {
     final id = usulan.id;
     if (id == null) return false;
 
-    final db = await _dbHelper.database;
-    final jumlah = await db.update(
-      'usulan',
-      {
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+
+      final updateData = {
         'jenis': usulan.jenis.name,
         'provinsi': usulan.provinsi,
         'judul': usulan.judul,
         'isi': jsonEncode(usulan.isi),
         'diperbaruiPada': DateTime.now().millisecondsSinceEpoch,
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    return jumlah > 0;
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (snap.docs.isNotEmpty) {
+        await snap.docs.first.reference.update(updateData);
+      } else {
+        await _firestore.collection('usulan').doc('$id').update(updateData);
+      }
+
+      _cachedUsulan = null;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   // section perbandingan koreksi
@@ -844,13 +917,19 @@ class UsulanRepository {
     final isiBaru = Map<String, dynamic>.from(usulan.isi)
       ..[KunciUsulan.cadangan] = cadangan;
 
-    final db = await _dbHelper.database;
-    await db.update(
-      'usulan',
-      {'isi': jsonEncode(isiBaru)},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    try {
+      final snap = await _firestore
+          .collection('usulan')
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+
+      if (snap.docs.isNotEmpty) {
+        await snap.docs.first.reference.update({'isi': jsonEncode(isiBaru)});
+      } else {
+        await _firestore.collection('usulan').doc('$id').update({'isi': jsonEncode(isiBaru)});
+      }
+    } catch (_) {}
   }
 
   Future<HasilTerap> _pulihkanCadangan(Usulan usulan) async {

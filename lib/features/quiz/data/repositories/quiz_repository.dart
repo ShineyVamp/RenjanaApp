@@ -1,185 +1,246 @@
-import 'package:sqflite/sqflite.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
+import '../../../../data/local/seed/quiz_seed.dart';
 import '../models/quiz_model.dart';
 
 class QuizRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
 
-  QuizRepository({DbHelper? dbHelper}) : _dbHelper = dbHelper ?? DbHelper();
+  static List<QuizSQLModel>? _cachedQuizzes;
+  static Set<int>? _cachedSoalSalah;
+  static String? _cachedUser;
 
-  int get _pemilik => idAkunAktif;
+  QuizRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  // identitas pengguna
+  String get _userUid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final fUser = FirebaseAuth.instance.currentUser;
+    if (fUser != null && fUser.uid.isNotEmpty) return fUser.uid;
+    final intId = idAkunAktif;
+    if (intId > 0) return 'user_$intId';
+    return 'guest';
+  }
+
+  // koleksi soal salah
+  CollectionReference<Map<String, dynamic>> _koleksiSoalSalah() {
+    return _firestore
+        .collection('users')
+        .doc(_userUid)
+        .collection('soal_salah');
+  }
+
+  // catat soal salah
   Future<void> catatSoalSalah(int quizId) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0 || quizId <= 0) return;
+    final uid = _userUid;
+    if (uid == 'guest' || quizId <= 0) return;
 
-    final db = await _dbHelper.database;
+    if (_cachedUser == uid) {
+      _cachedSoalSalah?.add(quizId);
+    }
+
     try {
-      await db.insert('soal_salah', {
-        'userId': pemilik,
+      await _koleksiSoalSalah().doc(quizId.toString()).set({
         'quizId': quizId,
         'tanggal': DateTime.now().millisecondsSinceEpoch,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      });
     } catch (_) {}
   }
 
+  // hapus soal salah
   Future<void> hapusSoalSalah(int quizId) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0 || quizId <= 0) return;
+    final uid = _userUid;
+    if (uid == 'guest' || quizId <= 0) return;
 
-    final db = await _dbHelper.database;
+    if (_cachedUser == uid) {
+      _cachedSoalSalah?.remove(quizId);
+    }
+
     try {
-      await db.delete(
-        'soal_salah',
-        where: 'userId = ? AND quizId = ?',
-        whereArgs: [pemilik, quizId],
-      );
+      await _koleksiSoalSalah().doc(quizId.toString()).delete();
     } catch (_) {}
   }
 
+  // jumlah soal salah
   Future<int> getJumlahSoalSalah() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return 0;
-
-    final db = await _dbHelper.database;
-    try {
-      final res = await db.rawQuery(
-        'SELECT COUNT(*) as total FROM soal_salah WHERE userId = ?',
-        [pemilik],
-      );
-      if (res.isNotEmpty && res.first['total'] != null) {
-        return (res.first['total'] as num).toInt();
-      }
-    } catch (_) {}
-    return 0;
+    final list = await _ambilSoalSalahIds();
+    return list.length;
   }
 
-  Future<List<QuizSQLModel>> getSoalSalahList() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return const [];
+  // ambil ID soal salah
+  Future<Set<int>> _ambilSoalSalahIds() async {
+    final uid = _userUid;
+    if (uid == 'guest') return const {};
 
-    final db = await _dbHelper.database;
+    if (_cachedSoalSalah != null && _cachedUser == uid) {
+      return _cachedSoalSalah!;
+    }
+
     try {
-      final List<Map<String, dynamic>> results = await db.rawQuery(
-        'SELECT q.* FROM quiz q INNER JOIN soal_salah s ON q.id = s.quizId '
-        'WHERE s.userId = ? ORDER BY s.tanggal DESC',
-        [pemilik],
-      );
-      return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+      final snap = await _koleksiSoalSalah().get();
+      final ids = <int>{};
+      for (final doc in snap.docs) {
+        final qid = (doc.data()['quizId'] as num?)?.toInt() ?? int.tryParse(doc.id);
+        if (qid != null && qid > 0) ids.add(qid);
+      }
+      _cachedSoalSalah = ids;
+      _cachedUser = uid;
+      return ids;
     } catch (_) {
-      return const [];
+      return _cachedSoalSalah ?? const {};
     }
   }
 
+  // daftar soal salah
+  Future<List<QuizSQLModel>> getSoalSalahList() async {
+    final ids = await _ambilSoalSalahIds();
+    if (ids.isEmpty) return const [];
+
+    final semua = await getAllQuizzes();
+    return semua.where((q) => q.id != null && ids.contains(q.id)).toList();
+  }
+
+  // tambah kuis
   Future<bool> tambahQuiz(QuizSQLModel quiz) async {
-    final db = await _dbHelper.database;
     try {
-      final id = await db.insert('quiz', quiz.toMap());
-      return id > 0;
-    } catch (e) {
+      final ref = _firestore.collection('quiz').doc();
+      final idBaru = quiz.id ?? ref.id.hashCode.abs();
+      quiz.id = idBaru;
+      await ref.set(quiz.toMap()..['id'] = idBaru);
+      _cachedQuizzes?.insert(0, quiz);
+      return true;
+    } catch (_) {
       return false;
     }
   }
 
+  // ambil semua kuis
   Future<List<QuizSQLModel>> getAllQuizzes() async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query(
-      'quiz',
-      orderBy: 'id DESC',
-    );
-    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+    if (_cachedQuizzes != null && _cachedQuizzes!.isNotEmpty) {
+      return _cachedQuizzes!;
+    }
+
+    try {
+      final snap = await _firestore.collection('quiz').get();
+      if (snap.docs.isNotEmpty) {
+        final list = snap.docs.map((doc) {
+          final data = doc.data();
+          if (data['id'] == null) {
+            data['id'] = int.tryParse(doc.id) ?? doc.id.hashCode.abs();
+          }
+          return QuizSQLModel.fromMap(data);
+        }).toList();
+        _cachedQuizzes = list;
+        return list;
+      }
+    } catch (_) {}
+
+    // inisialisasi dari default seed jika firestore belum terisi
+    _cachedQuizzes = List<QuizSQLModel>.from(defaultQuizList);
+    _seedQuizKeFirestore(defaultQuizList);
+    return _cachedQuizzes!;
   }
 
+  // seed kuis di latar belakang
+  Future<void> _seedQuizKeFirestore(List<QuizSQLModel> daftar) async {
+    try {
+      final batch = _firestore.batch();
+      for (var i = 0; i < daftar.length; i++) {
+        final item = daftar[i];
+        final id = item.id ?? (i + 1);
+        final docRef = _firestore.collection('quiz').doc(id.toString());
+        batch.set(docRef, item.toMap()..['id'] = id, SetOptions(merge: true));
+      }
+      await batch.commit();
+    } catch (_) {}
+  }
+
+  // ambil kuis berdasarkan tema
   Future<List<QuizSQLModel>> getQuizByTema(String tema) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query(
-      'quiz',
-      where: 'tema = ?',
-      whereArgs: [tema],
-      orderBy: 'id DESC',
-    );
-    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+    final semua = await getAllQuizzes();
+    return semua.where((q) => q.tema == tema).toList();
   }
 
+  // ambil kuis berdasarkan kategori
   Future<List<QuizSQLModel>> getQuizByKategori(String kategori) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query(
-      'quiz',
-      where: 'UPPER(kategori) = ?',
-      whereArgs: [kategori.toUpperCase()],
-      orderBy: 'id DESC',
-    );
-    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+    final semua = await getAllQuizzes();
+    return semua
+        .where((q) => q.kategori.toUpperCase() == kategori.toUpperCase())
+        .toList();
   }
 
+  // ambil kuis acak per kategori
   Future<List<QuizSQLModel>> getRandomQuizzesByCategory(
     String kategori,
     int limit,
   ) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query(
-      'quiz',
-      where: 'UPPER(kategori) = ?',
-      whereArgs: [kategori.toUpperCase()],
-      orderBy: 'RANDOM()',
-      limit: limit,
-    );
-    return results.map((map) => QuizSQLModel.fromMap(map)).toList();
+    final list = await getQuizByKategori(kategori);
+    final acak = List<QuizSQLModel>.from(list)..shuffle();
+    return acak.take(limit).toList();
   }
 
+  // jumlah kuis per kategori
   Future<int> getQuizCountByKategori(String kategori) async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-      'SELECT COUNT(*) as total FROM quiz WHERE UPPER(kategori) = ?',
-      [kategori.toUpperCase()],
-    );
-    if (result.isNotEmpty && result.first['total'] != null) {
-      return (result.first['total'] as num).toInt();
-    }
-    return 0;
+    final list = await getQuizByKategori(kategori);
+    return list.length;
   }
 
+  // perbarui kuis
   Future<bool> updateQuiz(QuizSQLModel quiz) async {
-    final db = await _dbHelper.database;
     try {
-      final count = await db.update(
-        'quiz',
-        quiz.toMap(),
-        where: 'id = ?',
-        whereArgs: [quiz.id],
-      );
-      return count > 0;
-    } catch (e) {
+      if (quiz.id != null) {
+        await _firestore
+            .collection('quiz')
+            .doc(quiz.id.toString())
+            .set(quiz.toMap(), SetOptions(merge: true));
+
+        if (_cachedQuizzes != null) {
+          final idx = _cachedQuizzes!.indexWhere((q) => q.id == quiz.id);
+          if (idx != -1) _cachedQuizzes![idx] = quiz;
+        }
+        return true;
+      }
+      return false;
+    } catch (_) {
       return false;
     }
   }
 
+  // hapus kuis
   Future<bool> deleteQuiz(int id) async {
-    final db = await _dbHelper.database;
     try {
-      final count = await db.delete('quiz', where: 'id = ?', whereArgs: [id]);
-      return count > 0;
-    } catch (e) {
+      await _firestore.collection('quiz').doc(id.toString()).delete();
+      _cachedQuizzes?.removeWhere((q) => q.id == id);
+      return true;
+    } catch (_) {
       return false;
     }
   }
 
+  // hapus kuis berdasarkan tema
   Future<bool> deleteQuizzesByTema(String tema) async {
-    final db = await _dbHelper.database;
     try {
-      final count = await db.delete(
-        'quiz',
-        where: 'tema = ?',
-        whereArgs: [tema],
-      );
-      return count > 0;
-    } catch (e) {
+      final snap = await _firestore
+          .collection('quiz')
+          .where('tema', isEqualTo: tema)
+          .get();
+      final batch = _firestore.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+      _cachedQuizzes?.removeWhere((q) => q.tema == tema);
+      return true;
+    } catch (_) {
       return false;
     }
   }
 
+  // perbarui info tema
   Future<bool> updateThemeInfo({
     required String oldTema,
     required String newTema,
@@ -187,8 +248,12 @@ class QuizRepository {
     required String newSubKategori,
     String? newCoverImage,
   }) async {
-    final db = await _dbHelper.database;
     try {
+      final snap = await _firestore
+          .collection('quiz')
+          .where('tema', isEqualTo: oldTema)
+          .get();
+      final batch = _firestore.batch();
       final Map<String, dynamic> values = {
         'tema': newTema,
         'kategori': newKategori,
@@ -197,15 +262,39 @@ class QuizRepository {
       if (newCoverImage != null) {
         values['gambar'] = newCoverImage;
       }
-      final count = await db.update(
-        'quiz',
-        values,
-        where: 'tema = ?',
-        whereArgs: [oldTema],
-      );
-      return count > 0;
-    } catch (e) {
+      for (final doc in snap.docs) {
+        batch.update(doc.reference, values);
+      }
+      await batch.commit();
+
+      if (_cachedQuizzes != null) {
+        for (var i = 0; i < _cachedQuizzes!.length; i++) {
+          final q = _cachedQuizzes![i];
+          if (q.tema == oldTema) {
+            _cachedQuizzes![i] = QuizSQLModel(
+              id: q.id,
+              kategori: newKategori,
+              subKategori: newSubKategori,
+              tema: newTema,
+              soal: q.soal,
+              daftarJawaban: q.daftarJawaban,
+              jawabanBenar: q.jawabanBenar,
+              gambar: newCoverImage ?? q.gambar,
+              penjelasan: q.penjelasan,
+            );
+          }
+        }
+      }
+      return true;
+    } catch (_) {
       return false;
     }
+  }
+
+  // bersihkan cache
+  static void bersihkanCache() {
+    _cachedQuizzes = null;
+    _cachedSoalSalah = null;
+    _cachedUser = null;
   }
 }

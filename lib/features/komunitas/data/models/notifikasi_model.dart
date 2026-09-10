@@ -38,6 +38,42 @@ class NotifikasiKomunitasModel {
   bool get isBalas => tipe == 'balas';
   bool get isThreadBalasan => indukJawabanId != null && indukJawabanId! > 0;
 
+  NotifikasiKomunitasModel copyWith({
+    int? id,
+    int? userId,
+    String? userNama,
+    String? userUsername,
+    int? pengirimId,
+    String? pengirimNama,
+    String? pengirimUsername,
+    String? tipe,
+    int? diskusiId,
+    int? jawabanId,
+    int? indukJawabanId,
+    String? judulDiskusi,
+    String? cuplikanTeks,
+    bool? sudahDibaca,
+    DateTime? dibuatPada,
+  }) {
+    return NotifikasiKomunitasModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      userNama: userNama ?? this.userNama,
+      userUsername: userUsername ?? this.userUsername,
+      pengirimId: pengirimId ?? this.pengirimId,
+      pengirimNama: pengirimNama ?? this.pengirimNama,
+      pengirimUsername: pengirimUsername ?? this.pengirimUsername,
+      tipe: tipe ?? this.tipe,
+      diskusiId: diskusiId ?? this.diskusiId,
+      jawabanId: jawabanId ?? this.jawabanId,
+      indukJawabanId: indukJawabanId ?? this.indukJawabanId,
+      judulDiskusi: judulDiskusi ?? this.judulDiskusi,
+      cuplikanTeks: cuplikanTeks ?? this.cuplikanTeks,
+      sudahDibaca: sudahDibaca ?? this.sudahDibaca,
+      dibuatPada: dibuatPada ?? this.dibuatPada,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

@@ -1,13 +1,14 @@
-import 'package:sqflite/sqflite.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/constants/lencana_katalog.dart';
 import '../../../../core/constants/wilayah_nusantara.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/quiz/data/repositories/hasil_kuis_repository.dart';
 import 'package:renjana/features/jelajah/data/repositories/jelajah_repository.dart';
 import 'package:renjana/features/kontribusi/data/repositories/usulan_repository.dart';
+import '../../../../core/services/cloudinary_service.dart';
 import 'arsip_dibaca_repository.dart';
 import 'runtun_repository.dart';
 
@@ -41,118 +42,166 @@ class StatusLencana {
       target <= 0 ? 0 : (tercapai / target).clamp(0.0, 1.0).toDouble();
 }
 
-// Menghitung status seluruh lencana lalu membuka yang syaratnya sudah
-// terpenuhi. Lencana yang sudah terbuka tidak pernah dicabut kembali,
-// meski arsip baru masuk atau runtun putus.
 class LencanaRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
   final JelajahRepository _jelajahRepository;
   final ArsipDibacaRepository _arsipDibacaRepository;
   final HasilKuisRepository _hasilKuisRepository;
   final RuntunRepository _runtunRepository;
   final UsulanRepository _usulanRepository;
 
+  static Map<String, String>? _cachedLogo;
+  static Map<String, bool>? _cachedTerbuka;
+  static String? _cachedUser;
+
   LencanaRepository({
-    DbHelper? dbHelper,
+    FirebaseFirestore? firestore,
     JelajahRepository? jelajahRepository,
     ArsipDibacaRepository? arsipDibacaRepository,
     HasilKuisRepository? hasilKuisRepository,
     RuntunRepository? runtunRepository,
     UsulanRepository? usulanRepository,
-  }) : _dbHelper = dbHelper ?? DbHelper(),
-       _jelajahRepository = jelajahRepository ?? JelajahRepository(),
-       _arsipDibacaRepository =
-           arsipDibacaRepository ?? ArsipDibacaRepository(),
-       _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository(),
-       _runtunRepository = runtunRepository ?? RuntunRepository(),
-       _usulanRepository = usulanRepository ?? UsulanRepository();
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _jelajahRepository = jelajahRepository ?? JelajahRepository(),
+        _arsipDibacaRepository =
+            arsipDibacaRepository ?? ArsipDibacaRepository(),
+        _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository(),
+        _runtunRepository = runtunRepository ?? RuntunRepository(),
+        _usulanRepository = usulanRepository ?? UsulanRepository();
 
-  // Banyaknya lencana yang boleh disemat sekaligus di halaman profil.
   static const int batasSematan = 3;
 
-  int get _pemilik => idAkunAktif;
+  // identitas pengguna
+  String get _userUid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final fUser = FirebaseAuth.instance.currentUser;
+    if (fUser != null && fUser.uid.isNotEmpty) return fUser.uid;
+    final intId = idAkunAktif;
+    if (intId > 0) return 'user_$intId';
+    return 'guest';
+  }
 
-  // Logo lencana yang disetel admin, kuncinya kode lencana.
+  // koleksi lencana pengguna
+  CollectionReference<Map<String, dynamic>> _koleksiPengguna() {
+    return _firestore
+        .collection('users')
+        .doc(_userUid)
+        .collection('lencana');
+  }
+
+  // logo lencana
   Future<Map<String, String>> logo() async {
-    final db = await _dbHelper.database;
-    final baris = await db.query('lencana_ikon');
-    return {
-      for (final r in baris)
-        (r['kode'] as String? ?? ''): (r['gambar'] as String? ?? ''),
-    }..removeWhere((kode, gambar) => kode.isEmpty || gambar.isEmpty);
+    if (_cachedLogo != null) return _cachedLogo!;
+
+    try {
+      final snap = await _firestore.collection('lencana_ikon').get();
+      final map = <String, String>{};
+      for (final doc in snap.docs) {
+        final g = doc.data()['gambar'] as String? ?? '';
+        if (g.isNotEmpty) map[doc.id] = g;
+      }
+      _cachedLogo = map;
+      return map;
+    } catch (_) {
+      return _cachedLogo ?? const {};
+    }
   }
 
-  // Menyetel atau melepas logo satu lencana. Dipakai halaman admin.
+  // set logo lencana
   Future<void> setLogo(String kode, String? gambar) async {
-    final db = await _dbHelper.database;
-    if (gambar == null || gambar.trim().isEmpty) {
-      await db.delete('lencana_ikon', where: 'kode = ?', whereArgs: [kode]);
-      return;
-    }
-    await db.insert('lencana_ikon', {
-      'kode': kode,
-      'gambar': gambar.trim(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
-  // Kode lencana terbuka beserta status sematannya.
-  Future<Map<String, bool>> _kodeTerbuka() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return const {};
-
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'lencana',
-      columns: ['kode', 'disematkan'],
-      where: 'userId = ?',
-      whereArgs: [pemilik],
-    );
-    return {
-      for (final r in baris)
-        if ((r['kode'] as String? ?? '').isNotEmpty)
-          r['kode'] as String: ((r['disematkan'] as num?)?.toInt() ?? 0) == 1,
-    };
-  }
-
-  // Menyemat atau melepas satu lencana. Hanya berlaku bagi yang sudah terbuka.
-  // Mengembalikan false bila kuota sematan sudah penuh.
-  Future<bool> setSematan(String kode, bool disematkan) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return false;
-
-    final db = await _dbHelper.database;
-    if (disematkan) {
-      final terpasang = Sqflite.firstIntValue(
-        await db.rawQuery(
-          'SELECT COUNT(*) FROM lencana WHERE userId = ? AND disematkan = 1',
-          [pemilik],
-        ),
+    String? finalGambar = gambar?.trim();
+    if (finalGambar != null &&
+        finalGambar.isNotEmpty &&
+        !finalGambar.startsWith('http')) {
+      final url = await CloudinaryService().uploadFilePath(
+        finalGambar,
+        subFolder: 'lencana',
       );
-      if ((terpasang ?? 0) >= batasSematan) return false;
+      if (url != null) finalGambar = url;
     }
 
-    await db.update(
-      'lencana',
-      {'disematkan': disematkan ? 1 : 0},
-      where: 'userId = ? AND kode = ?',
-      whereArgs: [pemilik, kode],
-    );
-    return true;
+    _cachedLogo?[kode] = finalGambar ?? '';
+    try {
+      if (finalGambar == null || finalGambar.isEmpty) {
+        await _firestore.collection('lencana_ikon').doc(kode).delete();
+      } else {
+        await _firestore
+            .collection('lencana_ikon')
+            .doc(kode)
+            .set({'gambar': finalGambar}, SetOptions(merge: true));
+      }
+    } catch (_) {}
   }
 
-  Future<void> _buka(Iterable<String> kode) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return;
+  // kode lencana terbuka
+  Future<Map<String, bool>> _kodeTerbuka() async {
+    final uid = _userUid;
+    if (uid == 'guest') return const {};
 
-    final db = await _dbHelper.database;
-    final sekarang = DateTime.now().millisecondsSinceEpoch;
-    for (final k in kode) {
-      await db.insert('lencana', {
-        'userId': pemilik,
-        'kode': k,
-        'dibukaPada': sekarang,
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    if (_cachedTerbuka != null && _cachedUser == uid) {
+      return _cachedTerbuka!;
     }
+
+    try {
+      final snap = await _koleksiPengguna().get();
+      final map = <String, bool>{};
+      for (final doc in snap.docs) {
+        final d = doc.data();
+        final k = (d['kode'] as String?) ?? doc.id;
+        final disematkan = d['disematkan'] == true || d['disematkan'] == 1;
+        if (k.isNotEmpty) map[k] = disematkan;
+      }
+      _cachedTerbuka = map;
+      _cachedUser = uid;
+      return map;
+    } catch (_) {
+      return _cachedTerbuka ?? const {};
+    }
+  }
+
+  // sematkan lencana
+  Future<bool> setSematan(String kode, bool disematkan) async {
+    final uid = _userUid;
+    if (uid == 'guest') return false;
+
+    final terbuka = await _kodeTerbuka();
+    if (disematkan) {
+      final terpasang = terbuka.values.where((v) => v).length;
+      if (terpasang >= batasSematan) return false;
+    }
+
+    _cachedTerbuka?[kode] = disematkan;
+
+    try {
+      await _koleksiPengguna().doc(kode).set({
+        'kode': kode,
+        'disematkan': disematkan,
+      }, SetOptions(merge: true));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // buka lencana
+  Future<void> _buka(Iterable<String> kode) async {
+    final uid = _userUid;
+    if (uid == 'guest') return;
+
+    final batch = _firestore.batch();
+    for (final k in kode) {
+      _cachedTerbuka?[k] = false;
+      final docRef = _koleksiPengguna().doc(k);
+      batch.set(docRef, {
+        'kode': k,
+        'disematkan': false,
+        'dibukaPada': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    try {
+      await batch.commit();
+    } catch (_) {}
   }
 
   static String _kategoriArsip(HasilJelajah item) =>

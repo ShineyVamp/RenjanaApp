@@ -1,120 +1,178 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
 
-// Riwayat pencarian dan arsip yang dibuka, milik akun yang sedang login.
-// Disimpan di tabel `riwayat` dan selalu disaring per id akun.
 class RiwayatRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
 
-  RiwayatRepository({DbHelper? dbHelper}) : _dbHelper = dbHelper ?? DbHelper();
+  static List<String>? _cachedPencarian;
+  static List<String>? _cachedDibuka;
+  static String? _cachedUser;
+
+  RiwayatRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const String jenisPencarian = 'pencarian';
   static const String jenisArsip = 'arsip';
 
-  // Batas tampil di halaman Jelajah.
   static const int batasPencarian = 8;
   static const int batasDibuka = 6;
 
-  // Batas simpan di database, dipakai hitungan aktivitas di halaman profil.
   static const int _simpanMaksPencarian = 30;
   static const int _simpanMaksArsip = 100;
 
-  int get _pemilik => idAkunAktif;
+  // identitas pengguna
+  String get _userUid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final fUser = FirebaseAuth.instance.currentUser;
+    if (fUser != null && fUser.uid.isNotEmpty) return fUser.uid;
+    final intId = idAkunAktif;
+    if (intId > 0) return 'user_$intId';
+    return 'guest';
+  }
 
-  int _batasSimpan(String jenis) =>
-      jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip;
+  // koleksi riwayat
+  CollectionReference<Map<String, dynamic>> _koleksi() {
+    return _firestore
+        .collection('users')
+        .doc(_userUid)
+        .collection('riwayat');
+  }
 
+  // ambil riwayat
   Future<List<String>> _ambil(String jenis, int? batas) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return const [];
+    final uid = _userUid;
+    if (uid == 'guest') return const [];
 
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'riwayat',
-      columns: ['nilai'],
-      where: 'userId = ? AND jenis = ?',
-      whereArgs: [pemilik, jenis],
-      orderBy: 'dicatatPada DESC, id DESC',
-      limit: batas,
-    );
-    return baris.map((r) => r['nilai'] as String? ?? '').toList()
-      ..removeWhere((n) => n.isEmpty);
+    if (_cachedUser == uid) {
+      if (jenis == jenisPencarian && _cachedPencarian != null) {
+        return batas != null && _cachedPencarian!.length > batas
+            ? _cachedPencarian!.sublist(0, batas)
+            : _cachedPencarian!;
+      }
+      if (jenis == jenisArsip && _cachedDibuka != null) {
+        return batas != null && _cachedDibuka!.length > batas
+            ? _cachedDibuka!.sublist(0, batas)
+            : _cachedDibuka!;
+      }
+    }
+
+    try {
+      final snapshot = await _koleksi()
+          .where('jenis', isEqualTo: jenis)
+          .orderBy('dicatatPada', descending: true)
+          .limit(jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip)
+          .get();
+
+      final list = snapshot.docs
+          .map((d) => d.data()['nilai'] as String? ?? '')
+          .where((n) => n.isNotEmpty)
+          .toList();
+
+      _cachedUser = uid;
+      if (jenis == jenisPencarian) {
+        _cachedPencarian = list;
+      } else {
+        _cachedDibuka = list;
+      }
+
+      return batas != null && list.length > batas ? list.sublist(0, batas) : list;
+    } catch (_) {
+      final fallback = jenis == jenisPencarian ? _cachedPencarian : _cachedDibuka;
+      return fallback ?? const [];
+    }
   }
 
-  // Mencatat satu entri: entri bernilai sama dibuang, entri baru disisipkan,
-  // lalu sisa di luar batas simpan dipangkas.
+  // catat riwayat
   Future<void> _catat(String jenis, String nilai) async {
-    final pemilik = _pemilik;
+    final uid = _userUid;
     final bersih = nilai.trim();
-    if (pemilik <= 0 || bersih.isEmpty) return;
+    if (uid == 'guest' || bersih.isEmpty) return;
 
-    final db = await _dbHelper.database;
+    // update cache
+    if (_cachedUser != uid) {
+      _cachedPencarian = null;
+      _cachedDibuka = null;
+      _cachedUser = uid;
+    }
+    final targetCache = jenis == jenisPencarian
+        ? (_cachedPencarian ??= [])
+        : (_cachedDibuka ??= []);
+    targetCache.removeWhere((item) => item.toLowerCase() == bersih.toLowerCase());
+    targetCache.insert(0, bersih);
+    final maxSimpan = jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip;
+    if (targetCache.length > maxSimpan) {
+      targetCache.removeRange(maxSimpan, targetCache.length);
+    }
 
-    await db.delete(
-      'riwayat',
-      where: 'userId = ? AND jenis = ? AND nilai = ? COLLATE NOCASE',
-      whereArgs: [pemilik, jenis, bersih],
-    );
-    await db.insert('riwayat', {
-      'userId': pemilik,
-      'jenis': jenis,
-      'nilai': bersih,
-      'dicatatPada': DateTime.now().millisecondsSinceEpoch,
-    });
-
-    await db.rawDelete(
-      'DELETE FROM riwayat WHERE userId = ? AND jenis = ? AND id NOT IN ('
-      'SELECT id FROM riwayat WHERE userId = ? AND jenis = ? '
-      'ORDER BY dicatatPada DESC, id DESC LIMIT ?)',
-      [pemilik, jenis, pemilik, jenis, _batasSimpan(jenis)],
-    );
+    // simpan ke firestore
+    try {
+      final docId = '${jenis}_${bersih.replaceAll('/', '_').replaceAll('|', '_').replaceAll(' ', '_')}';
+      await _koleksi().doc(docId).set({
+        'jenis': jenis,
+        'nilai': bersih,
+        'dicatatPada': DateTime.now().millisecondsSinceEpoch,
+      });
+    } catch (_) {}
   }
 
+  // hapus riwayat
   Future<void> _hapus(String jenis) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return;
+    final uid = _userUid;
+    if (uid == 'guest') return;
 
-    final db = await _dbHelper.database;
-    await db.delete(
-      'riwayat',
-      where: 'userId = ? AND jenis = ?',
-      whereArgs: [pemilik, jenis],
-    );
+    if (jenis == jenisPencarian) {
+      _cachedPencarian = [];
+    } else {
+      _cachedDibuka = [];
+    }
+
+    try {
+      final snapshot = await _koleksi().where('jenis', isEqualTo: jenis).get();
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (_) {}
   }
 
-  // section riwayat pencarian
-
+  // riwayat pencarian
   Future<List<String>> pencarian({int? batas}) => _ambil(jenisPencarian, batas);
-
-  Future<void> catatPencarian(String kataKunci) =>
-      _catat(jenisPencarian, kataKunci);
-
+  Future<void> catatPencarian(String kataKunci) => _catat(jenisPencarian, kataKunci);
   Future<void> hapusPencarian() => _hapus(jenisPencarian);
 
-  // section arsip yang dibuka
-  // Disimpan sebagai 'jenis|kodeTag', mis. 'budaya|BUD-RMH-1-D'.
-
+  // arsip dibuka
   Future<List<String>> dibuka({int? batas}) => _ambil(jenisArsip, batas);
-
   Future<void> catatDibuka(String jenisArsipItem, String kodeTag) =>
       _catat(jenisArsip, '$jenisArsipItem|${kodeTag.trim()}');
-
   Future<void> hapusDibuka() => _hapus(jenisArsip);
 
-  // Banyaknya arsip yang dibuka hari ini, untuk misi harian.
+  // jumlah dibuka hari ini
   Future<int> jumlahDibukaHariIni() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return 0;
+    final uid = _userUid;
+    if (uid == 'guest') return 0;
 
     final sekarang = DateTime.now();
-    final awalHari = DateTime(sekarang.year, sekarang.month, sekarang.day);
+    final awalHari = DateTime(sekarang.year, sekarang.month, sekarang.day).millisecondsSinceEpoch;
 
-    final db = await _dbHelper.database;
-    final hasil = await db.rawQuery(
-      'SELECT COUNT(*) AS total FROM riwayat '
-      'WHERE userId = ? AND jenis = ? AND dicatatPada >= ?',
-      [pemilik, jenisArsip, awalHari.millisecondsSinceEpoch],
-    );
-    return (hasil.first['total'] as num?)?.toInt() ?? 0;
+    try {
+      final snapshot = await _koleksi()
+          .where('jenis', isEqualTo: jenisArsip)
+          .where('dicatatPada', isGreaterThanOrEqualTo: awalHari)
+          .get();
+      return snapshot.docs.length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  // bersihkan cache
+  static void bersihkanCache() {
+    _cachedPencarian = null;
+    _cachedDibuka = null;
+    _cachedUser = null;
   }
 }
