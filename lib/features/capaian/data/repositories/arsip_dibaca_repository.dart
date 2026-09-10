@@ -1,77 +1,101 @@
-import 'package:sqflite/sqflite.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
 import 'riwayat_repository.dart';
 
-// Catatan permanen arsip yang pernah dibaca, dasar hitungan capaian di
-// halaman profil, lencana, dan peta progres.
-//
-// Terpisah dari tabel `riwayat` yang hanya menyimpan daftar "terakhir dibuka".
-// Daftar itu boleh dikosongkan pengguna kapan saja, sedangkan catatan di sini
-// tidak ikut terhapus.
 class ArsipDibacaRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
   final RiwayatRepository _riwayatRepository;
 
-  ArsipDibacaRepository({
-    DbHelper? dbHelper,
-    RiwayatRepository? riwayatRepository,
-  }) : _dbHelper = dbHelper ?? DbHelper(),
-       _riwayatRepository = riwayatRepository ?? RiwayatRepository();
+  static Set<String>? _cachedRefs;
+  static String? _cachedUser;
 
-  int get _pemilik => idAkunAktif;
+  ArsipDibacaRepository({
+    FirebaseFirestore? firestore,
+    RiwayatRepository? riwayatRepository,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _riwayatRepository = riwayatRepository ?? RiwayatRepository();
+
+  // identitas pengguna
+  String get _userUid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final fUser = FirebaseAuth.instance.currentUser;
+    if (fUser != null && fUser.uid.isNotEmpty) return fUser.uid;
+    final intId = idAkunAktif;
+    if (intId > 0) return 'user_$intId';
+    return 'guest';
+  }
 
   static String buatRef(String jenis, String kodeTag) =>
       '$jenis|${kodeTag.trim()}';
 
-  // Mencatat satu arsip sekaligus ke dua tempat: catatan permanen di sini dan
-  // daftar terakhir dibuka di RiwayatRepository.
-  Future<void> catat(String jenis, String kodeTag) async {
-    final pemilik = _pemilik;
-    final ref = buatRef(jenis, kodeTag);
-    if (pemilik <= 0 || kodeTag.trim().isEmpty) return;
+  // koleksi arsip dibaca
+  CollectionReference<Map<String, dynamic>> _koleksi() {
+    return _firestore
+        .collection('users')
+        .doc(_userUid)
+        .collection('arsip_dibaca');
+  }
 
-    final db = await _dbHelper.database;
-    await db.insert('arsip_dibaca', {
-      'userId': pemilik,
-      'ref': ref,
-      'dibacaPada': DateTime.now().millisecondsSinceEpoch,
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  // catat arsip dibaca
+  Future<void> catat(String jenis, String kodeTag) async {
+    final uid = _userUid;
+    final ref = buatRef(jenis, kodeTag);
+    if (uid == 'guest' || kodeTag.trim().isEmpty) return;
+
+    final docId = ref.replaceAll('/', '_').replaceAll('|', '_');
+    try {
+      await _koleksi().doc(docId).set({
+        'ref': ref,
+        'jenis': jenis,
+        'kodeTag': kodeTag.trim(),
+        'dibacaPada': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      _cachedRefs?.add(ref);
+    } catch (_) {}
 
     await _riwayatRepository.catatDibuka(jenis, kodeTag);
   }
 
-  // Seluruh arsip yang pernah dibaca, terbaru di atas.
+  // ambil semua arsip dibaca
   Future<List<String>> semua() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return const [];
+    final uid = _userUid;
+    if (uid == 'guest') return const [];
 
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'arsip_dibaca',
-      columns: ['ref'],
-      where: 'userId = ?',
-      whereArgs: [pemilik],
-      orderBy: 'dibacaPada DESC, id DESC',
-    );
-    return baris
-        .map((r) => r['ref'] as String? ?? '')
-        .where((r) => r.isNotEmpty)
-        .toList();
+    if (_cachedRefs != null && _cachedUser == uid) {
+      return _cachedRefs!.toList();
+    }
+
+    try {
+      final snapshot = await _koleksi()
+          .orderBy('dibacaPada', descending: true)
+          .get();
+
+      final list = snapshot.docs
+          .map((doc) => doc.data()['ref'] as String? ?? '')
+          .where((r) => r.isNotEmpty)
+          .toList();
+
+      _cachedRefs = list.toSet();
+      _cachedUser = uid;
+      return list;
+    } catch (_) {
+      return _cachedRefs?.toList() ?? const [];
+    }
   }
 
+  // himpunan arsip dibaca
   Future<Set<String>> himpunan() async => (await semua()).toSet();
 
-  Future<int> jumlah() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return 0;
+  // jumlah arsip dibaca
+  Future<int> jumlah() async => (await semua()).length;
 
-    final db = await _dbHelper.database;
-    final hasil = await db.rawQuery(
-      'SELECT COUNT(*) AS total FROM arsip_dibaca WHERE userId = ?',
-      [pemilik],
-    );
-    return (hasil.first['total'] as num?)?.toInt() ?? 0;
+  // bersihkan cache
+  static void bersihkanCache() {
+    _cachedRefs = null;
+    _cachedUser = null;
   }
 }

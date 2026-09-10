@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
@@ -26,7 +27,30 @@ class AppImageView extends StatelessWidget {
       imageWidget = _defaultPlaceholder();
     } else {
       final path = imagePath!.trim();
-      if (path.startsWith('assets/')) {
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        imageWidget = CachedNetworkImage(
+          imageUrl: path,
+          fit: fit,
+          width: width,
+          height: height,
+          placeholder: (context, url) => Container(
+            width: width,
+            height: height,
+            color: AppColors.surfaceMuted.withValues(alpha: 0.3),
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) => _defaultPlaceholder(),
+        );
+      } else if (path.startsWith('assets/')) {
         imageWidget = Image.asset(
           path,
           fit: fit,

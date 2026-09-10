@@ -1,7 +1,12 @@
-import '../../../../data/local/db_helper.dart';
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/services/cloudinary_service.dart';
+import '../../../../core/services/firebase_auth_service.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../models/user_model.dart';
 
-// Hasil penyuntingan profil: berhasil, atau gagal beserta alasannya.
+// status sunting
 class HasilSuntingProfil {
   final UserSQLModel? user;
   final String? galat;
@@ -13,99 +18,114 @@ class HasilSuntingProfil {
 }
 
 class UserRepository {
-  final DbHelper _dbHelper;
+  final FirebaseAuthService _authService;
+  final CloudinaryService _cloudinaryService;
+  final FirebaseFirestore _firestore;
 
-  UserRepository({DbHelper? dbHelper}) : _dbHelper = dbHelper ?? DbHelper();
+  // inisialisasi
+  UserRepository({
+    FirebaseAuthService? authService,
+    CloudinaryService? cloudinaryService,
+    FirebaseFirestore? firestore,
+  })  : _authService = authService ?? FirebaseAuthService(),
+        _cloudinaryService = cloudinaryService ?? CloudinaryService(),
+        _firestore = firestore ?? FirebaseFirestore.instance;
 
+  CollectionReference<Map<String, dynamic>> get _usersCol =>
+      _firestore.collection('users');
+
+  // registrasi
   Future<bool> userRegister(UserSQLModel user) async {
-    final db = await _dbHelper.database;
     try {
-      final id = await db.insert('user', user.toMap());
-      return id > 0;
-    } catch (e) {
+      final res = await _authService.register(
+        nama: user.nama,
+        username: user.username,
+        email: user.email,
+        password: user.password,
+        role: user.role,
+      );
+      return res.uid != null;
+    } on FirebaseAuthException catch (_) {
+      return false;
+    } catch (_) {
       return false;
     }
   }
 
-  // login pengguna
+  // login
   Future<UserSQLModel?> loginUser(String identifier, String password) async {
-    final db = await _dbHelper.database;
-    final bersih = identifier.trim().toLowerCase();
-    final List<Map<String, dynamic>> results = await db.query(
-      'user',
-      where:
-          '(LOWER(email) = ? OR LOWER(username) = ? OR LOWER(nama) = ?) AND password = ?',
-      whereArgs: [bersih, bersih, bersih, password],
-    );
-    if (results.isNotEmpty) {
-      return UserSQLModel.fromMap(results.first);
+    try {
+      return await _authService.login(
+        identifier: identifier,
+        password: password,
+      );
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
+  // ambil user
   Future<UserSQLModel?> getUserByEmail(String email) async {
-    final db = await _dbHelper.database;
-    final results = await db.query(
-      'user',
-      where: 'email = ?',
-      whereArgs: [email.trim()],
-      limit: 1,
-    );
-    if (results.isEmpty) return null;
-    return UserSQLModel.fromMap(results.first);
+    return await _authService.getUserByEmail(email);
+  }
+
+  Future<UserSQLModel?> getUserByUid(String uid) async {
+    return await _authService.getUserProfile(uid);
   }
 
   Future<UserSQLModel?> getUserById(int id) async {
-    if (id <= 0) return null;
-    final db = await _dbHelper.database;
-    final results = await db.query(
-      'user',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-    if (results.isEmpty) return null;
-    return UserSQLModel.fromMap(results.first);
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) {
+      final user = await getUserByUid(uid);
+      if (user != null) return user;
+    }
+
+    try {
+      final snapshot = await _usersCol.where('id', isEqualTo: id).limit(1).get();
+      if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first;
+        return UserSQLModel.fromFirestore(doc.data(), docId: doc.id);
+      }
+    } catch (_) {}
+
+    return null;
   }
 
-  // Username dan email harus unik tanpa membedakan huruf besar-kecil.
-  // [kecualiId] diisi saat menyunting, agar akun tidak bentrok dengan dirinya.
-  Future<bool> _sudahDipakai(
-    String kolom,
-    String nilai, {
-    int? kecualiId,
-  }) async {
-    final bersih = nilai.trim();
-    if (bersih.isEmpty) return false;
-
-    final db = await _dbHelper.database;
-    final hasil = await db.query(
-      'user',
-      columns: ['id'],
-      where: kecualiId == null
-          ? '$kolom = ? COLLATE NOCASE'
-          : '$kolom = ? COLLATE NOCASE AND id <> ?',
-      whereArgs: kecualiId == null ? [bersih] : [bersih, kecualiId],
-      limit: 1,
-    );
-    return hasil.isNotEmpty;
+  // validasi
+  Future<bool> usernameDipakai(String username, {int? kecualiId}) async {
+    return await _authService.isUsernameTaken(username);
   }
 
-  Future<bool> usernameDipakai(String username, {int? kecualiId}) =>
-      _sudahDipakai('username', username, kecualiId: kecualiId);
+  Future<bool> emailDipakai(String email, {int? kecualiId}) async {
+    return await _authService.isEmailTaken(email);
+  }
 
-  Future<bool> emailDipakai(String email, {int? kecualiId}) =>
-      _sudahDipakai('email', email, kecualiId: kecualiId);
-
-  // [path] null berarti foto dilepas dan kembali ke placeholder inisial.
+  // foto profil
   Future<int> perbaruiFotoProfil(String email, String? path) async {
-    final db = await _dbHelper.database;
-    return await db.update(
-      'user',
-      {'fotoProfil': path},
-      where: 'email = ?',
-      whereArgs: [email.trim()],
-    );
+    try {
+      final query = await _usersCol.where('email', isEqualTo: email.trim()).limit(1).get();
+      if (query.docs.isEmpty) return 0;
+      final docId = query.docs.first.id;
+
+      String? finalUrl = path;
+      if (path != null && !path.startsWith('http')) {
+        final file = File(path);
+        if (file.existsSync()) {
+          final res = await _cloudinaryService.uploadImage(file, subFolder: 'profiles');
+          if (res.isSuccess && res.secureUrl != null) {
+            finalUrl = res.secureUrl;
+          }
+        }
+      }
+
+      await _usersCol.doc(docId).update({
+        'fotoProfil': finalUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return 1;
+    } catch (_) {
+      return 0;
+    }
   }
 
   // sunting profil
@@ -117,8 +137,6 @@ class UserRepository {
     String? fotoProfil,
     bool hapusFoto = false,
   }) async {
-    if (id <= 0) return const HasilSuntingProfil.gagal('Sesi tidak ditemukan.');
-
     final namaBersih = nama.trim();
     final usernameBersih = username.trim().toLowerCase();
     final emailBersih = email.trim();
@@ -130,48 +148,73 @@ class UserRepository {
       return const HasilSuntingProfil.gagal('Username tidak boleh kosong.');
     }
     if (usernameBersih.contains(' ')) {
-      return const HasilSuntingProfil.gagal(
-        'Username tidak boleh mengandung spasi.',
-      );
+      return const HasilSuntingProfil.gagal('Username tidak boleh mengandung spasi.');
     }
     if (emailBersih.isEmpty) {
       return const HasilSuntingProfil.gagal('Email tidak boleh kosong.');
     }
 
-    if (await usernameDipakai(usernameBersih, kecualiId: id)) {
-      return const HasilSuntingProfil.gagal(
-        'Username itu sudah dipakai akun lain.',
-      );
-    }
-    if (await emailDipakai(emailBersih, kecualiId: id)) {
-      return const HasilSuntingProfil.gagal(
-        'Email itu sudah terdaftar pada akun lain.',
-      );
+    final userUid = PreferenceHandler.userUid;
+    if (userUid.isEmpty) {
+      return const HasilSuntingProfil.gagal('Sesi tidak ditemukan.');
     }
 
-    final db = await _dbHelper.database;
-    final nilai = <String, dynamic>{
+    if (await _authService.isUsernameTaken(usernameBersih, kecualiUid: userUid)) {
+      return const HasilSuntingProfil.gagal('Username itu sudah dipakai akun lain.');
+    }
+    if (await _authService.isEmailTaken(emailBersih, kecualiUid: userUid)) {
+      return const HasilSuntingProfil.gagal('Email itu sudah terdaftar pada akun lain.');
+    }
+
+    String? fotoFinal = fotoProfil;
+
+    // upload cloudinary
+    if (!hapusFoto && fotoProfil != null && !fotoProfil.startsWith('http')) {
+      final file = File(fotoProfil);
+      if (file.existsSync()) {
+        final uploadRes = await _cloudinaryService.uploadImage(
+          file,
+          subFolder: 'profiles',
+        );
+        if (uploadRes.isSuccess && uploadRes.secureUrl != null) {
+          fotoFinal = uploadRes.secureUrl;
+        }
+      }
+    }
+
+    // update firestore
+    final updateData = <String, dynamic>{
       'nama': namaBersih,
       'username': usernameBersih,
       'email': emailBersih,
+      if (hapusFoto) 'fotoProfil': null,
+      if (!hapusFoto && fotoFinal != null) 'fotoProfil': fotoFinal,
+      'updatedAt': FieldValue.serverTimestamp(),
     };
-    if (hapusFoto) {
-      nilai['fotoProfil'] = null;
-    } else if (fotoProfil != null) {
-      nilai['fotoProfil'] = fotoProfil;
-    }
 
-    final barisDiubah = await db.update(
-      'user',
-      nilai,
-      where: 'id = ?',
-      whereArgs: [id],
+    final sukses = await _authService.updateProfile(
+      uid: userUid,
+      data: updateData,
     );
-    if (barisDiubah == 0) {
-      return const HasilSuntingProfil.gagal('Pengguna tidak ditemukan.');
+
+    if (!sukses) {
+      return const HasilSuntingProfil.gagal('Gagal menyimpan ke cloud.');
     }
 
-    final terbaru = await getUserById(id);
-    return HasilSuntingProfil.berhasil(terbaru);
+    final terbaru = await getUserByUid(userUid);
+    if (terbaru != null) {
+      return HasilSuntingProfil.berhasil(terbaru);
+    }
+
+    return const HasilSuntingProfil.gagal('Gagal memuat profil terbaru.');
+  }
+
+  // admin
+  Future<bool> ubahRoleUser({required String uid, required String role}) async {
+    return await _authService.setRole(uid, role);
+  }
+
+  Future<void> inisialisasiAdminBawaan() async {
+    await _authService.seedAdminAccounts();
   }
 }

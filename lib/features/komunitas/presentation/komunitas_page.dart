@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renjana/features/komunitas/data/models/komunitas_model.dart';
@@ -29,6 +30,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
   bool _isLoading = true;
   String _kategoriTerpilih = 'Semua';
 
+  StreamSubscription<int>? _notifSub;
+  StreamSubscription<List<DiskusiModel>>? _diskusiSub;
+
   static const List<String> _kategoriList = [
     'Semua',
     'Budaya',
@@ -40,11 +44,47 @@ class _KomunitasPageState extends State<KomunitasPage> {
   @override
   void initState() {
     super.initState();
+    _langgananRealtime();
     _muatData();
+  }
+
+  void _langgananRealtime() {
+    final username = PreferenceHandler.userUsername;
+    final userId = PreferenceHandler.userId;
+    final nama = PreferenceHandler.userName;
+    final target = username.isNotEmpty ? username : nama;
+    if (target.isNotEmpty) {
+      _notifSub?.cancel();
+      _notifSub = _repository
+          .streamJumlahNotifikasiBelumDibaca(
+            targetIdentifier: target,
+            targetUserId: userId > 0 ? userId : null,
+          )
+          .listen((count) {
+        if (mounted) setState(() => _jumlahNotifBelumDibaca = count);
+      });
+    }
+
+    _diskusiSub?.cancel();
+    _diskusiSub = _repository
+        .streamDaftarDiskusi(
+          kategori: _kategoriTerpilih == 'Semua' ? null : _kategoriTerpilih,
+        )
+        .listen((daftar) {
+      if (!mounted) return;
+      if (_searchController.text.trim().isEmpty) {
+        setState(() {
+          _daftarDiskusi = daftar;
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _notifSub?.cancel();
+    _diskusiSub?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -403,6 +443,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                     onSelected: (val) {
                       if (!val) return;
                       setState(() => _kategoriTerpilih = kat);
+                      _langgananRealtime();
                       _muatData(showLoader: false);
                     },
                     selectedColor: AppColors.primary,

@@ -1,54 +1,53 @@
-import 'package:sqflite/sqflite.dart';
-import '../../../../data/local/db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/wilayah_nusantara.dart';
-import '../../../../core/storage/user_session.dart';
+import '../../../../core/storage/preference_handler.dart';
 import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart';
 import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 import '../models/bookmark_model.dart';
 
 class BookmarkRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
   final SejarahRepository _sejarahRepository;
   final BudayaRepository _budayaRepository;
+  static Set<String>? _cachedTags;
 
   BookmarkRepository({
-    DbHelper? dbHelper,
+    FirebaseFirestore? firestore,
     SejarahRepository? sejarahRepository,
     BudayaRepository? budayaRepository,
-  }) : _dbHelper = dbHelper ?? DbHelper(),
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _sejarahRepository = sejarahRepository ?? SejarahRepository(),
        _budayaRepository = budayaRepository ?? BudayaRepository();
 
-  static bool _legacyClaimed = false;
+  String get _uid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final user = PreferenceHandler.user;
+    if (user?.uid != null && user!.uid!.isNotEmpty) return user.uid!;
+    final id = PreferenceHandler.userId;
+    if (id > 0) return 'user_$id';
+    return 'guest';
+  }
 
-  int get _pemilik => idAkunAktif;
+  CollectionReference<Map<String, dynamic>> get _koleksi =>
+      _firestore.collection('users').doc(_uid).collection('bookmarks');
 
-  // Mengklaim bookmark versi lama yang tersimpan tanpa pemilik.
-  Future<Database> _db() async {
-    final db = await _dbHelper.database;
-    if (!_legacyClaimed) {
-      _legacyClaimed = true;
-      if (_pemilik > 0) {
-        try {
-          await db.rawUpdate(
-            'UPDATE OR IGNORE bookmark SET userId = ? WHERE userId IS NULL',
-            [_pemilik],
-          );
-        } catch (_) {}
-      }
-    }
-    return db;
+  static void bersihkanCache() {
+    _cachedTags = null;
   }
 
   Future<bool> isBookmarked(String kodeTag) async {
+    final tag = kodeTag.trim();
+    if (tag.isEmpty) return false;
+
+    if (_cachedTags != null) {
+      return _cachedTags!.contains(tag);
+    }
+
     try {
-      final db = await _db();
-      final results = await db.query(
-        'bookmark',
-        where: 'kodeTag = ? AND userId = ?',
-        whereArgs: [kodeTag, _pemilik],
-      );
-      return results.isNotEmpty;
+      final snap = await _koleksi.get();
+      _cachedTags = snap.docs.map((d) => d.id.trim()).toSet();
+      return _cachedTags!.contains(tag);
     } catch (_) {
       return false;
     }
@@ -66,29 +65,33 @@ class BookmarkRepository {
   }
 
   Future<bool> addBookmark(String itemType, String kodeTag) async {
+    final tag = kodeTag.trim();
+    if (tag.isEmpty) return false;
+
+    _cachedTags ??= {};
+    _cachedTags!.add(tag);
+
     try {
-      final db = await _db();
-      final id = await db.insert('bookmark', {
-        'userId': _pemilik,
+      await _koleksi.doc(tag).set({
+        'kodeTag': tag,
         'itemType': itemType.toLowerCase(),
-        'kodeTag': kodeTag,
-        'createdAt': DateTime.now().toIso8601String(),
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-      return id > 0;
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return true;
     } catch (_) {
       return false;
     }
   }
 
   Future<bool> removeBookmark(String kodeTag) async {
+    final tag = kodeTag.trim();
+    if (tag.isEmpty) return false;
+
+    _cachedTags?.remove(tag);
+
     try {
-      final db = await _db();
-      final count = await db.delete(
-        'bookmark',
-        where: 'kodeTag = ? AND userId = ?',
-        whereArgs: [kodeTag, _pemilik],
-      );
-      return count > 0;
+      await _koleksi.doc(tag).delete();
+      return true;
     } catch (_) {
       return false;
     }
@@ -96,37 +99,26 @@ class BookmarkRepository {
 
   Future<List<BookmarkItemModel>> getAllBookmarks() async {
     try {
-      final db = await _db();
-      final results = await db.query(
-        'bookmark',
-        where: 'userId = ?',
-        whereArgs: [_pemilik],
-        orderBy: 'id DESC',
-      );
+      final snap = await _koleksi.get();
+      _cachedTags = snap.docs.map((d) => d.id.trim()).toSet();
 
       final List<BookmarkItemModel> items = [];
-      for (final map in results) {
-        final itemType = (map['itemType'] as String? ?? 'sejarah')
-            .toLowerCase();
-        final kodeTag = map['kodeTag'] as String? ?? '';
+      for (final doc in snap.docs) {
+        final map = doc.data();
+        final itemType = (map['itemType'] as String? ?? 'sejarah').toLowerCase();
+        final kodeTag = doc.id;
 
-        // Arsip dicari di database, sedangkan wilayah diambil dari katalog
-        // konstanta karena pulau dan provinsi tidak disimpan sebagai baris.
         switch (itemType) {
           case 'sejarah':
-            final sejarah = await _sejarahRepository.getSejarahByKodeTag(
-              kodeTag,
-            );
+            final sejarah = await _sejarahRepository.getSejarahByKodeTag(kodeTag);
             if (sejarah != null) {
               items.add(BookmarkItemModel.fromMap(map, sejarah: sejarah));
             }
-
           case 'budaya':
             final budaya = await _budayaRepository.getBudayaByKodeTag(kodeTag);
             if (budaya != null) {
               items.add(BookmarkItemModel.fromMap(map, budaya: budaya));
             }
-
           case 'pulau':
             final pulau = pulauDariId(
               kodeTag.replaceFirst(BookmarkItemModel.awalanPulau, ''),
@@ -134,7 +126,6 @@ class BookmarkRepository {
             if (pulau != null) {
               items.add(BookmarkItemModel.fromMap(map, pulau: pulau));
             }
-
           case 'provinsi':
             final wilayah = provinsiDariNama(
               kodeTag.replaceFirst(BookmarkItemModel.awalanProvinsi, ''),
