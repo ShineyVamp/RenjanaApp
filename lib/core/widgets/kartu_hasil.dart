@@ -6,17 +6,14 @@ import '../constants/app_colors.dart';
 import '../constants/app_dekorasi.dart';
 import 'app_image.dart';
 
-// Kartu baris hasil, dipakai di Jelajah, halaman provinsi, dan daftar arsip.
+// kartu hasil
 class KartuHasil extends StatelessWidget {
   final HasilJelajah item;
   final VoidCallback onTap;
-
-  // Gambar memenuhi tinggi kartu, dipakai saat kartu berada di kotak
-  // bertinggi tetap.
   final bool isiPenuh;
-
-  // Menandai arsip yang belum pernah dibaca oleh pengguna
   final bool isBaru;
+  final String? subTag;
+  final String? lokasi;
 
   const KartuHasil({
     super.key,
@@ -24,6 +21,8 @@ class KartuHasil extends StatelessWidget {
     required this.onTap,
     this.isiPenuh = true,
     this.isBaru = false,
+    this.subTag,
+    this.lokasi,
   });
 
   @override
@@ -58,6 +57,7 @@ class KartuHasil extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // lencana
                         Row(
                           children: [
                             LencanaKecil(
@@ -82,7 +82,31 @@ class KartuHasil extends StatelessWidget {
                             ],
                           ],
                         ),
+                        if (subTag != null && subTag!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          // kategori di bawah id
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            child: Text(
+                              subTag!,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 6),
+                        // judul
                         Text(
                           item.judul,
                           maxLines: 2,
@@ -94,6 +118,7 @@ class KartuHasil extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 3),
+                        // sub judul
                         Text(
                           item.sub,
                           maxLines: 2,
@@ -105,17 +130,41 @@ class KartuHasil extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          item.meta.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.8,
-                            color: AppColors.primaryDark,
+                        // meta atau lokasi
+                        if (lokasi != null && lokasi!.isNotEmpty)
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  lokasi!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          Text(
+                            item.meta.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                              color: AppColors.primaryDark,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),

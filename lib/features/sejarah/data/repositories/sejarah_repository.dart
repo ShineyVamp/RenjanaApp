@@ -19,7 +19,7 @@ class SejarahRepository {
   // ambil semua data
   Future<List<SejarahModel>> getAllSejarah({bool forceRefresh = false}) async {
     if (!forceRefresh && _cacheSejarah != null && _cacheSejarah!.isNotEmpty) {
-      return _cacheSejarah!;
+      return List<SejarahModel>.from(_cacheSejarah!);
     }
 
     try {
@@ -30,12 +30,12 @@ class SejarahRepository {
             .toList();
         list.sort((a, b) => a.urutan.compareTo(b.urutan));
         _cacheSejarah = list;
-        return list;
+        return List<SejarahModel>.from(_cacheSejarah!);
       }
     } catch (_) {}
 
-    _cacheSejarah = defaultSejarahList;
-    return defaultSejarahList;
+    _cacheSejarah = List<SejarahModel>.from(defaultSejarahList);
+    return List<SejarahModel>.from(_cacheSejarah!);
   }
 
   // sejarah berdasarkan periode
@@ -87,11 +87,10 @@ class SejarahRepository {
     SejarahModel? exclude,
   }) async {
     final list = await getAllSejarah();
-    if (exclude != null) {
-      list.removeWhere((s) => s.kodeTag == exclude.kodeTag);
-    }
-    list.shuffle(Random());
-    return list.take(count).toList();
+    final pool = List<SejarahModel>.from(
+      list.where((s) => exclude == null || s.kodeTag != exclude.kodeTag),
+    )..shuffle(Random());
+    return pool.take(count).toList();
   }
 
   // tambah data
