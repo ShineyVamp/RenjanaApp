@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/katalog_kategori.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_bar_halaman.dart';
-import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/kartu_hasil.dart';
 import '../../../core/widgets/kotak_pencarian.dart';
+import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
 import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 import 'detail_sejarah_page.dart';
 
-// Halaman penelusuran arsip sejarah berdasarkan era/periode zaman.
+// halaman arsip periode
 class ArsipPeriodePage extends StatefulWidget {
   final KategoriItem periode;
 
@@ -100,7 +100,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
           constraints: const BoxConstraints(maxWidth: 800),
           child: Column(
             children: [
-              // Header deskripsi era dan pencarian
+              // header era dan pencarian
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Column(
@@ -138,7 +138,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
                 ),
               ),
 
-              // Filter chips untuk jenis peristiwa
+              // filter jenis peristiwa
               if (_tersediaJenisPeristiwa.length > 1)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -199,7 +199,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
 
               const SizedBox(height: 8),
 
-              // Daftar konten
+              // daftar konten
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -218,8 +218,23 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
                           itemCount: filtered.length,
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: 16),
-                          itemBuilder: (context, index) =>
-                              _buildHistoryCard(filtered[index]),
+                          itemBuilder: (context, index) {
+                            final item = filtered[index];
+                            return KartuHasil(
+                              item: HasilJelajah.dariSejarah(item),
+                              subTag: (item.jenisPeristiwa != null &&
+                                      item.jenisPeristiwa!.isNotEmpty)
+                                  ? item.namaPeristiwaLabel
+                                  : null,
+                              lokasi: item.provinsi,
+                              onTap: () async {
+                                await context.push(
+                                  DetailSejarahPage(sejarah: item),
+                                );
+                                await _loadData();
+                              },
+                            );
+                          },
                         ),
                       ),
               ),
@@ -230,6 +245,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
     );
   }
 
+  // status kosong
   Widget _buildEmptyState() {
     return Padding(
       padding: const EdgeInsets.all(32),
@@ -258,127 +274,6 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
             style: AppTypography.bodyMedium(),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryCard(SejarahModel item) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        await context.push(DetailSejarahPage(sejarah: item));
-        await _loadData();
-      },
-      child: Container(
-        decoration: AppDekorasi.panel(),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 110,
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppImageView(
-                  imagePath: item.gambarUtama,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          color: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          child: Text(item.kodeTag, style: AppTypography.tag()),
-                        ),
-                        if (item.jenisPeristiwa != null &&
-                            item.jenisPeristiwa!.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            child: Text(
-                              item.namaPeristiwaLabel,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      item.judul,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    if (item.subtitle.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        item.subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.primaryDark,
-                        ),
-                      ),
-                    ],
-                    if (item.provinsi != null && item.provinsi!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on_outlined,
-                            size: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              item.provinsi!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
