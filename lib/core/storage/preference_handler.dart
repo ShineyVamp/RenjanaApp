@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:renjana/features/auth/data/models/user_model.dart';
 
@@ -15,6 +16,7 @@ class PreferenceHandler {
   static const _keyUserUsername = "userUsername";
   static const _keyUserEmail = "userEmail";
   static const _keyUserId = "userId";
+  static const _keyUserUid = "userUid";
 
   static Future<void> saveUser(UserSQLModel user) async {
     await _prefs.setBool(_keyIsLogin, true);
@@ -26,6 +28,9 @@ class PreferenceHandler {
     await _prefs.setString(_keyUserUsername, user.username);
     await _prefs.setString(_keyUserEmail, user.email);
     await _prefs.setInt(_keyUserId, user.id ?? 0);
+    if (user.uid != null && user.uid!.isNotEmpty) {
+      await _prefs.setString(_keyUserUid, user.uid!);
+    }
   }
 
   static bool get isLogin {
@@ -60,14 +65,20 @@ class PreferenceHandler {
     return _prefs.getString(_keyUserEmail) ?? '';
   }
 
-  // Pemilik seluruh data per akun. Dipakai sebagai kunci di database supaya
-  // penggantian username maupun email tidak memutus capaian.
+  static String get userUid {
+    final uid = _prefs.getString(_keyUserUid);
+    if (uid != null && uid.isNotEmpty) return uid;
+    return user?.uid ?? '';
+  }
+
+  // id user
   static int get userId {
     final tersimpan = _prefs.getInt(_keyUserId) ?? 0;
     if (tersimpan > 0) return tersimpan;
     return user?.id ?? 0;
   }
 
+  // data user
   static UserSQLModel? get user {
     final raw = _prefs.getString(_keyUserData);
     if (raw == null || raw.trim().isEmpty) return null;
@@ -78,13 +89,18 @@ class PreferenceHandler {
     }
   }
 
-  // Hanya kunci sesi yang dihapus, preferensi lain tetap bertahan.
+  // logout
   static Future<void> logOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
     await _prefs.remove(_keyIsLogin);
     await _prefs.remove(_keyUserData);
     await _prefs.remove(_keyIsAdmin);
     await _prefs.remove(_keyUserName);
+    await _prefs.remove(_keyUserUsername);
     await _prefs.remove(_keyUserEmail);
     await _prefs.remove(_keyUserId);
+    await _prefs.remove(_keyUserUid);
   }
 }

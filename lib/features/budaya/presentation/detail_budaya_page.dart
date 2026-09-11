@@ -564,7 +564,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                 ],
               ),
 
-              // 3. Tombol navigasi atas (Back, Home, Bookmark, Share)
+              // tombol navigasi atas
               Positioned(
                 top: 0,
                 left: 0,

@@ -13,6 +13,7 @@ import '../../sejarah/data/models/sejarah_model.dart';
 import '../../budaya/data/repositories/budaya_repository.dart';
 import '../../sejarah/data/repositories/sejarah_repository.dart';
 import '../../kontribusi/presentation/widgets/editor_blok_konten.dart';
+import '../../../core/services/cloudinary_service.dart';
 import 'widgets/app_image_picker_widget.dart';
 
 class AdminManageContentPage extends StatefulWidget {
@@ -806,15 +807,93 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               onPressed: () async {
                                 if (!formKey.currentState!.validate()) return;
 
+                                // upload gambar cover
+                                String coverSejarah = selectedImage;
+                                final urlCover =
+                                    await CloudinaryService().uploadFilePath(
+                                      coverSejarah,
+                                      subFolder: 'sejarah',
+                                    );
+                                if (urlCover != null) coverSejarah = urlCover;
+
+                                // upload gambar timeline
+                                final List<TimelineItemModel> alurDiproses = [];
+                                for (final item in timelineItems) {
+                                  String? img = item.imgPath;
+                                  if (item.hasImage && img != null) {
+                                    final url =
+                                        await CloudinaryService().uploadFilePath(
+                                          img,
+                                          subFolder: 'sejarah',
+                                        );
+                                    if (url != null) img = url;
+                                  }
+                                  alurDiproses.add(
+                                    TimelineItemModel(
+                                      date: item.date,
+                                      title: item.title,
+                                      desc: item.desc,
+                                      imgPath: img,
+                                      hasImage: item.hasImage && img != null,
+                                    ),
+                                  );
+                                }
+
                                 final detailP = _rakitDetailPeristiwa(
                                   selectedJenisPeristiwa,
                                   detailControllers,
                                 );
+
+                                // upload gambar blok konten
                                 if (blokKonten.isNotEmpty) {
+                                  final List<BlokKontenModel> blokDiproses = [];
+                                  for (final blok in blokKonten) {
+                                    if (blok.tipe == TipeBlokKonten.timeline &&
+                                        blok.data is List) {
+                                      final List<TimelineItemModel> items = [];
+                                      for (final raw in (blok.data as List)) {
+                                        if (raw is TimelineItemModel) {
+                                          String? img = raw.imgPath;
+                                          if (raw.hasImage && img != null) {
+                                            final url =
+                                                await CloudinaryService()
+                                                    .uploadFilePath(
+                                                      img,
+                                                      subFolder: 'sejarah',
+                                                    );
+                                            if (url != null) img = url;
+                                          }
+                                          items.add(
+                                            TimelineItemModel(
+                                              date: raw.date,
+                                              title: raw.title,
+                                              desc: raw.desc,
+                                              imgPath: img,
+                                              hasImage:
+                                                  raw.hasImage && img != null,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                      blokDiproses.add(
+                                        BlokKontenModel(
+                                          id: blok.id,
+                                          tipe: blok.tipe,
+                                          judul: blok.judul,
+                                          data: items,
+                                        ),
+                                      );
+                                    } else {
+                                      blokDiproses.add(blok);
+                                    }
+                                  }
                                   detailP['blokKonten'] =
-                                      BlokKontenModel.listToMapList(blokKonten);
+                                      BlokKontenModel.listToMapList(
+                                        blokDiproses,
+                                      );
                                 }
 
+                                // simpan data sejarah
                                 final model = SejarahModel(
                                   id: isEditing ? sejarahToEdit.id : null,
                                   kodeTag: kodeTagController.text.trim(),
@@ -827,8 +906,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                   judul: judulController.text.trim(),
                                   subtitle: subtitleController.text.trim(),
                                   ringkasan: ringkasanController.text.trim(),
-                                  gambarUtama: selectedImage,
-                                  alurPeristiwa: timelineItems,
+                                  gambarUtama: coverSejarah,
+                                  alurPeristiwa: alurDiproses,
                                   provinsi: selectedProvinsi,
                                   periode: selectedPeriode,
                                   jenisPeristiwa: selectedJenisPeristiwa,
@@ -1753,13 +1832,91 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                               onPressed: () async {
                                 if (!formKey.currentState!.validate()) return;
 
+                                // upload gambar cover
+                                String coverBudaya = selectedImage;
+                                final urlCover =
+                                    await CloudinaryService().uploadFilePath(
+                                      coverBudaya,
+                                      subFolder: 'budaya',
+                                    );
+                                if (urlCover != null) coverBudaya = urlCover;
+
+                                // upload gambar makna spiritual
+                                String? maknaSpiritualImg =
+                                    selectedMaknaSpiritualImage;
+                                if (maknaSpiritualImg != null) {
+                                  final url =
+                                      await CloudinaryService().uploadFilePath(
+                                        maknaSpiritualImg,
+                                        subFolder: 'budaya',
+                                      );
+                                  if (url != null) maknaSpiritualImg = url;
+                                }
+
+                                // upload gambar konteks budaya
+                                String? konteksBudayaImg =
+                                    selectedKonteksBudayaImage;
+                                if (konteksBudayaImg != null) {
+                                  final url =
+                                      await CloudinaryService().uploadFilePath(
+                                        konteksBudayaImg,
+                                        subFolder: 'budaya',
+                                      );
+                                  if (url != null) konteksBudayaImg = url;
+                                }
+
                                 final detailK = _rakitDetailKategori(
                                   selectedJenis,
                                   detailControllers,
                                 );
+
+                                // upload gambar blok konten
                                 if (blokKonten.isNotEmpty) {
+                                  final List<BlokKontenModel> blokDiproses = [];
+                                  for (final blok in blokKonten) {
+                                    if (blok.tipe == TipeBlokKonten.timeline &&
+                                        blok.data is List) {
+                                      final List<TimelineItemModel> items = [];
+                                      for (final raw in (blok.data as List)) {
+                                        if (raw is TimelineItemModel) {
+                                          String? img = raw.imgPath;
+                                          if (raw.hasImage && img != null) {
+                                            final url =
+                                                await CloudinaryService()
+                                                    .uploadFilePath(
+                                                      img,
+                                                      subFolder: 'budaya',
+                                                    );
+                                            if (url != null) img = url;
+                                          }
+                                          items.add(
+                                            TimelineItemModel(
+                                              date: raw.date,
+                                              title: raw.title,
+                                              desc: raw.desc,
+                                              imgPath: img,
+                                              hasImage:
+                                                  raw.hasImage && img != null,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                      blokDiproses.add(
+                                        BlokKontenModel(
+                                          id: blok.id,
+                                          tipe: blok.tipe,
+                                          judul: blok.judul,
+                                          data: items,
+                                        ),
+                                      );
+                                    } else {
+                                      blokDiproses.add(blok);
+                                    }
+                                  }
                                   detailK['blokKonten'] =
-                                      BlokKontenModel.listToMapList(blokKonten);
+                                      BlokKontenModel.listToMapList(
+                                        blokDiproses,
+                                      );
                                 }
 
                                 final urutan =
@@ -1767,6 +1924,8 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                       urutanController.text.trim(),
                                     ) ??
                                     1;
+
+                                // simpan data budaya
                                 final model = BudayaModel(
                                   id: isEditing ? budayaToEdit.id : null,
                                   kodeTag: buatKodeTagBudaya(
@@ -1782,7 +1941,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                       selectedJenis,
                                   tagline: taglineController.text.trim(),
                                   deskripsi: deskripsiController.text.trim(),
-                                  gambarUtama: selectedImage,
+                                  gambarUtama: coverBudaya,
                                   maknaSpiritual:
                                       maknaSpiritualController.text
                                           .trim()
@@ -1791,16 +1950,14 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                       : null,
                                   provinsi: selectedProvinsi,
                                   detailKategori: detailK,
-                                  gambarMaknaSpiritual:
-                                      selectedMaknaSpiritualImage,
+                                  gambarMaknaSpiritual: maknaSpiritualImg,
                                   konteksBudaya:
                                       konteksBudayaController.text
                                           .trim()
                                           .isNotEmpty
                                       ? konteksBudayaController.text.trim()
                                       : null,
-                                  gambarKonteksBudaya:
-                                      selectedKonteksBudayaImage,
+                                  gambarKonteksBudaya: konteksBudayaImg,
                                   jenisMedia: selectedJenisMedia,
                                   mediaUrl: selectedJenisMedia == 'gambar'
                                       ? null

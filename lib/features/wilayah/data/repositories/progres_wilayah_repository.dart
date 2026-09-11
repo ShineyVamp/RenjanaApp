@@ -1,10 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/wilayah_nusantara.dart';
+import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/quiz/data/models/hasil_kuis_model.dart';
 import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
@@ -78,44 +79,69 @@ class ProgresProvinsi {
   bool get semuaDibaca => jumlahArsip > 0 && arsipDibaca >= jumlahArsip;
 }
 
-// Menghitung tingkat penuntasan tiap provinsi dari arsip yang sudah dibuka
-// dan rekor kuis, lalu menyimpan tingkat terakhir beserta jumlah arsip saat
-// itu ke tabel `progres_wilayah`.
 class ProgresWilayahRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
   final WilayahRepository _wilayahRepository;
   final ArsipDibacaRepository _arsipDibacaRepository;
   final HasilKuisRepository _hasilKuisRepository;
 
+  static Map<String, Map<String, Object?>>? _cachedCatatan;
+  static String? _cachedUser;
+
   ProgresWilayahRepository({
-    DbHelper? dbHelper,
+    FirebaseFirestore? firestore,
     WilayahRepository? wilayahRepository,
     ArsipDibacaRepository? arsipDibacaRepository,
     HasilKuisRepository? hasilKuisRepository,
-  }) : _dbHelper = dbHelper ?? DbHelper(),
-       _wilayahRepository = wilayahRepository ?? WilayahRepository(),
-       _arsipDibacaRepository =
-           arsipDibacaRepository ?? ArsipDibacaRepository(),
-       _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository();
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _wilayahRepository = wilayahRepository ?? WilayahRepository(),
+        _arsipDibacaRepository =
+            arsipDibacaRepository ?? ArsipDibacaRepository(),
+        _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository();
 
-  // Nama tema kuis untuk satu provinsi, mengikuti penamaan di seed.
   static String temaKuisProvinsi(String provinsi) => 'Kekayaan $provinsi';
 
-  int get _pemilik => idAkunAktif;
+  // identitas pengguna
+  String get _userUid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final fUser = FirebaseAuth.instance.currentUser;
+    if (fUser != null && fUser.uid.isNotEmpty) return fUser.uid;
+    final intId = idAkunAktif;
+    if (intId > 0) return 'user_$intId';
+    return 'guest';
+  }
+
+  // koleksi progres wilayah
+  CollectionReference<Map<String, dynamic>> _koleksi() {
+    return _firestore
+        .collection('users')
+        .doc(_userUid)
+        .collection('progres_wilayah');
+  }
 
   Future<Map<String, Map<String, Object?>>> _catatan() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return {};
+    final uid = _userUid;
+    if (uid == 'guest') return {};
 
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'progres_wilayah',
-      where: 'userId = ?',
-      whereArgs: [pemilik],
-    );
-    return {
-      for (final r in baris) (r['provinsi'] as String? ?? '').toLowerCase(): r,
-    };
+    if (_cachedCatatan != null && _cachedUser == uid) {
+      return _cachedCatatan!;
+    }
+
+    try {
+      final snap = await _koleksi().get();
+      final map = <String, Map<String, Object?>>{};
+      for (final doc in snap.docs) {
+        final d = doc.data();
+        final prov = (d['provinsi'] as String? ?? doc.id).toLowerCase();
+        map[prov] = d;
+      }
+      _cachedCatatan = map;
+      _cachedUser = uid;
+      return map;
+    } catch (_) {
+      return _cachedCatatan ?? const {};
+    }
   }
 
   Future<void> _simpan(
@@ -123,17 +149,24 @@ class ProgresWilayahRepository {
     TingkatWilayah tingkat,
     int arsip,
   ) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return;
+    final uid = _userUid;
+    if (uid == 'guest') return;
 
-    final db = await _dbHelper.database;
-    await db.insert('progres_wilayah', {
-      'userId': pemilik,
+    final provKey = provinsi.toLowerCase();
+    final data = <String, Object?>{
       'provinsi': provinsi,
       'tingkat': tingkat.name,
       'jumlahArsip': arsip,
       'diperbaruiPada': DateTime.now().millisecondsSinceEpoch,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    };
+
+    if (_cachedUser == uid) {
+      _cachedCatatan?[provKey] = data;
+    }
+
+    try {
+      await _koleksi().doc(provKey).set(data, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   // Kunci referensi arsip yang pernah dibaca, mis. 'budaya|BUD-RMH-1-D'.

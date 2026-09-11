@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -39,14 +40,26 @@ class _DetailJawabanPageState extends State<DetailJawabanPage> {
   bool _isLoading = true;
   bool _isSubmitting = false;
 
+  StreamSubscription<List<JawabanModel>>? _balasanSub;
+
   @override
   void initState() {
     super.initState();
+    _balasanSub = _repository
+        .streamDaftarBalasan(widget.jawabanId)
+        .listen((list) {
+      if (!mounted) return;
+      setState(() {
+        _daftarBalasan = list;
+        _isLoading = false;
+      });
+    });
     _muatData();
   }
 
   @override
   void dispose() {
+    _balasanSub?.cancel();
     _balasanFocusNode.dispose();
     _balasanController.dispose();
     super.dispose();

@@ -8,6 +8,7 @@ import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/pembersih_dialog.dart';
 import '../../quiz/data/models/quiz_model.dart';
 import '../../quiz/data/repositories/quiz_repository.dart';
+import '../../../core/services/cloudinary_service.dart';
 import 'admin_quiz_theme_detail_page.dart';
 import 'widgets/app_image_picker_widget.dart';
 
@@ -467,6 +468,19 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                                     .map((c) => c.text.trim())
                                     .toList();
 
+                                // upload gambar ke cloudinary jika lokal
+                                String? coverUrl = selectedImage;
+                                if (coverUrl != null &&
+                                    coverUrl.trim().isNotEmpty &&
+                                    !coverUrl.startsWith('http')) {
+                                  final uploaded = await CloudinaryService()
+                                      .uploadFilePath(
+                                        coverUrl,
+                                        subFolder: 'quiz',
+                                      );
+                                  if (uploaded != null) coverUrl = uploaded;
+                                }
+
                                 final model = QuizSQLModel(
                                   kategori: kategoriController.text.trim(),
                                   subKategori: subKategori,
@@ -474,7 +488,7 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                                   soal: soalController.text.trim(),
                                   daftarJawaban: answers,
                                   jawabanBenar: selectedCorrectIndex,
-                                  gambar: selectedImage,
+                                  gambar: coverUrl,
                                   penjelasan:
                                       penjelasanController.text
                                           .trim()
@@ -708,13 +722,26 @@ class _AdminManageQuizPageState extends State<AdminManageQuizPage> {
                               final newKategori = kategoriController.text
                                   .trim();
 
+                              // upload gambar ke cloudinary jika lokal
+                              String? coverUrl = selectedImage;
+                              if (coverUrl != null &&
+                                  coverUrl.trim().isNotEmpty &&
+                                  !coverUrl.startsWith('http')) {
+                                final uploaded = await CloudinaryService()
+                                    .uploadFilePath(
+                                      coverUrl,
+                                      subFolder: 'quiz',
+                                    );
+                                if (uploaded != null) coverUrl = uploaded;
+                              }
+
                               final success = await _quizRepository
                                   .updateThemeInfo(
                                     oldTema: group.tema,
                                     newTema: newTema,
                                     newKategori: newKategori,
                                     newSubKategori: subKategori,
-                                    newCoverImage: selectedImage,
+                                    newCoverImage: coverUrl,
                                   );
 
                               if (!mounted) return;

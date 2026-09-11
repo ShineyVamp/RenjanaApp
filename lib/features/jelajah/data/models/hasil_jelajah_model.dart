@@ -55,7 +55,7 @@ class HasilJelajah {
     jenis: JenisArsip.budaya,
     kodeTag: item.kodeTag,
     judul: item.judul,
-    sub: item.tagline,
+    sub: item.tagline.isNotEmpty ? item.tagline : item.deskripsi,
     meta: item.kategoriLabel,
     gambar: item.gambarUtama,
     isDestinasi: item.isDestinasi,

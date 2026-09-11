@@ -96,7 +96,7 @@ class BudayaModel {
       detailKategori.isEmpty ? '' : jsonEncode(detailKategori);
 
   // Peta kolom tabel budaya, dipakai seed, migrasi, dan repository.
-  // Kolom `id` tidak ikut, diatur SQLite.
+  // Kolom `id` tidak ikut, diatur otomatis.
   Map<String, Object?> toKolom() => {
     'kodeTag': kodeTag,
     'jenis': jenis,
@@ -117,7 +117,62 @@ class BudayaModel {
     'mediaUrl': mediaUrl,
   };
 
-  // Membaca kolom detailKategori; nilai null, kosong, atau rusak jadi {}.
+  // serialisasi firestore
+  Map<String, dynamic> toFirestore() => {
+    'kodeTag': kodeTag,
+    'jenis': jenis,
+    'urutan': urutan,
+    'judul': judul,
+    'kategoriLabel': kategoriLabel,
+    'tagline': tagline,
+    'deskripsi': deskripsi,
+    'gambarUtama': gambarUtama,
+    'maknaSpiritual': maknaSpiritual,
+    'gambarMaknaSpiritual': gambarMaknaSpiritual,
+    'konteksBudaya': konteksBudaya,
+    'gambarKonteksBudaya': gambarKonteksBudaya,
+    'provinsi': provinsi,
+    'detailKategori': detailKategori,
+    'kontributor': kontributor,
+    'jenisMedia': jenisMedia,
+    'mediaUrl': mediaUrl,
+  };
+
+  factory BudayaModel.fromFirestore(Map<String, dynamic> map, [String? docId]) {
+    final detail = map['detailKategori'];
+    Map<String, dynamic> parsedDetail = {};
+    if (detail is Map<String, dynamic>) {
+      parsedDetail = detail;
+    } else if (detail is Map) {
+      parsedDetail = Map<String, dynamic>.from(detail);
+    } else if (detail != null) {
+      parsedDetail = detailDariJson(detail);
+    }
+
+    return BudayaModel(
+      kodeTag: (map['kodeTag'] as String?)?.isNotEmpty == true
+          ? map['kodeTag'] as String
+          : (docId ?? 'BUD-SNJT-1'),
+      jenis: map['jenis'] as String? ?? 'SNJT',
+      urutan: (map['urutan'] as num?)?.toInt() ?? 1,
+      judul: map['judul'] as String? ?? '',
+      kategoriLabel: map['kategoriLabel'] as String? ?? 'SENJATA TRADISIONAL',
+      tagline: map['tagline'] as String? ?? '',
+      deskripsi: map['deskripsi'] as String? ?? '',
+      gambarUtama: map['gambarUtama'] as String? ?? 'assets/images/kerisB.jpg',
+      maknaSpiritual: map['maknaSpiritual'] as String?,
+      gambarMaknaSpiritual: map['gambarMaknaSpiritual'] as String?,
+      konteksBudaya: map['konteksBudaya'] as String?,
+      gambarKonteksBudaya: map['gambarKonteksBudaya'] as String?,
+      provinsi: map['provinsi'] as String?,
+      detailKategori: parsedDetail,
+      kontributor: map['kontributor'] as String?,
+      jenisMedia: map['jenisMedia'] as String? ?? 'gambar',
+      mediaUrl: map['mediaUrl'] as String?,
+    );
+  }
+
+  // membaca kolom detailkategori
   static Map<String, dynamic> detailDariJson(Object? mentah) {
     if (mentah == null) return const {};
     final teks = mentah.toString().trim();

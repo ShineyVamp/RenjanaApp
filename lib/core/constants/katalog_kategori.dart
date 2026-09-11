@@ -124,6 +124,42 @@ class KategoriItem {
     'bawaan': bawaan ? 1 : 0,
   };
 
+  // serialisasi firestore
+  Map<String, dynamic> toFirestore() => {
+    'ranah': ranah,
+    'kode': kode,
+    'nama': nama,
+    'urutan': urutan,
+    'field': field.map((f) => f.toMap()).toList(),
+    'bawaan': bawaan,
+  };
+
+  factory KategoriItem.fromFirestore(
+    Map<String, dynamic> map, [
+    String? docId,
+  ]) {
+    List<FieldKategori> listField = const [];
+    final rawField = map['field'];
+    if (rawField is List) {
+      listField = rawField
+          .whereType<Map>()
+          .map((e) => FieldKategori.fromMap(Map<String, dynamic>.from(e)))
+          .where((f) => f.kunci.isNotEmpty)
+          .toList();
+    } else if (rawField is String) {
+      listField = bacaFieldKategori(rawField);
+    }
+
+    return KategoriItem(
+      ranah: (map['ranah'] as String?)?.trim() ?? '',
+      kode: (map['kode'] as String?)?.trim() ?? '',
+      nama: (map['nama'] as String?)?.trim() ?? '',
+      urutan: (map['urutan'] as num?)?.toInt() ?? 0,
+      field: listField,
+      bawaan: map['bawaan'] == true || map['bawaan'] == 1,
+    );
+  }
+
   factory KategoriItem.fromMap(Map<String, dynamic> map) => KategoriItem(
     id: map['id'] as int?,
     ranah: (map['ranah'] as String?)?.trim() ?? '',

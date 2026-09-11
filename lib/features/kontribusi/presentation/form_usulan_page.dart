@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -7,6 +8,7 @@ import '../../../core/constants/budaya_kategori.dart';
 import '../../../core/constants/kuis_kategori.dart';
 import '../../../core/constants/wilayah_nusantara.dart';
 import '../../../core/extensions/navigation.dart';
+import '../../../core/services/cloudinary_service.dart';
 import '../../../core/widgets/app_bar_halaman.dart';
 import 'package:renjana/core/utils/image_picker_helper.dart';
 import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
@@ -15,14 +17,8 @@ import 'package:renjana/features/kontribusi/data/repositories/usulan_repository.
 import 'widgets/editor_blok_konten.dart';
 import 'widgets/isian_form.dart';
 
-// Form pengajuan usulan konten. Dipakai untuk usulan baru maupun untuk
-// memperbaiki usulan yang diminta direvisi admin.
 class FormUsulanPage extends StatefulWidget {
-  // Diisi saat memperbaiki usulan yang sudah ada.
   final Usulan? usulanAwal;
-
-  // Admin menyunting usulan milik orang lain: statusnya tidak direset dan
-  // batas usulan harian tidak berlaku.
   final bool sebagaiAdmin;
 
   const FormUsulanPage({super.key, this.usulanAwal, this.sebagaiAdmin = false});
@@ -367,6 +363,31 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     }
 
     setState(() => _menyimpan = true);
+
+    // upload gambar utama ke cloudinary
+    if (_gambar != null && _gambar!.trim().isNotEmpty && !_gambar!.startsWith('http')) {
+      final berkas = File(_gambar!.trim());
+      if (berkas.existsSync()) {
+        final res = await CloudinaryService().uploadImage(berkas, subFolder: 'usulan');
+        if (res.isSuccess && res.secureUrl != null) {
+          _gambar = res.secureUrl;
+        }
+      }
+    }
+
+    // upload gambar peristiwa ke cloudinary
+    for (final p in _peristiwa) {
+      if (p.gambar != null && p.gambar!.trim().isNotEmpty && !p.gambar!.startsWith('http')) {
+        final berkas = File(p.gambar!.trim());
+        if (berkas.existsSync()) {
+          final res = await CloudinaryService().uploadImage(berkas, subFolder: 'usulan');
+          if (res.isSuccess && res.secureUrl != null) {
+            p.gambar = res.secureUrl;
+          }
+        }
+      }
+    }
+
     final sekarang = DateTime.now();
     final awal = widget.usulanAwal;
 

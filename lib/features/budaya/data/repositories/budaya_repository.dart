@@ -1,51 +1,48 @@
 import 'dart:math';
-import '../../../../data/local/db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../data/local/seed/budaya_seed.dart';
 import '../models/budaya_model.dart';
 
 class BudayaRepository {
-  final DbHelper _dbHelper = DbHelper();
+  final FirebaseFirestore _firestore;
+  static List<BudayaModel>? _cacheBudaya;
 
-  Future<List<BudayaModel>> getAllBudaya() async {
-    final db = await _dbHelper.database;
-    final maps = await db.query('budaya', orderBy: 'id DESC');
+  BudayaRepository({
+    FirebaseFirestore? firestore,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
-    if (maps.isEmpty) {
-      return defaultBudayaList;
-    }
-
-    return maps.map((map) {
-      return BudayaModel(
-        id: map['id'] as int?,
-        kodeTag: map['kodeTag'] as String? ?? 'BUD-SNJT-1',
-        jenis: map['jenis'] as String? ?? 'SNJT',
-        urutan: map['urutan'] as int? ?? 1,
-        judul: map['judul'] as String? ?? '',
-        kategoriLabel: map['kategoriLabel'] as String? ?? 'SENJATA TRADISIONAL',
-        tagline: map['tagline'] as String? ?? '',
-        deskripsi: map['deskripsi'] as String? ?? '',
-        gambarUtama:
-            map['gambarUtama'] as String? ?? 'assets/images/kerisB.jpg',
-        maknaSpiritual: map['maknaSpiritual'] as String?,
-        gambarMaknaSpiritual: map['gambarMaknaSpiritual'] as String?,
-        konteksBudaya: map['konteksBudaya'] as String?,
-        gambarKonteksBudaya: map['gambarKonteksBudaya'] as String?,
-        provinsi: map['provinsi'] as String?,
-        detailKategori: BudayaModel.detailDariJson(map['detailKategori']),
-        kontributor: map['kontributor'] as String?,
-        jenisMedia: map['jenisMedia'] as String? ?? 'gambar',
-        mediaUrl: map['mediaUrl'] as String?,
-      );
-    }).toList();
+  // in-memory cache budaya
+  static void bersihkanCache() {
+    _cacheBudaya = null;
   }
 
-  // Sorotan "Budaya Hari Ini", diacak dengan benih tanggal hari ini sehingga
-  // pilihannya tetap sama sepanjang hari.
+  // ambil semua data
+  Future<List<BudayaModel>> getAllBudaya({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cacheBudaya != null && _cacheBudaya!.isNotEmpty) {
+      return _cacheBudaya!;
+    }
+
+    try {
+      final snap = await _firestore.collection('budaya').get();
+      if (snap.docs.isNotEmpty) {
+        final list = snap.docs
+            .map((doc) => BudayaModel.fromFirestore(doc.data(), doc.id))
+            .toList();
+        list.sort((a, b) => a.urutan.compareTo(b.urutan));
+        _cacheBudaya = list;
+        return list;
+      }
+    } catch (_) {}
+
+    _cacheBudaya = defaultBudayaList;
+    return defaultBudayaList;
+  }
+
+  // budaya hari ini
   Future<BudayaModel> getBudayaHariIni() async {
     final list = await getAllBudaya();
     if (list.isEmpty) return defaultBudayaList.first;
 
-    // urutkan berdasarkan kodeTag, bukan urutan baris database
     final pool = List<BudayaModel>.from(list)
       ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
     final now = DateTime.now();
@@ -55,7 +52,7 @@ class BudayaRepository {
     return pool[Random(benihHariIni).nextInt(pool.length)];
   }
 
-  // Semua budaya pada satu kategori (kolom `jenis`).
+  // budaya berdasarkan jenis
   Future<List<BudayaModel>> getBudayaByJenis(String jenis) async {
     final list = await getAllBudaya();
     final target = jenis.trim().toUpperCase();
@@ -66,7 +63,7 @@ class BudayaRepository {
     return result;
   }
 
-  // Budaya yang sekaligus tempat wisata (ID tag berakhiran `-D`).
+  // daftar destinasi
   Future<List<BudayaModel>> getDestinasiList({
     bool acak = false,
     int? limit,
@@ -86,13 +83,13 @@ class BudayaRepository {
     return result;
   }
 
-  // Jumlah seluruh destinasi.
+  // jumlah destinasi
   Future<int> getDestinasiCount() async {
     final list = await getAllBudaya();
     return list.where((b) => b.isDestinasi).length;
   }
 
-  // Budaya dikelompokkan per kategori, dipakai daftar Koleksi Budaya.
+  // kelompok jenis
   Future<Map<String, List<BudayaModel>>> getBudayaGroupedByJenis() async {
     final list = await getAllBudaya();
     final Map<String, List<BudayaModel>> grouped = {};
@@ -105,6 +102,7 @@ class BudayaRepository {
     return grouped;
   }
 
+  // cari kode tag
   Future<BudayaModel?> getBudayaByKodeTag(String kodeTag) async {
     final list = await getAllBudaya();
     try {
@@ -114,6 +112,7 @@ class BudayaRepository {
     }
   }
 
+  // acak budaya
   Future<List<BudayaModel>> getRandomBudayaList({
     int count = 5,
     BudayaModel? exclude,
@@ -140,42 +139,47 @@ class BudayaRepository {
     return result;
   }
 
+  // tambah data
   Future<int> tambahBudaya(BudayaModel model) async {
-    final db = await _dbHelper.database;
-    return await db.insert('budaya', model.toKolom());
-  }
-
-  // [previousKodeTag] diisi bila ID tag ikut berubah; bookmark lama ikut
-  // dipindahkan ke ID tag baru.
-  Future<int> updateBudaya(BudayaModel model, {String? previousKodeTag}) async {
-    final db = await _dbHelper.database;
-    final oldKodeTag = previousKodeTag ?? model.kodeTag;
-    final count = await db.update(
-      'budaya',
-      model.toKolom(),
-      where: model.id != null ? 'id = ?' : 'kodeTag = ?',
-      whereArgs: [model.id ?? oldKodeTag],
-    );
-
-    if (oldKodeTag != model.kodeTag) {
-      await db.rawUpdate(
-        'UPDATE OR IGNORE bookmark SET kodeTag = ? WHERE kodeTag = ?',
-        [model.kodeTag, oldKodeTag],
-      );
+    try {
+      await _firestore
+          .collection('budaya')
+          .doc(model.kodeTag)
+          .set(model.toFirestore(), SetOptions(merge: true));
+      bersihkanCache();
+      return 1;
+    } catch (_) {
+      return 0;
     }
-
-    return count;
   }
 
+  // perbarui data
+  Future<int> updateBudaya(BudayaModel model, {String? previousKodeTag}) async {
+    final oldKodeTag = previousKodeTag ?? model.kodeTag;
+
+    try {
+      await _firestore
+          .collection('budaya')
+          .doc(model.kodeTag)
+          .set(model.toFirestore(), SetOptions(merge: true));
+      if (oldKodeTag != model.kodeTag) {
+        await _firestore.collection('budaya').doc(oldKodeTag).delete();
+      }
+      bersihkanCache();
+      return 1;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  // hapus data
   Future<int> deleteBudaya(String kodeTag) async {
-    final db = await _dbHelper.database;
-    final count = await db.delete(
-      'budaya',
-      where: 'kodeTag = ?',
-      whereArgs: [kodeTag],
-    );
-    // hapus bookmark yang menunjuk item ini
-    await db.delete('bookmark', where: 'kodeTag = ?', whereArgs: [kodeTag]);
-    return count;
+    try {
+      await _firestore.collection('budaya').doc(kodeTag).delete();
+      bersihkanCache();
+      return 1;
+    } catch (_) {
+      return 0;
+    }
   }
 }

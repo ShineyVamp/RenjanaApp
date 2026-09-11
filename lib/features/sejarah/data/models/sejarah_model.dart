@@ -125,6 +125,80 @@ class SejarahModel {
   String get detailPeristiwaJson =>
       detailPeristiwa.isEmpty ? '' : jsonEncode(detailPeristiwa);
 
+  // serialisasi firestore
+  Map<String, dynamic> toFirestore() => {
+    'kodeTag': kodeTag,
+    'tanggalKey': tanggalKey,
+    'urutan': urutan,
+    'judul': judul,
+    'subtitle': subtitle,
+    'ringkasan': ringkasan,
+    'gambarUtama': gambarUtama,
+    'alurPeristiwa': alurPeristiwa.map((i) => i.toMap()).toList(),
+    'provinsi': provinsi,
+    'kontributor': kontributor,
+    'periode': periode,
+    'jenisPeristiwa': jenisPeristiwa,
+    'detailPeristiwa': detailPeristiwa,
+    'jenisMedia': jenisMedia,
+    'mediaUrl': mediaUrl,
+  };
+
+  factory SejarahModel.fromFirestore(Map<String, dynamic> map, [String? docId]) {
+    List<TimelineItemModel> alur = [];
+    final rawAlur = map['alurPeristiwa'];
+    if (rawAlur is List) {
+      for (final item in rawAlur) {
+        if (item is Map<String, dynamic>) {
+          alur.add(TimelineItemModel.fromMap(item));
+        } else if (item is Map) {
+          alur.add(TimelineItemModel.fromMap(Map<String, dynamic>.from(item)));
+        }
+      }
+    } else if (rawAlur is String && rawAlur.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawAlur);
+        if (decoded is List) {
+          alur = decoded
+              .map((i) => TimelineItemModel.fromMap(i as Map<String, dynamic>))
+              .toList();
+        }
+      } catch (_) {}
+    }
+
+    final rawDetail = map['detailPeristiwa'];
+    Map<String, dynamic> parsedDetail = {};
+    if (rawDetail is Map<String, dynamic>) {
+      parsedDetail = rawDetail;
+    } else if (rawDetail is Map) {
+      parsedDetail = Map<String, dynamic>.from(rawDetail);
+    } else if (rawDetail != null) {
+      parsedDetail = detailDariJson(rawDetail);
+    }
+
+    return SejarahModel(
+      kodeTag: (map['kodeTag'] as String?)?.isNotEmpty == true
+          ? map['kodeTag'] as String
+          : (docId ?? 'HIS-01'),
+      kontributor: map['kontributor'] as String?,
+      tanggalKey: map['tanggalKey'] as String? ?? '170845',
+      urutan: (map['urutan'] as num?)?.toInt() ?? 1,
+      judul: map['judul'] as String? ?? '',
+      subtitle: map['subtitle'] as String? ?? '',
+      ringkasan: map['ringkasan'] as String? ?? '',
+      gambarUtama:
+          map['gambarUtama'] as String? ?? 'assets/images/1308history.png',
+      alurPeristiwa: alur,
+      provinsi: map['provinsi'] as String?,
+      periode: map['periode'] as String?,
+      jenisPeristiwa: map['jenisPeristiwa'] as String?,
+      detailPeristiwa: parsedDetail,
+      jenisMedia: map['jenisMedia'] as String? ?? 'gambar',
+      mediaUrl: map['mediaUrl'] as String?,
+    );
+  }
+
+  // membaca kolom detailperistiwa
   static Map<String, dynamic> detailDariJson(Object? mentah) {
     if (mentah == null) return const {};
     final teks = mentah.toString().trim();

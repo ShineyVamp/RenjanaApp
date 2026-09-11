@@ -29,8 +29,6 @@ class _JelajahPageState extends State<JelajahPage> {
   final RiwayatRepository _riwayatRepository = RiwayatRepository();
   final TextEditingController _controller = TextEditingController();
 
-  // Pencarian ditunda sejenak setelah ketikan berhenti. Tanpa ini setiap
-  // huruf memicu pembacaan seluruh tabel arsip.
   static const Duration _jedaKetik = Duration(milliseconds: 250);
   static const int _batasHasil = 60;
 

@@ -6,6 +6,7 @@ import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/pembersih_dialog.dart';
 import '../../quiz/data/models/quiz_model.dart';
 import '../../quiz/data/repositories/quiz_repository.dart';
+import '../../../core/services/cloudinary_service.dart';
 import 'widgets/app_image_picker_widget.dart';
 
 class AdminQuizThemeDetailPage extends StatefulWidget {
@@ -310,6 +311,21 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                                     .map((c) => c.text.trim())
                                     .toList();
 
+                                // upload gambar ke cloudinary jika lokal
+                                String? questionImg = (selectedImage != null &&
+                                        selectedImage!.trim().isNotEmpty)
+                                    ? selectedImage
+                                    : null;
+                                if (questionImg != null &&
+                                    !questionImg.startsWith('http')) {
+                                  final uploaded = await CloudinaryService()
+                                      .uploadFilePath(
+                                        questionImg,
+                                        subFolder: 'quiz',
+                                      );
+                                  if (uploaded != null) questionImg = uploaded;
+                                }
+
                                 final model = QuizSQLModel(
                                   id: isEditing ? questionToEdit.id : null,
                                   kategori: widget.kategori,
@@ -318,11 +334,7 @@ class _AdminQuizThemeDetailPageState extends State<AdminQuizThemeDetailPage> {
                                   soal: soalController.text.trim(),
                                   daftarJawaban: answers,
                                   jawabanBenar: selectedCorrectIndex,
-                                  gambar:
-                                      (selectedImage != null &&
-                                          selectedImage!.trim().isNotEmpty)
-                                      ? selectedImage
-                                      : null,
+                                  gambar: questionImg,
                                   penjelasan:
                                       penjelasanController.text
                                           .trim()

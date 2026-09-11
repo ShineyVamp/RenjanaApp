@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/storage/preference_handler.dart';
+import '../../kontribusi/data/repositories/usulan_repository.dart';
+import '../../kontribusi/presentation/detail_usulan_page.dart';
 import '../data/models/notifikasi_model.dart';
 import '../data/repositories/komunitas_repository.dart';
 import 'detail_diskusi_page.dart';
@@ -27,10 +30,47 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
   bool _isLoading = true;
   String _filterTerpilih = 'semua';
 
+  StreamSubscription<List<NotifikasiKomunitasModel>>? _notifSub;
+
   @override
   void initState() {
     super.initState();
+    _langgananStream();
     _muatData();
+  }
+
+  void _langgananStream() {
+    final username = PreferenceHandler.userUsername;
+    final userId = PreferenceHandler.userId;
+    final nama = PreferenceHandler.userName;
+    final target = username.isNotEmpty ? username : nama;
+    if (target.isEmpty) return;
+
+    _notifSub?.cancel();
+    _notifSub = _repository
+        .streamDaftarNotifikasi(
+          targetIdentifier: target,
+          targetUserId: userId > 0 ? userId : null,
+          filterTipe:
+              _filterTerpilih == 'semua' || _filterTerpilih == 'belum_dibaca'
+                  ? null
+                  : _filterTerpilih,
+          hanyaBelumDibaca: _filterTerpilih == 'belum_dibaca',
+        )
+        .listen((list) {
+      if (!mounted) return;
+      setState(() {
+        _daftarNotifikasi = list;
+        _jumlahBelumDibaca = list.where((n) => !n.sudahDibaca).length;
+        _isLoading = false;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _notifSub?.cancel();
+    super.dispose();
   }
 
   // muat data notifikasi
@@ -100,14 +140,19 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
 
     if (!mounted) return;
 
-    if (notif.isThreadBalasan && notif.indukJawabanId != null) {
+    if (notif.tipe == 'usulan' && notif.jawabanId != null) {
+      final usulan = await UsulanRepository().ambil(notif.jawabanId!);
+      if (usulan != null && mounted) {
+        await context.push(DetailUsulanPage(usulan: usulan));
+      }
+    } else if (notif.isThreadBalasan && notif.indukJawabanId != null) {
       final diskusi = await _repository.getDiskusiById(notif.diskusiId);
       if (diskusi != null && mounted) {
         await context.push(
           DetailJawabanPage(jawabanId: notif.indukJawabanId!, diskusi: diskusi),
         );
       }
-    } else {
+    } else if (notif.diskusiId > 0) {
       await context.push(DetailDiskusiPage(diskusiId: notif.diskusiId));
     }
 
@@ -241,6 +286,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                 onTap: () {
                   if (_filterTerpilih != key) {
                     setState(() => _filterTerpilih = key);
+                    _langgananStream();
                     _muatData();
                   }
                 },

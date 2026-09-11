@@ -1,11 +1,9 @@
-import 'package:sqflite/sqflite.dart';
-
-import '../../../../core/storage/user_session.dart';
-import '../../../../data/local/db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/storage/preference_handler.dart';
 import 'package:renjana/features/quiz/data/repositories/hasil_kuis_repository.dart';
 import 'riwayat_repository.dart';
 
-// Ringkasan kebiasaan harian satu akun.
+// ringkasan kebiasaan harian satu akun
 class RingkasanRuntun {
   final int berjalan;
   final int terpanjang;
@@ -24,7 +22,7 @@ class RingkasanRuntun {
   });
 }
 
-// Satu tugas kecil hari ini.
+// satu tugas kecil hari ini
 class MisiHarian {
   final String kode;
   final String nama;
@@ -43,26 +41,38 @@ class MisiHarian {
   bool get selesai => tercapai >= target;
 }
 
-// Kunjungan harian dan misi hari ini, milik akun yang sedang login.
-// Kunjungan disimpan satu baris per tanggal di tabel `kunjungan`; misi tidak
-// disimpan dan selalu dihitung ulang dari aktivitas hari ini.
 class RuntunRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
   final RiwayatRepository _riwayatRepository;
   final HasilKuisRepository _hasilKuisRepository;
 
+  static Set<String>? _cachedKunjungan;
+  static Set<String>? _cachedBeku;
+  static RingkasanRuntun? _cacheRingkasan;
+
   RuntunRepository({
-    DbHelper? dbHelper,
+    FirebaseFirestore? firestore,
     RiwayatRepository? riwayatRepository,
     HasilKuisRepository? hasilKuisRepository,
-  }) : _dbHelper = dbHelper ?? DbHelper(),
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _riwayatRepository = riwayatRepository ?? RiwayatRepository(),
        _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository();
 
   static const int targetArsipHarian = 1;
   static const int targetKuisHarian = 1;
 
-  int get _pemilik => idAkunAktif;
+  String get _uid {
+    final uid = PreferenceHandler.userUid;
+    if (uid.isNotEmpty) return uid;
+    final user = PreferenceHandler.user;
+    if (user?.uid != null && user!.uid!.isNotEmpty) return user.uid!;
+    final id = PreferenceHandler.userId;
+    if (id > 0) return 'user_$id';
+    return 'guest';
+  }
+
+  DocumentReference<Map<String, dynamic>> get _runtunDoc =>
+      _firestore.collection('users').doc(_uid).collection('runtun').doc('info');
 
   static String _kunci(DateTime tanggal) {
     final bulan = tanggal.month.toString().padLeft(2, '0');
@@ -70,82 +80,88 @@ class RuntunRepository {
     return '${tanggal.year}-$bulan-$hari';
   }
 
-  Future<void> catatKunjunganHariIni() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return;
+  static void bersihkanCache() {
+    _cachedKunjungan = null;
+    _cachedBeku = null;
+    _cacheRingkasan = null;
+  }
 
-    final db = await _dbHelper.database;
-    await db.insert('kunjungan', {
-      'userId': pemilik,
-      'tanggal': _kunci(DateTime.now()),
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  // catat kunjungan hari ini
+  Future<void> catatKunjunganHariIni() async {
+    final hariIni = _kunci(DateTime.now());
+    _cachedKunjungan ??= {};
+    if (_cachedKunjungan!.contains(hariIni)) return;
+
+    _cachedKunjungan!.add(hariIni);
+    _cacheRingkasan = null;
+
+    try {
+      await _runtunDoc.set({
+        'kunjungan': FieldValue.arrayUnion([hariIni]),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
+  }
+
+  Future<void> _muatDataRuntun() async {
+    if (_cachedKunjungan != null && _cachedBeku != null) return;
+
+    try {
+      final doc = await _runtunDoc.get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final rawKunjungan = data['kunjungan'];
+        if (rawKunjungan is List) {
+          _cachedKunjungan = rawKunjungan.map((e) => e.toString()).toSet();
+        } else {
+          _cachedKunjungan = {};
+        }
+
+        final rawBeku = data['pembeku'];
+        if (rawBeku is List) {
+          _cachedBeku = rawBeku.map((e) => e.toString()).toSet();
+        } else {
+          _cachedBeku = {};
+        }
+        return;
+      }
+    } catch (_) {}
+
+    _cachedKunjungan ??= {};
+    _cachedBeku ??= {};
   }
 
   Future<Set<String>> _tanggalKunjungan() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return <String>{};
-
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'kunjungan',
-      columns: ['tanggal'],
-      where: 'userId = ?',
-      whereArgs: [pemilik],
-    );
-    return baris
-        .map((r) => r['tanggal'] as String? ?? '')
-        .where((t) => t.isNotEmpty)
-        .toSet();
+    await _muatDataRuntun();
+    return _cachedKunjungan ?? <String>{};
   }
 
   Future<Set<String>> _tanggalBeku() async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return <String>{};
-
-    final db = await _dbHelper.database;
-    try {
-      final baris = await db.query(
-        'runtun_pembeku',
-        columns: ['tanggal'],
-        where: 'userId = ?',
-        whereArgs: [pemilik],
-      );
-      return baris
-          .map((r) => r['tanggal'] as String? ?? '')
-          .where((t) => t.isNotEmpty)
-          .toSet();
-    } catch (_) {
-      return <String>{};
-    }
+    await _muatDataRuntun();
+    return _cachedBeku ?? <String>{};
   }
 
   Future<bool> gunakanPembeku(DateTime tanggal, {String alasan = 'Pembeku Runtun'}) async {
-    final pemilik = _pemilik;
-    if (pemilik <= 0) return false;
+    final kunciTanggal = _kunci(tanggal);
+    _cachedBeku ??= {};
+    _cachedBeku!.add(kunciTanggal);
+    _cacheRingkasan = null;
 
-    final db = await _dbHelper.database;
     try {
-      await db.insert('runtun_pembeku', {
-        'userId': pemilik,
-        'tanggal': _kunci(tanggal),
-        'alasan': alasan,
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
-
-      await db.insert('kunjungan', {
-        'userId': pemilik,
-        'tanggal': _kunci(tanggal),
-        'beku': 1,
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await _runtunDoc.set({
+        'pembeku': FieldValue.arrayUnion([kunciTanggal]),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       return true;
     } catch (_) {
       return false;
     }
   }
 
-  // Runtun berjalan dihitung mundur dari hari ini. Hari ini yang belum
-  // tercatat tidak langsung memutus runtun selama kemarin hadir.
-  // Bila kemarin terlewat, pembeku runtun otomatis aktif bila kuota tersedia.
+  // ringkasan runtun
   Future<RingkasanRuntun> ringkasan() async {
+    if (_cacheRingkasan != null) return _cacheRingkasan!;
+
     final tanggal = await _tanggalKunjungan();
     final beku = await _tanggalBeku();
     final gabungan = <String>{...tanggal, ...beku};
@@ -162,18 +178,19 @@ class RuntunRepository {
     if (!hadirHariIni) {
       final kemarin = awal.subtract(const Duration(days: 1));
       if (!gabungan.contains(_kunci(kemarin))) {
-        // Coba bekukan hari kemarin bila kuota pembeku tersedia
         if (beku.length < 2) {
           await gunakanPembeku(kemarin, alasan: 'Pembeku Otomatis');
           gabungan.add(_kunci(kemarin));
           runtunDibekukan = true;
           mulai = kemarin;
         } else {
-          return RingkasanRuntun(
+          final res = RingkasanRuntun(
             terpanjang: _runtunTerpanjang(gabungan),
             totalHari: gabungan.length,
             pembekuTersedia: (2 - beku.length).clamp(0, 2),
           );
+          _cacheRingkasan = res;
+          return res;
         }
       } else {
         mulai = kemarin;
@@ -189,7 +206,7 @@ class RuntunRepository {
 
     final sisaPembeku = (2 - beku.length).clamp(0, 2);
 
-    return RingkasanRuntun(
+    final res = RingkasanRuntun(
       berjalan: berjalan,
       terpanjang: _runtunTerpanjang(gabungan),
       totalHari: gabungan.length,
@@ -197,6 +214,8 @@ class RuntunRepository {
       pembekuTersedia: sisaPembeku,
       runtunDibekukan: runtunDibekukan,
     );
+    _cacheRingkasan = res;
+    return res;
   }
 
   int _runtunTerpanjang(Set<String> tanggal) {
@@ -220,6 +239,7 @@ class RuntunRepository {
     return terpanjang;
   }
 
+  // misi hari ini
   Future<List<MisiHarian>> misiHariIni() async {
     final arsip = await _riwayatRepository.jumlahDibukaHariIni();
     final kuis = await _hasilKuisRepository.jumlahHariIni();

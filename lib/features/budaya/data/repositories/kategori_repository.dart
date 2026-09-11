@@ -1,9 +1,8 @@
-import 'package:sqflite/sqflite.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/katalog_kategori.dart';
-import '../../../../data/local/db_helper.dart';
+import '../../../../features/budaya/data/repositories/budaya_repository.dart';
+import '../../../../features/quiz/data/repositories/quiz_repository.dart';
 
-// Hasil pemeriksaan sebelum sebuah kategori dihapus.
 class PemakaiKategori {
   final int arsip;
   final int soal;
@@ -13,172 +12,150 @@ class PemakaiKategori {
   int get total => arsip + soal;
   bool get kosong => total == 0;
 
-  // Keterangan singkat untuk dialog konfirmasi, mis. '4 arsip, 12 soal'.
   String get ringkasan => [
     if (arsip > 0) '$arsip arsip',
     if (soal > 0) '$soal soal',
   ].join(', ');
 }
 
-// Pembacaan dan penyuntingan tabel `kategori`, sekaligus penjaga isi
-// KatalogKategori di memori.
 class KategoriRepository {
-  final DbHelper _dbHelper;
+  final FirebaseFirestore _firestore;
 
-  KategoriRepository({DbHelper? dbHelper}) : _dbHelper = dbHelper ?? DbHelper();
+  static List<KategoriItem>? _cachedSemua;
 
-  // Membaca seluruh kategori lalu memasangnya ke katalog. Dipanggil sekali
-  // dari main() dan setiap kali admin menyunting isinya.
-  //
-  // Kegagalan sengaja ditelan: katalog akan memakai daftar bawaan sehingga
-  // aplikasi tetap jalan meski database bermasalah.
+  KategoriRepository({
+    FirebaseFirestore? firestore,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  // muat kategori
   Future<void> muat() async {
     try {
-      final db = await _dbHelper.database;
-      final baris = await db.query(
-        'kategori',
-        orderBy: 'ranah ASC, urutan ASC, id ASC',
-      );
+      final snap = await _firestore.collection('kategori').get();
+      if (snap.docs.isNotEmpty) {
+        final items = snap.docs
+            .map((doc) => KategoriItem.fromFirestore(doc.data(), doc.id))
+            .toList();
+        items.sort((a, b) => a.urutan.compareTo(b.urutan));
 
-      final isi = <String, List<KategoriItem>>{};
-      for (final r in baris) {
-        final item = KategoriItem.fromMap(r);
-        if (item.kode.isEmpty) continue;
-        isi.putIfAbsent(item.ranah, () => []).add(item);
+        _cachedSemua = items;
+        final isi = <String, List<KategoriItem>>{};
+        for (final item in items) {
+          if (item.kode.isEmpty) continue;
+          isi.putIfAbsent(item.ranah, () => []).add(item);
+        }
+        KatalogKategori.pasang(isi);
+        return;
       }
-      KatalogKategori.pasang(isi);
     } catch (_) {}
+
+    // pasang dari katalog default jika firestore belum terisi
+    KatalogKategori.pasang({});
   }
 
+  // ambil semua kategori satu ranah
   Future<List<KategoriItem>> semua(String ranah) async {
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'kategori',
-      where: 'ranah = ?',
-      whereArgs: [ranah],
-      orderBy: 'urutan ASC, id ASC',
-    );
-    return baris.map(KategoriItem.fromMap).toList();
-  }
-
-  // Kode kategori dipakai arsip lewat kolom `jenis`, jadi harus unik dalam
-  // satu ranah.
-  Future<bool> kodeTerpakai(String ranah, String kode, {int? kecuali}) async {
-    final db = await _dbHelper.database;
-    final baris = await db.query(
-      'kategori',
-      columns: ['id'],
-      where: 'ranah = ? AND kode = ?',
-      whereArgs: [ranah, kode.trim().toUpperCase()],
-    );
-    return baris.any((r) => r['id'] != kecuali);
-  }
-
-  // Menyimpan kategori baru atau perubahan kategori yang sudah ada, lalu
-  // memuat ulang katalog. Kategori baru ditaruh di urutan terakhir ranahnya.
-  Future<void> simpan(KategoriItem item) async {
-    final db = await _dbHelper.database;
-    final data = item.toKolom();
-
-    if (item.id == null) {
-      final terakhir =
-          Sqflite.firstIntValue(
-            await db.rawQuery(
-              'SELECT MAX(urutan) FROM kategori WHERE ranah = ?',
-              [item.ranah],
-            ),
-          ) ??
-          0;
-      data['urutan'] = terakhir + 1;
-      await db.insert(
-        'kategori',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.ignore,
-      );
-    } else {
-      await db.update(
-        'kategori',
-        data,
-        where: 'id = ?',
-        whereArgs: [item.id],
-      );
-      await _samakanLabelArsip(db, item);
+    if (_cachedSemua != null) {
+      final items = _cachedSemua!.where((k) => k.ranah == ranah).toList();
+      items.sort((a, b) => a.urutan.compareTo(b.urutan));
+      return items;
     }
 
-    await muat();
-  }
-
-  // Menyimpan urutan baru satu ranah sesuai posisi pada daftar.
-  Future<void> urutkan(List<KategoriItem> urut) async {
-    final db = await _dbHelper.database;
-    await db.transaction((txn) async {
-      for (var i = 0; i < urut.length; i++) {
-        final id = urut[i].id;
-        if (id == null) continue;
-        await txn.update(
-          'kategori',
-          {'urutan': i + 1},
-          where: 'id = ?',
-          whereArgs: [id],
-        );
+    try {
+      final snap = await _firestore
+          .collection('kategori')
+          .where('ranah', isEqualTo: ranah)
+          .get();
+      if (snap.docs.isNotEmpty) {
+        final items = snap.docs
+            .map((doc) => KategoriItem.fromFirestore(doc.data(), doc.id))
+            .toList();
+        items.sort((a, b) => a.urutan.compareTo(b.urutan));
+        return items;
       }
-    });
+    } catch (_) {}
+
+    return KatalogKategori.ranah(ranah);
+  }
+
+  // periksa kode terpakai
+  Future<bool> kodeTerpakai(String ranah, String kode, {int? kecuali}) async {
+    final list = await semua(ranah);
+    final targetKode = kode.trim().toUpperCase();
+    return list.any((k) => k.kode.trim().toUpperCase() == targetKode && k.id != kecuali);
+  }
+
+  // simpan kategori
+  Future<void> simpan(KategoriItem item) async {
+    final docId = '${item.ranah}_${item.kode}';
+
+    try {
+      await _firestore
+          .collection('kategori')
+          .doc(docId)
+          .set(item.toFirestore(), SetOptions(merge: true));
+    } catch (_) {}
+
+    _cachedSemua = null;
     await muat();
   }
 
-  // Kategori bawaan tidak boleh dihapus karena arsip lama menunjuk kodenya.
+  // urutkan kategori
+  Future<void> urutkan(List<KategoriItem> urut) async {
+    try {
+      final batch = _firestore.batch();
+      for (var i = 0; i < urut.length; i++) {
+        final item = urut[i];
+        final docId = '${item.ranah}_${item.kode}';
+        final docRef = _firestore.collection('kategori').doc(docId);
+        batch.update(docRef, {'urutan': i + 1});
+      }
+      await batch.commit();
+    } catch (_) {}
+
+    _cachedSemua = null;
+    await muat();
+  }
+
+  // hapus kategori
   Future<bool> hapus(KategoriItem item) async {
-    if (item.id == null || item.bawaan) return false;
+    if (item.bawaan) return false;
 
     final pemakai = await jumlahPemakai(item);
     if (!pemakai.kosong) return false;
 
-    final db = await _dbHelper.database;
-    await db.delete('kategori', where: 'id = ?', whereArgs: [item.id]);
+    try {
+      final docId = '${item.ranah}_${item.kode}';
+      await _firestore.collection('kategori').doc(docId).delete();
+    } catch (_) {}
+
+    _cachedSemua = null;
     await muat();
     return true;
   }
 
-  // Banyaknya baris yang menunjuk kategori ini. Dipakai untuk mencegah
-  // penghapusan kategori yang isinya masih ada.
+  // jumlah pemakai kategori
   Future<PemakaiKategori> jumlahPemakai(KategoriItem item) async {
     if (item.ranah != ranahBudaya) return const PemakaiKategori();
 
-    final db = await _dbHelper.database;
     final kode = item.kode.trim().toUpperCase();
+    int arsip = 0;
+    int soal = 0;
 
-    final arsip =
-        Sqflite.firstIntValue(
-          await db.rawQuery(
-            'SELECT COUNT(*) FROM budaya WHERE UPPER(jenis) = ?',
-            [kode],
-          ),
-        ) ??
-        0;
-    final soal =
-        Sqflite.firstIntValue(
-          await db.rawQuery(
-            'SELECT COUNT(*) FROM quiz WHERE UPPER(subKategori) = ?',
-            [kode],
-          ),
-        ) ??
-        0;
+    try {
+      final listBudaya = await BudayaRepository().getAllBudaya();
+      arsip = listBudaya.where((b) => b.jenis.trim().toUpperCase() == kode).length;
+    } catch (_) {}
+
+    try {
+      final listQuiz = await QuizRepository().getAllQuizzes();
+      soal = listQuiz.where((q) => q.subKategori.trim().toUpperCase() == kode).length;
+    } catch (_) {}
 
     return PemakaiKategori(arsip: arsip, soal: soal);
   }
 
-  // Tabel budaya menyimpan nama kategori dalam kolom `kategoriLabel`, jadi
-  // penggantian nama harus ikut turun ke arsipnya.
-  Future<void> _samakanLabelArsip(Database db, KategoriItem item) async {
-    if (item.ranah != ranahBudaya) return;
-
-    try {
-      await db.update(
-        'budaya',
-        {'kategoriLabel': item.label},
-        where: 'UPPER(jenis) = ?',
-        whereArgs: [item.kode.trim().toUpperCase()],
-      );
-    } catch (_) {}
+  // bersihkan cache
+  static void bersihkanCache() {
+    _cachedSemua = null;
   }
 }

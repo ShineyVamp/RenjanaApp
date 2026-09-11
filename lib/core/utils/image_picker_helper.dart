@@ -5,12 +5,9 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../constants/app_colors.dart';
 
-// Pemilihan gambar dari galeri perangkat beserta permintaan izinnya.
-// Dipakai form admin dan halaman profil.
-
+// izin galeri
 Future<bool> mintaIzinGaleri(BuildContext context) async {
   try {
-    // izin foto untuk Android 13+/iOS, storage untuk Android lama
     PermissionStatus status = await Permission.photos.request();
     if (!status.isGranted && !status.isLimited) {
       status = await Permission.storage.request();
@@ -22,12 +19,11 @@ Future<bool> mintaIzinGaleri(BuildContext context) async {
     }
     return true;
   } catch (_) {
-    // platform yang tidak butuh izin (mis. desktop) langsung diloloskan
     return true;
   }
 }
 
-// Mengembalikan path gambar terpilih, atau null bila dibatalkan/gagal.
+// pilih dan kompresi gambar
 Future<String?> pilihGambarDariGaleri(BuildContext context) async {
   final berizin = await mintaIzinGaleri(context);
   if (!berizin) return null;
@@ -35,7 +31,9 @@ Future<String?> pilihGambarDariGaleri(BuildContext context) async {
   try {
     final gambar = await ImagePicker().pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      maxWidth: 1080,
+      maxHeight: 1080,
+      imageQuality: 80,
     );
     return gambar?.path;
   } catch (_) {
@@ -57,6 +55,7 @@ Future<String?> pilihGambarDariGaleri(BuildContext context) async {
   }
 }
 
+// dialog izin
 void _tampilkanDialogIzin(BuildContext context) {
   showDialog(
     context: context,
