@@ -311,231 +311,223 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // gambar utama, bagian bawahnya dileburkan ke warna latar
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: AppImageView(
-                        imagePath: gambarProvinsi(provinsi),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppColors.backgroundTransparent,
-                              AppColors.background,
-                            ],
-                            stops: [0.35, 1],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Top bar harus jadi anak terakhir Stack. Lapisan gradien
-                    // di atas menjawab true pada hit test, jadi apa pun yang
-                    // berada di bawahnya tidak bisa disentuh.
-                    // tombol kembali, beranda, simpan, dan bagikan
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: DetailTopBar(
-                        isBookmarked: _tersimpan,
-                        onBookmarkToggle: _ubahBookmark,
-                        onShare: _bagikan,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // judul & julukan
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (pulau != null)
-                        Text(
-                          'PULAU ${pulau.nama.toUpperCase()}',
-                          style: AppTypography.eyebrow(
-                            fontSize: 10.5,
-                            color: AppColors.primaryDark,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      Text(
-                        provinsi.nama,
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      if (provinsi.julukan.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          provinsi.julukan,
-                          style: GoogleFonts.playfairDisplay(
-                            fontSize: 15,
-                            fontStyle: FontStyle.italic,
-                            color: AppColors.textDeep,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // kartu total arsip & ibukota
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 20, 22, 4),
-                  // IntrinsicHeight menyamakan tinggi kedua kartu
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: KartuStatistik(
-                            ikon: Icons.inventory_2_outlined,
-                            label: 'Total Arsip',
-                            nilai: _isLoading ? '—' : '$_jumlahArsip',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: KartuStatistik(
-                            ikon: Icons.account_balance_outlined,
-                            label: 'Ibukota',
-                            nilai: provinsi.ibukota,
-                          ),
-                        ),
-                      ],
+      body: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: AppImageView(
+                      imagePath: gambarProvinsi(provinsi),
+                      fit: BoxFit.cover,
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                if (provinsi.deskripsi.isNotEmpty) ...[
-                  DetailSectionBlock(
-                    title: 'Tentang Daerah',
-                    content: provinsi.deskripsi,
+                  const Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.backgroundTransparent,
+                            AppColors.background,
+                          ],
+                          stops: [0.35, 1],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: DetailTopBar(
+                      isBookmarked: _tersimpan,
+                      onBookmarkToggle: _ubahBookmark,
+                      onShare: _bagikan,
+                    ),
                   ),
                 ],
+              ),
 
-                // section penuntasan
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
-                  child: _buildPenuntasan(),
+              // judul & julukan
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (pulau != null)
+                      Text(
+                        'PULAU ${pulau.nama.toUpperCase()}',
+                        style: AppTypography.eyebrow(
+                          fontSize: 10.5,
+                          color: AppColors.primaryDark,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      provinsi.nama,
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        height: 1.1,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (provinsi.julukan.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        provinsi.julukan,
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 15,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.textDeep,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
+              ),
 
-                // tombol menuju daftar arsip lengkap
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 28),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+              // kartu total arsip & ibukota
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 4),
+                // IntrinsicHeight menyamakan tinggi kedua kartu
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: KartuStatistik(
+                          ikon: Icons.inventory_2_outlined,
+                          label: 'Total Arsip',
+                          nilai: _isLoading ? '—' : '$_jumlahArsip',
                         ),
                       ),
-                      onPressed: _bukaArsipLengkap,
-                      icon: const Icon(
-                        Icons.grid_view_rounded,
-                        size: 18,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: KartuStatistik(
+                          ikon: Icons.account_balance_outlined,
+                          label: 'Ibukota',
+                          nilai: provinsi.ibukota,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              if (provinsi.deskripsi.isNotEmpty) ...[
+                DetailSectionBlock(
+                  title: 'Tentang Daerah',
+                  content: provinsi.deskripsi,
+                ),
+              ],
+
+              // section penuntasan
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+                child: _buildPenuntasan(),
+              ),
+
+              // tombol menuju daftar arsip lengkap
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 28),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: _bukaArsipLengkap,
+                    icon: const Icon(
+                      Icons.grid_view_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'Lihat arsip secara detail',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                      ),
-                      label: Text(
-                        'Lihat arsip secara detail',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
                       ),
                     ),
                   ),
                 ),
+              ),
 
-                // section rekomendasi arsip
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Arsip dari Daerah Ini',
-                        style: AppTypography.editorialHeading(),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        height: 1.5,
-                        width: 48,
-                        color: AppColors.primaryDark,
-                      ),
-                      const SizedBox(height: 16),
-                      if (_isLoading)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        )
-                      else if (_rekomendasi.isEmpty)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            borderRadius: AppDekorasi.radiusKartu,
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Text(
-                            'Belum ada arsip yang tercatat berasal dari '
-                            '${provinsi.nama}.',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.bodyMedium(),
-                          ),
-                        )
-                      else
-                        ..._rekomendasi.map(
-                          (item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: KartuHasil(
-                              item: item,
-                              onTap: () async {
-                                await bukaHasilJelajah(context, item);
-                                if (!mounted) return;
-                                await _muatData();
-                              },
-                            ),
+              // section rekomendasi arsip
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Arsip dari Daerah Ini',
+                      style: AppTypography.editorialHeading(),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 1.5,
+                      width: 48,
+                      color: AppColors.primaryDark,
+                    ),
+                    const SizedBox(height: 16),
+                    if (_isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
                           ),
                         ),
-                    ],
-                  ),
+                      )
+                    else if (_rekomendasi.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          borderRadius: AppDekorasi.radiusKartu,
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Text(
+                          'Belum ada arsip yang tercatat berasal dari '
+                          '${provinsi.nama}.',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodyMedium(),
+                        ),
+                      )
+                    else
+                      ..._rekomendasi.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: KartuHasil(
+                            item: item,
+                            onTap: () async {
+                              await bukaHasilJelajah(context, item);
+                              if (!mounted) return;
+                              await _muatData();
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

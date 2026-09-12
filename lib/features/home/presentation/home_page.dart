@@ -47,7 +47,7 @@ class HomePage extends StatefulWidget {
 
   const HomePage({
     super.key,
-    this.userName = 'Agus',
+    this.userName = 'Penjelajah',
     this.isAdmin = false,
     this.onOpenDrawer,
   });
