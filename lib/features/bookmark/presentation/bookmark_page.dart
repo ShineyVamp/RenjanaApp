@@ -25,16 +25,29 @@ class _BookmarkPageState extends State<BookmarkPage> {
   String _searchQuery = '';
   String _selectedTab = 'SEMUA'; // SEMUA | SEJARAH | BUDAYA | WILAYAH
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
     _loadBookmarks();
   }
 
-  Future<void> _loadBookmarks() async {
-    setState(() => _isLoading = true);
+  // section muat data
+  Future<void> _loadBookmarks({bool forceRefresh = false}) async {
+    final cached = await _bookmarkRepository.getAllBookmarks(forceRefresh: false);
+    if (cached.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _bookmarks = cached;
+          _isLoading = false;
+        });
+      }
+      if (!forceRefresh) return;
+    } else {
+      setState(() => _isLoading = true);
+    }
     try {
-      final list = await _bookmarkRepository.getAllBookmarks();
+      final list = await _bookmarkRepository.getAllBookmarks(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _bookmarks = list;
@@ -357,6 +370,8 @@ class _BookmarkPageState extends State<BookmarkPage> {
                         child: AppImageView(
                           imagePath: item.imagePath,
                           fit: BoxFit.cover,
+                          cacheWidth: 240,
+                          cacheHeight: 240,
                         ),
                       ),
                     ),

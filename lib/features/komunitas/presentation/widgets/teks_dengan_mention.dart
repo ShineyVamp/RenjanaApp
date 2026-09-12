@@ -35,24 +35,12 @@ class TeksDenganMention extends StatelessWidget {
           color: AppColors.primaryDark,
         );
 
-    // bangun pola regex dari daftar kandidat nama dan pola umum
-    final polaNama = <String>[];
-    for (final nama in kandidatNama) {
-      final n = nama.trim();
-      if (n.isNotEmpty) {
-        polaNama.add(RegExp.escape(n));
-      }
+    // section pemeriksaan cepat jika tidak ada mention
+    if (!teks.contains('@')) {
+      return Text(teks, style: defaultStyle);
     }
 
-    String pattern;
-    if (polaNama.isNotEmpty) {
-      polaNama.sort((a, b) => b.length.compareTo(a.length));
-      pattern = '(@(?:${polaNama.join('|')}|[a-zA-Z0-9_.-]+))';
-    } else {
-      pattern = r'(@[a-zA-Z0-9_.-]+)';
-    }
-
-    final regex = RegExp(pattern);
+    final regex = _ambilRegex(kandidatNama);
     final matches = regex.allMatches(teks);
 
     if (matches.isEmpty) {
@@ -108,5 +96,32 @@ class TeksDenganMention extends StatelessWidget {
     }
 
     return Text.rich(TextSpan(children: spans));
+  }
+
+  // section pembuat regex berpola
+  static final RegExp _defaultRegex = RegExp(r'(@[a-zA-Z0-9_.-]+)');
+  static final Map<int, RegExp> _cache = {};
+
+  static RegExp _ambilRegex(List<String> kandidat) {
+    if (kandidat.isEmpty) return _defaultRegex;
+    final key = Object.hashAll(kandidat);
+    final cached = _cache[key];
+    if (cached != null) return cached;
+
+    final polaNama = <String>[];
+    for (final nama in kandidat) {
+      final n = nama.trim();
+      if (n.isNotEmpty) {
+        polaNama.add(RegExp.escape(n));
+      }
+    }
+
+    if (polaNama.isEmpty) return _defaultRegex;
+    polaNama.sort((a, b) => b.length.compareTo(a.length));
+    final pattern = '(@(?:${polaNama.join('|')}|[a-zA-Z0-9_.-]+))';
+    final reg = RegExp(pattern);
+    if (_cache.length > 50) _cache.clear();
+    _cache[key] = reg;
+    return reg;
   }
 }

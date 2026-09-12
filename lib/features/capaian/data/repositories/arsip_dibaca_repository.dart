@@ -90,6 +90,12 @@ class ArsipDibacaRepository {
   // himpunan arsip dibaca
   Future<Set<String>> himpunan() async => (await semua()).toSet();
 
+  // cek status sudah dibaca
+  Future<bool> sudahDibaca(String jenis, String kodeTag) async {
+    final set = await himpunan();
+    return set.contains(buatRef(jenis, kodeTag));
+  }
+
   // jumlah arsip dibaca
   Future<int> jumlah() async => (await semua()).length;
 

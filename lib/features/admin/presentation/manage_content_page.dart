@@ -41,14 +41,17 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     _loadAllData();
   }
 
+  // section muat data
   Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
-    final sejarah = await _sejarahRepository.getAllSejarah();
-    final budaya = await _budayaRepository.getAllBudaya();
+    final results = await Future.wait([
+      _sejarahRepository.getAllSejarah(),
+      _budayaRepository.getAllBudaya(),
+    ]);
     if (!mounted) return;
     setState(() {
-      _sejarahList = sejarah;
-      _budayaList = budaya;
+      _sejarahList = results[0] as List<SejarahModel>;
+      _budayaList = results[1] as List<BudayaModel>;
       _isLoading = false;
     });
   }

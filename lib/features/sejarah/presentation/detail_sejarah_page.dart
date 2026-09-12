@@ -13,6 +13,7 @@ import '../../../core/widgets/detail_list_block.dart';
 import '../../../core/widgets/detail_section_block.dart';
 import '../../../core/widgets/detail_spec_block.dart';
 import '../../../core/widgets/detail_top_bar.dart';
+import '../../../core/widgets/indikator_baca_arsip.dart';
 import '../../../core/widgets/media_arsip.dart';
 import '../../../core/widgets/tombol_koreksi.dart';
 import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
@@ -22,9 +23,10 @@ import 'package:renjana/features/kontribusi/presentation/form_usulan_page.dart';
 import 'package:renjana/features/wilayah/presentation/detail_provinsi_page.dart';
 import 'package:renjana/core/utils/share_helper.dart';
 import '../../capaian/services/pencatat_bacaan.dart';
+import '../../capaian/data/repositories/arsip_dibaca_repository.dart';
+import '../data/models/sejarah_model.dart';
+import '../data/repositories/sejarah_repository.dart';
 import 'widgets/timeline_item_widget.dart';
-import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
-import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 
 class DetailSejarahPage extends StatefulWidget {
   final SejarahModel sejarah;
@@ -38,19 +40,69 @@ class DetailSejarahPage extends StatefulWidget {
 class _DetailSejarahPageState extends State<DetailSejarahPage> {
   final SejarahRepository _sejarahRepository = SejarahRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
+  final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
   final PencatatBacaan _pencatat = PencatatBacaan();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
   List<SejarahModel> _otherSejarahList = [];
+  final ValueNotifier<int> _detikNotifier = ValueNotifier<int>(PencatatBacaan.totalDetik);
+  final ValueNotifier<bool> _bacaSelesaiNotifier = ValueNotifier<bool>(false);
 
+  late final List<Widget> _sectionPeristiwaWidgets;
+  late final List<Widget> _blokDinamisWidgets;
+
+  static final Map<String, List<SejarahModel>> _cacheRelatedSejarah = {};
+
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
+    _sectionPeristiwaWidgets = _buildSectionPeristiwa(widget.sejarah);
+    _blokDinamisWidgets = _buildBlokDinamis(widget.sejarah);
+    final cached = _cacheRelatedSejarah[widget.sejarah.kodeTag];
+    if (cached != null && cached.isNotEmpty) {
+      _otherSejarahList = cached;
+    }
     _checkBookmarkStatus();
-    _loadOtherSejarah();
-    _pencatat.mulai('sejarah', widget.sejarah.kodeTag);
+    _checkStatusBacaan();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (cached == null || cached.isEmpty)) _loadOtherSejarah();
+    });
   }
 
+  // section status bacaan
+  Future<void> _checkStatusBacaan() async {
+    final sudah = await _arsipDibacaRepository.sudahDibaca(
+      'sejarah',
+      widget.sejarah.kodeTag,
+    );
+    if (!mounted) return;
+    if (sudah) {
+      _bacaSelesaiNotifier.value = true;
+    } else {
+      _pencatat.mulai(
+        'sejarah',
+        widget.sejarah.kodeTag,
+        onTick: (sisa) {
+          _detikNotifier.value = sisa;
+        },
+        onSelesai: () {
+          _bacaSelesaiNotifier.value = true;
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _pencatat.batalkan();
+    _detikNotifier.dispose();
+    _bacaSelesaiNotifier.dispose();
+    _scrollRelated.dispose();
+    super.dispose();
+  }
+
+  // section bookmark
   Future<void> _checkBookmarkStatus() async {
     final data = widget.sejarah;
     final bookmarked = await _bookmarkRepository.isBookmarked(data.kodeTag);
@@ -60,22 +112,17 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     });
   }
 
+  // section arsip lainnya
   Future<void> _loadOtherSejarah() async {
     final list = await _sejarahRepository.getRandomSejarahList(
       count: 5,
       exclude: widget.sejarah,
     );
+    _cacheRelatedSejarah[widget.sejarah.kodeTag] = list;
     if (!mounted) return;
     setState(() {
       _otherSejarahList = list;
     });
-  }
-
-  @override
-  void dispose() {
-    _pencatat.batalkan();
-    _scrollRelated.dispose();
-    super.dispose();
   }
 
   Future<void> _usulkanKoreksi(SejarahModel data) async {
@@ -210,56 +257,59 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final imageWidth = constraints.maxWidth;
-                final imageHeight = imageWidth / 1.1;
-                const overlap = 95.0;
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final imageWidth = constraints.maxWidth;
+                    final imageHeight = imageWidth / 1.1;
+                    const overlap = 95.0;
 
-                return Stack(
-                  children: [
-                    // gambar utama
-                    SizedBox(
-                      height: imageHeight,
-                      width: imageWidth,
-                      child: Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          Positioned.fill(
-                            child: MediaArsipView(
-                              gambarUtama: data.gambarUtama,
-                              jenisMedia: data.jenisMedia,
-                              mediaUrl: data.mediaUrl,
-                              judul: data.judul,
-                              aspectRatio: 1.1,
-                            ),
-                          ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    AppColors.backgroundTransparent,
-                                    AppColors.background,
-                                  ],
-                                  stops: [0.25, 1],
+                    return Stack(
+                      children: [
+                        // gambar utama
+                        SizedBox(
+                          height: imageHeight,
+                          width: imageWidth,
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              Positioned.fill(
+                                child: MediaArsipView(
+                                  gambarUtama: data.gambarUtama,
+                                  jenisMedia: data.jenisMedia,
+                                  mediaUrl: data.mediaUrl,
+                                  judul: data.judul,
+                                  aspectRatio: 1.1,
                                 ),
                               ),
-                            ),
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        AppColors.backgroundTransparent,
+                                        AppColors.background,
+                                      ],
+                                      stops: [0.25, 1],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    // konten halaman
-                    Column(
-                      children: [
-                        SizedBox(height: imageHeight - overlap),
+                        // konten halaman
+                        Column(
+                          children: [
+                            SizedBox(height: imageHeight - overlap),
+                            // header arsip
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 22),
                           child: Column(
@@ -364,239 +414,295 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                           content: data.ringkasan,
                         ),
 
-                // section field jenis peristiwa
-                ..._buildSectionPeristiwa(data),
+                        // section field jenis peristiwa
+                        ..._sectionPeristiwaWidgets,
 
-                // section alur peristiwa
-                if (data.alurPeristiwa.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 22),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Alur Peristiwa',
-                          style: GoogleFonts.playfairDisplay(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                        // section alur peristiwa
+                        if (data.alurPeristiwa.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 22),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Alur Peristiwa',
+                                  style: GoogleFonts.playfairDisplay(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  height: 1.5,
+                                  width: 100,
+                                  color: AppColors.primaryDark,
+                                ),
+                                const SizedBox(height: 20),
+                                ...List.generate(data.alurPeristiwa.length, (
+                                  index,
+                                ) {
+                                  final item = data.alurPeristiwa[index];
+                                  final bool isLast =
+                                      index == data.alurPeristiwa.length - 1;
+
+                                  return TimelineItemWidget(
+                                    date: item.date,
+                                    title: item.title,
+                                    description: item.desc,
+                                    imagePath: item.hasImage
+                                        ? item.imgPath
+                                        : null,
+                                    isLast: isLast,
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
+                        ],
+
+                        // section konten dinamis
+                        ..._blokDinamisWidgets,
+
+                        // section asal daerah
+                        AsalDaerahBlock(
+                          namaProvinsi: data.provinsi,
+                          onLihatProvinsi: () => _bukaProvinsi(data.provinsi),
                         ),
-                        const SizedBox(height: 4),
-                        Container(
-                          height: 1.5,
-                          width: 100,
-                          color: AppColors.primaryDark,
-                        ),
-                        const SizedBox(height: 20),
-                        ...List.generate(data.alurPeristiwa.length, (index) {
-                          final item = data.alurPeristiwa[index];
-                          final bool isLast =
-                              index == data.alurPeristiwa.length - 1;
 
-                          return TimelineItemWidget(
-                            date: item.date,
-                            title: item.title,
-                            description: item.desc,
-                            imagePath: item.hasImage ? item.imgPath : null,
-                            isLast: isLast,
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ],
+                        // section kontributor
+                        BlokKontributor(nama: data.kontributor),
 
-                // seksi konten dinamis
-                ..._buildBlokDinamis(data),
+                        const SizedBox(height: 6),
 
-                // section asal daerah
-                AsalDaerahBlock(
-                  namaProvinsi: data.provinsi,
-                  onLihatProvinsi: () => _bukaProvinsi(data.provinsi),
-                ),
+                        // section usulan koreksi
+                        TombolKoreksi(onTap: () => _usulkanKoreksi(data)),
 
-                // section kontributor
-                BlokKontributor(nama: data.kontributor),
+                        const SizedBox(height: 28),
 
-                const SizedBox(height: 6),
-
-                // section usulan koreksi
-                TombolKoreksi(onTap: () => _usulkanKoreksi(data)),
-
-                const SizedBox(height: 28),
-
-                // section sejarah lainnya
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Sejarah Lainnya',
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        height: 1.5,
-                        width: 48,
-                        color: AppColors.primaryDark,
-                      ),
-                      const SizedBox(height: 16),
-                      ScrollbarTheme(
-                        data: const ScrollbarThemeData(
-                          thumbColor: WidgetStatePropertyAll(
-                            AppColors.primaryDark,
-                          ),
-                          trackColor: WidgetStatePropertyAll(
-                            AppColors.scrollTrack,
-                          ),
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollRelated,
-                          interactive: true,
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          scrollbarOrientation: ScrollbarOrientation.bottom,
-                          thickness: 4,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: SingleChildScrollView(
-                              controller: _scrollRelated,
-                              scrollDirection: Axis.horizontal,
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: List.generate(
-                                    _otherSejarahList.length,
-                                    (index) {
-                                      final other = _otherSejarahList[index];
-                                      return Padding(
-                                        padding: EdgeInsets.only(
-                                          right:
-                                              index <
-                                                  _otherSejarahList.length - 1
-                                              ? 14
-                                              : 0,
+                        // section sejarah lainnya
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Sejarah Lainnya',
+                                style: GoogleFonts.playfairDisplay(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                height: 1.5,
+                                width: 48,
+                                color: AppColors.primaryDark,
+                              ),
+                              const SizedBox(height: 16),
+                              ScrollbarTheme(
+                                data: const ScrollbarThemeData(
+                                  thumbColor: WidgetStatePropertyAll(
+                                    AppColors.primaryDark,
+                                  ),
+                                  trackColor: WidgetStatePropertyAll(
+                                    AppColors.scrollTrack,
+                                  ),
+                                ),
+                                child: Scrollbar(
+                                  controller: _scrollRelated,
+                                  interactive: true,
+                                  thumbVisibility: true,
+                                  trackVisibility: true,
+                                  scrollbarOrientation:
+                                      ScrollbarOrientation.bottom,
+                                  thickness: 4,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: SingleChildScrollView(
+                                      controller: _scrollRelated,
+                                      scrollDirection: Axis.horizontal,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 20,
                                         ),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            context.push(
-                                              DetailSejarahPage(sejarah: other),
-                                            );
-                                          },
-                                          child: SizedBox(
-                                            width: 155,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  child: AspectRatio(
-                                                    aspectRatio: 1,
-                                                    child: Container(
-                                                      color: AppColors
-                                                          .surfaceMuted,
-                                                      child: AppImageView(
-                                                        imagePath:
-                                                            other.gambarUtama,
-                                                        fit: BoxFit.cover,
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: List.generate(
+                                            _otherSejarahList.length,
+                                            (index) {
+                                              final other =
+                                                  _otherSejarahList[index];
+                                              return Padding(
+                                                padding: EdgeInsets.only(
+                                                  right:
+                                                      index <
+                                                          _otherSejarahList
+                                                                  .length -
+                                                              1
+                                                      ? 14
+                                                      : 0,
+                                                ),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    context.push(
+                                                      DetailSejarahPage(
+                                                        sejarah: other,
                                                       ),
+                                                    );
+                                                  },
+                                                  child: SizedBox(
+                                                    width: 155,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
+                                                          child: AspectRatio(
+                                                            aspectRatio: 1,
+                                                            child: Container(
+                                                              color: AppColors
+                                                                  .surfaceMuted,
+                                                              child: AppImageView(
+                                                                imagePath: other
+                                                                    .gambarUtama,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                                cacheWidth: 320,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 8,
+                                                        ),
+                                                        Text(
+                                                          other.kodeTag,
+                                                          style:
+                                                              AppTypography.tag(
+                                                                color: AppColors
+                                                                    .primaryDark,
+                                                              ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 2,
+                                                        ),
+                                                        Text(
+                                                          other.judul,
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              AppTypography.editorialSubheading(
+                                                                color: AppColors
+                                                                    .textPrimary,
+                                                              ).copyWith(
+                                                                fontSize: 13.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                fontStyle:
+                                                                    FontStyle
+                                                                        .normal,
+                                                                height: 1.25,
+                                                              ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  other.kodeTag,
-                                                  style: AppTypography.tag(
-                                                    color:
-                                                        AppColors.primaryDark,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  other.judul,
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style:
-                                                      AppTypography.editorialSubheading(
-                                                        color: AppColors
-                                                            .textPrimary,
-                                                      ).copyWith(
-                                                        fontSize: 13.5,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        fontStyle:
-                                                            FontStyle.normal,
-                                                        height: 1.25,
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
+                                              );
+                                            },
                                           ),
                                         ),
-                                      );
-                                    },
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
+                      ],
+                    ),
+
+                    // tombol navigasi atas
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: DetailTopBar(
+                        isBookmarked: _isBookmarked,
+                        onShare: () => _bagikan(data),
+                        onBookmarkToggle: () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          final nowBookmarked = await _bookmarkRepository
+                              .toggleBookmark('sejarah', data.kodeTag);
+                          if (!mounted) return;
+                          setState(() {
+                            _isBookmarked = nowBookmarked;
+                          });
+                          messenger.clearSnackBars();
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                nowBookmarked
+                                    ? 'Berhasil disimpan ke Bookmark'
+                                    : 'Berhasil dihapus dari Bookmark',
+                              ),
+                              duration: const Duration(milliseconds: 1200),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        },
                       ),
-                    ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+        // section floating indikator bacaan
+        ValueListenableBuilder<bool>(
+          valueListenable: _bacaSelesaiNotifier,
+          builder: (context, selesai, _) {
+            if (selesai) return const SizedBox.shrink();
+            return Positioned(
+              bottom: 24,
+              left: 20,
+              right: 20,
+              child: SafeArea(
+                top: false,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: _detikNotifier,
+                      builder: (context, detik, _) {
+                        return IndikatorBacaArsip(
+                          detikTersisa: detik,
+                          sudahSelesai: false,
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ],
-            ),
-
-            // tombol navigasi atas
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: DetailTopBar(
-                isBookmarked: _isBookmarked,
-                onShare: () => _bagikan(data),
-                onBookmarkToggle: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final nowBookmarked = await _bookmarkRepository
-                      .toggleBookmark('sejarah', data.kodeTag);
-                  if (!mounted) return;
-                  setState(() {
-                    _isBookmarked = nowBookmarked;
-                  });
-                  messenger.clearSnackBars();
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        nowBookmarked
-                            ? 'Berhasil disimpan ke Bookmark'
-                            : 'Berhasil dihapus dari Bookmark',
-                      ),
-                      duration: const Duration(milliseconds: 1200),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                },
               ),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     ),
   ),
-),
-),
 );
-}
+  }
 }

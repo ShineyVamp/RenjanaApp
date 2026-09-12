@@ -24,17 +24,29 @@ class KoleksiKategoriPage extends StatefulWidget {
 class _KoleksiKategoriPageState extends State<KoleksiKategoriPage> {
   final BudayaRepository _budayaRepository = BudayaRepository();
 
+  static final Map<String, List<BudayaModel>> _cacheKategori = {};
   List<BudayaModel> _items = [];
   bool _isLoading = true;
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
-    _loadItems();
+    final cached = _cacheKategori[widget.kategori.kode];
+    if (cached != null && cached.isNotEmpty) {
+      _items = cached;
+      _isLoading = false;
+    }
+    _loadItems(showLoader: cached == null || cached.isEmpty);
   }
 
-  Future<void> _loadItems() async {
+  // section muat data
+  Future<void> _loadItems({bool showLoader = true}) async {
+    if (showLoader && !_isLoading) {
+      setState(() => _isLoading = true);
+    }
     final list = await _budayaRepository.getBudayaByJenis(widget.kategori.kode);
+    _cacheKategori[widget.kategori.kode] = list;
     if (!mounted) return;
     setState(() {
       _items = list;

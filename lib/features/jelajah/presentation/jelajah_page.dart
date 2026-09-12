@@ -160,13 +160,13 @@ class _JelajahPageState extends State<JelajahPage> {
             _buildHeader(),
             if (_adaQuery) _buildSaring(),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                child: _adaQuery
-                    ? _buildHasilPencarian()
-                    : _buildBerandaJelajah(),
-              ),
+              child: _adaQuery
+                  ? _buildHasilPencarian()
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                      child: _buildBerandaJelajah(),
+                    ),
             ),
           ],
         ),
@@ -488,53 +488,62 @@ class _JelajahPageState extends State<JelajahPage> {
     final hasil = _pencarian.hasil;
     final penuh = _pencarian.terpotong;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          penuh
-              ? '${hasil.length} teratas dari ${_pencarian.totalCocok} hasil '
-                    'untuk "${_query.trim()}"'
-              : '${hasil.length} hasil untuk "${_query.trim()}"',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        if (penuh) ...[
-          const SizedBox(height: 2),
-          Text(
-            'Persempit kata kuncinya untuk hasil yang lebih tepat.',
-            style: AppTypography.caption(fontSize: 10.5),
-          ),
-        ],
-        const SizedBox(height: 12),
-        ...hasil.map(
-          (hasil) => Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      itemCount: hasil.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                KartuHasil(
-                  item: hasil.item,
-                  onTap: () => _bukaArsip(hasil.item),
-                ),
-                // Menjelaskan kenapa baris ini muncul, terutama saat yang
-                // cocok cuma sepotong kata di dalam deskripsi.
-                if (hasil.bagian != BagianCocok.judul)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, left: 2),
-                    child: Text(
-                      'cocok pada ${hasil.bagian.label}',
-                      style: AppTypography.caption(fontSize: 10.5),
-                    ),
+                Text(
+                  penuh
+                      ? '${hasil.length} teratas dari ${_pencarian.totalCocok} hasil '
+                            'untuk "${_query.trim()}"'
+                      : '${hasil.length} hasil untuk "${_query.trim()}"',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
                   ),
+                ),
+                if (penuh) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Persempit kata kuncinya untuk hasil yang lebih tepat.',
+                    style: AppTypography.caption(fontSize: 10.5),
+                  ),
+                ],
               ],
             ),
+          );
+        }
+
+        final item = hasil[index - 1];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              KartuHasil(
+                item: item.item,
+                onTap: () => _bukaArsip(item.item),
+              ),
+              if (item.bagian != BagianCocok.judul)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 2),
+                  child: Text(
+                    'cocok pada ${item.bagian.label}',
+                    style: AppTypography.caption(fontSize: 10.5),
+                  ),
+                ),
+            ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 

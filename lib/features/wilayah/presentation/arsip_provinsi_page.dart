@@ -37,15 +37,22 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
   // tinggi kartu, cukup untuk judul dan subjudul dua baris
   static const double _tinggiKartu = 170;
 
+  static final Map<String, List<HasilJelajah>> _cacheArsipProvinsi = {};
   List<HasilJelajah> _semua = [];
   String _query = '';
   String _filter = kunciSemua;
   bool _isLoading = true;
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
-    _muatData();
+    final cached = _cacheArsipProvinsi[widget.provinsi.nama];
+    if (cached != null && cached.isNotEmpty) {
+      _semua = cached;
+      _isLoading = false;
+    }
+    _muatData(showLoader: cached == null || cached.isEmpty);
   }
 
   @override
@@ -54,8 +61,13 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
     super.dispose();
   }
 
-  Future<void> _muatData() async {
+  // section muat data
+  Future<void> _muatData({bool showLoader = true}) async {
+    if (showLoader && !_isLoading) {
+      setState(() => _isLoading = true);
+    }
     final daftar = await _wilayahRepository.arsipProvinsi(widget.provinsi.nama);
+    _cacheArsipProvinsi[widget.provinsi.nama] = daftar;
     if (!mounted) return;
     setState(() {
       _semua = daftar;
@@ -65,8 +77,6 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
 
   Future<void> _bukaArsip(HasilJelajah item) async {
     await bukaHasilJelajah(context, item);
-    if (!mounted) return;
-    await _muatData();
   }
 
   Future<void> _bukaKategoriLengkap(String kunci) async {

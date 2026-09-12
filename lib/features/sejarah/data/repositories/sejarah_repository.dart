@@ -7,9 +7,8 @@ class SejarahRepository {
   final FirebaseFirestore _firestore;
   static List<SejarahModel>? _cacheSejarah;
 
-  SejarahRepository({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  SejarahRepository({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // in-memory cache sejarah
   static void bersihkanCache() {
@@ -65,10 +64,10 @@ class SejarahRepository {
 
     final pool = List<SejarahModel>.from(list)
       ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
-    final benihHariIni =
-        DateTime(now.year, now.month, now.day).millisecondsSinceEpoch ~/
-        Duration.millisecondsPerDay;
-    return pool[Random(benihHariIni).nextInt(pool.length)];
+    // rotasi harian
+    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+    final index = (now.year * 365 + dayOfYear) % pool.length;
+    return pool[index];
   }
 
   // cari kode tag

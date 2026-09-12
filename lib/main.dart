@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +26,8 @@ void main() async {
         20 * 1024 * 1024, // batas 20 MB, data lama otomatis dibersihkan (LRU)
   );
   await PreferenceHandler.init();
+  PaintingBinding.instance.imageCache.maximumSize = 1500;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 250 * 1024 * 1024;
   await LayananNotifikasi().inisialisasi();
   // akun admin
   await UserRepository().inisialisasiAdminBawaan();

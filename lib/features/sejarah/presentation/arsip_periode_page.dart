@@ -27,15 +27,22 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
   final SejarahRepository _sejarahRepository = SejarahRepository();
   final TextEditingController _searchController = TextEditingController();
 
+  static final Map<String, List<SejarahModel>> _cachePeriode = {};
   List<SejarahModel> _semuaItems = [];
   bool _isLoading = true;
   String _selectedJenisPeristiwa = '';
   String _searchQuery = '';
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
-    _loadData();
+    final cached = _cachePeriode[widget.periode.kode];
+    if (cached != null && cached.isNotEmpty) {
+      _semuaItems = cached;
+      _isLoading = false;
+    }
+    _loadData(showLoader: cached == null || cached.isEmpty);
   }
 
   @override
@@ -44,10 +51,15 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  // section muat data
+  Future<void> _loadData({bool showLoader = true}) async {
+    if (showLoader && !_isLoading) {
+      setState(() => _isLoading = true);
+    }
     final list = await _sejarahRepository.getSejarahByPeriode(
       widget.periode.kode,
     );
+    _cachePeriode[widget.periode.kode] = list;
     if (!mounted) return;
     setState(() {
       _semuaItems = list;

@@ -88,28 +88,46 @@ class JelajahRepository {
   final SejarahRepository _sejarahRepository;
   final BudayaRepository _budayaRepository;
 
+  static List<HasilJelajah>? _cachedSemuaArsip;
+  static List<HasilJelajah>? _cachedSemuaWilayah;
+
   JelajahRepository({
     SejarahRepository? sejarahRepository,
     BudayaRepository? budayaRepository,
   }) : _sejarahRepository = sejarahRepository ?? SejarahRepository(),
        _budayaRepository = budayaRepository ?? BudayaRepository();
 
-  // Seluruh arsip sejarah dan budaya, tanpa wilayah. Dipakai juga
-  // WilayahRepository untuk menghitung arsip per daerah.
-  Future<List<HasilJelajah>> semuaArsip() async {
+  // section bersihkan cache
+  static void bersihkanCache() {
+    _cachedSemuaArsip = null;
+    _cachedSemuaWilayah = null;
+  }
+
+  // section semua arsip
+  Future<List<HasilJelajah>> semuaArsip({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedSemuaArsip != null) {
+      return _cachedSemuaArsip!;
+    }
     final sejarah = await _sejarahRepository.getAllSejarah();
     final budaya = await _budayaRepository.getAllBudaya();
-    return [
+    final list = [
       ...sejarah.map(HasilJelajah.dariSejarah),
       ...budaya.map(HasilJelajah.dariBudaya),
     ];
+    _cachedSemuaArsip = list;
+    return list;
   }
 
-  // Tujuh pulau dan 38 provinsi sebagai baris hasil pencarian.
-  List<HasilJelajah> semuaWilayah() => [
-    ...gugusPulauList.map(HasilJelajah.dariPulau),
-    ...semuaProvinsi.map(HasilJelajah.dariProvinsi),
-  ];
+  // section semua wilayah
+  List<HasilJelajah> semuaWilayah() {
+    if (_cachedSemuaWilayah != null) return _cachedSemuaWilayah!;
+    final list = [
+      ...gugusPulauList.map(HasilJelajah.dariPulau),
+      ...semuaProvinsi.map(HasilJelajah.dariProvinsi),
+    ];
+    _cachedSemuaWilayah = list;
+    return list;
+  }
 
   // Mencari dengan pemberian skor, bukan sekadar cocok atau tidak.
   //

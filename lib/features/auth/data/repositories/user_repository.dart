@@ -73,15 +73,31 @@ class UserRepository {
     return await _authService.getUserProfile(uid);
   }
 
+  // ambil user
   Future<UserSQLModel?> getUserById(int id) async {
-    final uid = PreferenceHandler.userUid;
-    if (uid.isNotEmpty) {
-      final user = await getUserByUid(uid);
+    if (id == PreferenceHandler.userId && PreferenceHandler.userUid.isNotEmpty) {
+      final user = await getUserByUid(PreferenceHandler.userUid);
       if (user != null) return user;
     }
 
     try {
       final snapshot = await _usersCol.where('id', isEqualTo: id).limit(1).get();
+      if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first;
+        return UserSQLModel.fromFirestore(doc.data(), docId: doc.id);
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  // ambil user by username
+  Future<UserSQLModel?> getUserByUsername(String username) async {
+    try {
+      final snapshot = await _usersCol
+          .where('username', isEqualTo: username.trim().toLowerCase())
+          .limit(1)
+          .get();
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first;
         return UserSQLModel.fromFirestore(doc.data(), docId: doc.id);

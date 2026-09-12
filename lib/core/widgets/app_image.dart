@@ -8,6 +8,8 @@ class AppImageView extends StatelessWidget {
   final BoxFit fit;
   final double? width;
   final double? height;
+  final int? cacheWidth;
+  final int? cacheHeight;
   final BorderRadius? borderRadius;
 
   const AppImageView({
@@ -16,6 +18,8 @@ class AppImageView extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.width,
     this.height,
+    this.cacheWidth,
+    this.cacheHeight,
     this.borderRadius,
   });
 
@@ -27,12 +31,27 @@ class AppImageView extends StatelessWidget {
       imageWidget = _defaultPlaceholder();
     } else {
       final path = imagePath!.trim();
+      int? targetCacheWidth = cacheWidth;
+      int? targetCacheHeight = cacheHeight;
+
+      if (targetCacheWidth == null && width != null && width! > 0) {
+        targetCacheWidth = (width! * 2.5).round();
+      }
+      if (targetCacheHeight == null && height != null && height! > 0) {
+        targetCacheHeight = (height! * 2.5).round();
+      }
+      if (targetCacheWidth == null && targetCacheHeight == null) {
+        targetCacheWidth = 1080;
+      }
+
       if (path.startsWith('http://') || path.startsWith('https://')) {
         imageWidget = CachedNetworkImage(
           imageUrl: path,
           fit: fit,
           width: width,
           height: height,
+          memCacheWidth: targetCacheWidth,
+          memCacheHeight: targetCacheHeight,
           placeholder: (context, url) => Container(
             width: width,
             height: height,
@@ -56,27 +75,33 @@ class AppImageView extends StatelessWidget {
           fit: fit,
           width: width,
           height: height,
+          cacheWidth: targetCacheWidth,
+          cacheHeight: targetCacheHeight,
+          gaplessPlayback: true,
           errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
         );
       } else {
-        final file = File(path);
-        if (file.existsSync()) {
-          imageWidget = Image.file(
-            file,
-            fit: fit,
-            width: width,
-            height: height,
-            errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
-          );
-        } else {
-          imageWidget = Image.asset(
-            'assets/images/1308history.png',
-            fit: fit,
-            width: width,
-            height: height,
-            errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
-          );
-        }
+        imageWidget = Image.file(
+          File(path),
+          fit: fit,
+          width: width,
+          height: height,
+          cacheWidth: targetCacheWidth,
+          cacheHeight: targetCacheHeight,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/images/1308history.png',
+              fit: fit,
+              width: width,
+              height: height,
+              cacheWidth: targetCacheWidth,
+              cacheHeight: targetCacheHeight,
+              gaplessPlayback: true,
+              errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
+            );
+          },
+        );
       }
     }
 
@@ -87,6 +112,7 @@ class AppImageView extends StatelessWidget {
     return imageWidget;
   }
 
+  // section placeholder bawaan
   Widget _defaultPlaceholder() {
     return Container(
       width: width,

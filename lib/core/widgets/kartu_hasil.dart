@@ -47,6 +47,7 @@ class KartuHasil extends StatelessWidget {
                     child: AppImageView(
                       imagePath: item.gambar,
                       fit: BoxFit.cover,
+                      cacheWidth: 320,
                     ),
                   ),
                 ),

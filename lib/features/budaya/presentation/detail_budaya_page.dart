@@ -13,6 +13,7 @@ import '../../../core/widgets/detail_list_block.dart';
 import '../../../core/widgets/detail_section_block.dart';
 import '../../../core/widgets/detail_spec_block.dart';
 import '../../../core/widgets/detail_top_bar.dart';
+import '../../../core/widgets/indikator_baca_arsip.dart';
 import '../../../core/widgets/media_arsip.dart';
 import '../../../core/widgets/tombol_koreksi.dart';
 import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
@@ -23,6 +24,7 @@ import 'package:renjana/features/wilayah/presentation/detail_provinsi_page.dart'
 import 'package:renjana/core/utils/share_helper.dart';
 import 'package:renjana/core/utils/map_launcher.dart';
 import '../../capaian/services/pencatat_bacaan.dart';
+import '../../capaian/data/repositories/arsip_dibaca_repository.dart';
 import 'package:renjana/features/sejarah/presentation/widgets/timeline_item_widget.dart';
 import 'package:renjana/features/budaya/data/models/budaya_model.dart';
 import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart';
@@ -39,19 +41,69 @@ class DetailBudayaPage extends StatefulWidget {
 class _DetailBudayaPageState extends State<DetailBudayaPage> {
   final BudayaRepository _budayaRepository = BudayaRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
+  final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
   final PencatatBacaan _pencatat = PencatatBacaan();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
   List<BudayaModel> _otherBudayaList = [];
+  final ValueNotifier<int> _detikNotifier = ValueNotifier<int>(PencatatBacaan.totalDetik);
+  final ValueNotifier<bool> _bacaSelesaiNotifier = ValueNotifier<bool>(false);
 
+  late final List<Widget> _sectionKategoriWidgets;
+  late final List<Widget> _blokDinamisWidgets;
+
+  static final Map<String, List<BudayaModel>> _cacheRelatedBudaya = {};
+
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
+    _sectionKategoriWidgets = _buildSectionKategori(widget.budaya);
+    _blokDinamisWidgets = _buildBlokDinamis(widget.budaya);
+    final cached = _cacheRelatedBudaya[widget.budaya.kodeTag];
+    if (cached != null && cached.isNotEmpty) {
+      _otherBudayaList = cached;
+    }
     _checkBookmarkStatus();
-    _loadOtherBudaya();
-    _pencatat.mulai('budaya', widget.budaya.kodeTag);
+    _checkStatusBacaan();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (cached == null || cached.isEmpty)) _loadOtherBudaya();
+    });
   }
 
+  // section status bacaan
+  Future<void> _checkStatusBacaan() async {
+    final sudah = await _arsipDibacaRepository.sudahDibaca(
+      'budaya',
+      widget.budaya.kodeTag,
+    );
+    if (!mounted) return;
+    if (sudah) {
+      _bacaSelesaiNotifier.value = true;
+    } else {
+      _pencatat.mulai(
+        'budaya',
+        widget.budaya.kodeTag,
+        onTick: (sisa) {
+          _detikNotifier.value = sisa;
+        },
+        onSelesai: () {
+          _bacaSelesaiNotifier.value = true;
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _pencatat.batalkan();
+    _detikNotifier.dispose();
+    _bacaSelesaiNotifier.dispose();
+    _scrollRelated.dispose();
+    super.dispose();
+  }
+
+  // section bookmark
   Future<void> _checkBookmarkStatus() async {
     final data = widget.budaya;
     final bookmarked = await _bookmarkRepository.isBookmarked(data.kodeTag);
@@ -61,22 +113,17 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
     });
   }
 
+  // section arsip lainnya
   Future<void> _loadOtherBudaya() async {
     final list = await _budayaRepository.getRandomBudayaList(
       count: 5,
       exclude: widget.budaya,
     );
+    _cacheRelatedBudaya[widget.budaya.kodeTag] = list;
     if (!mounted) return;
     setState(() {
       _otherBudayaList = list;
     });
-  }
-
-  @override
-  void dispose() {
-    _pencatat.batalkan();
-    _scrollRelated.dispose();
-    super.dispose();
   }
 
 
@@ -243,10 +290,12 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final imageWidth = constraints.maxWidth;
@@ -293,7 +342,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                       Column(
                         children: [
                           SizedBox(height: imageHeight - overlap),
-                          // Header: kategori, judul, garis divider, dan tagline
+                          // header arsip
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 22),
                             child: Column(
@@ -355,7 +404,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             content: data.deskripsi,
                           ),
 
-                  ..._buildSectionKategori(data),
+                  ..._sectionKategoriWidgets,
 
                   // section makna spiritual
                   if (data.maknaSpiritual != null &&
@@ -376,6 +425,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             child: AppImageView(
                               imagePath: data.gambarMaknaSpiritual!,
                               fit: BoxFit.cover,
+                              cacheWidth: 720,
                             ),
                           ),
                         ),
@@ -401,14 +451,15 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             child: AppImageView(
                               imagePath: data.gambarKonteksBudaya!,
                               fit: BoxFit.cover,
+                              cacheWidth: 720,
                             ),
                           ),
                         ),
                       ),
                   ],
 
-                  // seksi konten dinamis
-                  ..._buildBlokDinamis(data),
+                  // section konten dinamis
+                  ..._blokDinamisWidgets,
 
                   // section asal daerah
                   AsalDaerahBlock(
@@ -514,6 +565,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                                                           imagePath:
                                                               other.gambarUtama,
                                                           fit: BoxFit.cover,
+                                                          cacheWidth: 320,
                                                         ),
                                                       ),
                                                     ),
@@ -598,12 +650,44 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                   },
                 ),
               ),
+
             ],
           );
         },
       ),
     ),
   ),
+),
+// section floating indikator bacaan
+ValueListenableBuilder<bool>(
+  valueListenable: _bacaSelesaiNotifier,
+  builder: (context, selesai, _) {
+    if (selesai) return const SizedBox.shrink();
+    return Positioned(
+      bottom: 24,
+      left: 20,
+      right: 20,
+      child: SafeArea(
+        top: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: ValueListenableBuilder<int>(
+              valueListenable: _detikNotifier,
+              builder: (context, detik, _) {
+                return IndikatorBacaArsip(
+                  detikTersisa: detik,
+                  sudahSelesai: false,
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  },
+),
+],
 ),
 ),
 );

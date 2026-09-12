@@ -12,6 +12,8 @@ import '../../../core/widgets/header_halaman.dart';
 import 'detail_diskusi_page.dart';
 import 'form_diskusi_page.dart';
 import 'notifikasi_komunitas_page.dart';
+import 'profil_pengguna_lain_page.dart';
+import 'widgets/avatar_pengguna.dart';
 import 'widgets/badge_penulis.dart';
 
 class KomunitasPage extends StatefulWidget {
@@ -25,6 +27,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
   final KomunitasRepository _repository = KomunitasRepository();
   final TextEditingController _searchController = TextEditingController();
 
+  static List<DiskusiModel>? _cachedDiscussions;
   List<DiskusiModel> _daftarDiskusi = [];
   int _jumlahNotifBelumDibaca = 0;
   bool _isLoading = true;
@@ -41,11 +44,17 @@ class _KomunitasPageState extends State<KomunitasPage> {
     'Umum',
   ];
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
+    final cached = _cachedDiscussions;
+    if (cached != null && cached.isNotEmpty) {
+      _daftarDiskusi = cached;
+      _isLoading = false;
+    }
     _langgananRealtime();
-    _muatData();
+    _muatData(showLoader: cached == null || cached.isEmpty);
   }
 
   void _langgananRealtime() {
@@ -72,6 +81,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
         )
         .listen((daftar) {
       if (!mounted) return;
+      if (_kategoriTerpilih == 'Semua' && _searchController.text.trim().isEmpty) {
+        _cachedDiscussions = daftar;
+      }
       if (_searchController.text.trim().isEmpty) {
         setState(() {
           _daftarDiskusi = daftar;
@@ -293,15 +305,46 @@ class _KomunitasPageState extends State<KomunitasPage> {
   }
 
   Future<void> _bukaDetail(DiskusiModel diskusi) async {
-    await context.push(DetailDiskusiPage(diskusiId: diskusi.id!));
+    await context.push(
+      DetailDiskusiPage(
+        diskusiId: diskusi.id!,
+        initialDiskusi: diskusi,
+      ),
+    );
     if (!mounted) return;
     await _muatData(showLoader: false);
   }
 
+  // section toggle suara
   Future<void> _toggleSuara(DiskusiModel diskusi) async {
     if (diskusi.id == null) return;
+    final wasVoted = diskusi.suaraSaya > 0;
+    final delta = wasVoted ? -1 : 1;
+    setState(() {
+      final idx = _daftarDiskusi.indexWhere((d) => d.id == diskusi.id);
+      if (idx != -1) {
+        _daftarDiskusi[idx] = _daftarDiskusi[idx].copyWith(
+          suaraSaya: wasVoted ? 0 : 1,
+          jumlahSuara: (_daftarDiskusi[idx].jumlahSuara + delta).clamp(0, 999999),
+        );
+      }
+    });
     await _repository.toggleSuara('diskusi', diskusi.id!);
-    await _muatData(showLoader: false);
+  }
+
+  // section buka profil pengguna
+  void _bukaProfil(DiskusiModel diskusi) {
+    context.push(
+      ProfilPenggunaLainPage(
+        userId: diskusi.userId,
+        username: diskusi.username,
+        nama: diskusi.penulis,
+        fotoProfil: diskusi.fotoProfil,
+        role: diskusi.role,
+        gelar: diskusi.gelar,
+        badgePilihan: diskusi.badgePilihan,
+      ),
+    );
   }
 
   @override
@@ -330,51 +373,59 @@ class _KomunitasPageState extends State<KomunitasPage> {
               garisBawah: false,
               aksi: Stack(
                 clipBehavior: Clip.none,
+                alignment: Alignment.center,
                 children: [
-                  InkWell(
-                    onTap: () async {
+                  IconButton(
+                    onPressed: () async {
                       await context.push(const NotifikasiKomunitasPage());
                       if (mounted) {
                         _muatData(showLoader: false);
                       }
                     },
-                    borderRadius: BorderRadius.circular(12),
-                    child: const Icon(
+                    icon: const Icon(
                       Icons.notifications_outlined,
                       color: AppColors.primary,
-                      size: 22,
+                      size: 24,
                     ),
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
+                    splashRadius: 24,
                   ),
                   if (_jumlahNotifBelumDibaca > 0)
                     Positioned(
-                      top: -4,
-                      right: -4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.surface,
-                            width: 1.5,
+                      top: 4,
+                      right: 4,
+                      child: IgnorePointer(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
                           ),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        child: Center(
-                          child: Text(
-                            _jumlahNotifBelumDibaca > 99
-                                ? '99+'
-                                : '$_jumlahNotifBelumDibaca',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.surface,
+                              width: 1.5,
+                            ),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
+                          child: Center(
+                            child: Text(
+                              _jumlahNotifBelumDibaca > 99
+                                  ? '99+'
+                                  : '$_jumlahNotifBelumDibaca',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -384,7 +435,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
               ),
             ),
 
-            // Search Bar & Filter Chips
+            // section pencarian dan penyaring
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
               child: Container(
@@ -426,7 +477,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
               ),
             ),
 
-            // Kategori Choice Chips
+            // section pilihan kategori
             SizedBox(
               height: 38,
               child: ListView.separated(
@@ -469,7 +520,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
             ),
             const SizedBox(height: 10),
 
-            // Discussion List
+            // section daftar diskusi
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -536,6 +587,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                                   onHapus: () => _hapusDiskusi(item),
                                   onTap: () => _bukaDetail(item),
                                   onVote: () => _toggleSuara(item),
+                                  onBukaProfil: () => _bukaProfil(item),
                                 );
                               },
                             ),
@@ -548,6 +600,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
   }
 }
 
+// section kartu diskusi
 class _KartuDiskusi extends StatelessWidget {
   final DiskusiModel item;
   final String waktuTeks;
@@ -555,6 +608,7 @@ class _KartuDiskusi extends StatelessWidget {
   final VoidCallback? onHapus;
   final VoidCallback onTap;
   final VoidCallback onVote;
+  final VoidCallback? onBukaProfil;
 
   const _KartuDiskusi({
     required this.item,
@@ -563,6 +617,7 @@ class _KartuDiskusi extends StatelessWidget {
     this.onHapus,
     required this.onTap,
     required this.onVote,
+    this.onBukaProfil,
   });
 
   @override
@@ -579,38 +634,32 @@ class _KartuDiskusi extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Penulis, Waktu & Kategori
             Row(
               children: [
-                CircleAvatar(
+                AvatarPengguna(
+                  fotoUrl: item.fotoProfil,
+                  nama: item.penulis,
                   radius: 14,
-                  backgroundColor: AppColors.primaryDark.withAlpha(30),
-                  child: Text(
-                    item.penulis.isNotEmpty
-                        ? item.penulis[0].toUpperCase()
-                        : 'P',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
+                  onTap: onBukaProfil,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.penulis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                      GestureDetector(
+                        onTap: onBukaProfil,
+                        behavior: HitTestBehavior.opaque,
+                        child: Text(
+                          item.penulis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 2),
-                      // role dan lencana di bawah nama
                       BadgePenulis(
                         role: item.role,
                         gelar: item.gelar,
@@ -656,7 +705,7 @@ class _KartuDiskusi extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Judul
+            // section judul diskusi
             Text(
               item.judul,
               style: GoogleFonts.dmSerifDisplay(
@@ -667,7 +716,7 @@ class _KartuDiskusi extends StatelessWidget {
             ),
             const SizedBox(height: 4),
 
-            // Cuplikan Isi
+            // section isi diskusi
             Text(
               item.isi,
               maxLines: 3,
@@ -680,7 +729,7 @@ class _KartuDiskusi extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Tautan Arsip bila ada
+            // section tautan arsip
             if (adaRef) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -715,7 +764,7 @@ class _KartuDiskusi extends StatelessWidget {
               ),
             ],
 
-            // Baris Aksi (Suara & Komentar)
+            // section aksi diskusi
             Row(
               children: [
                 GestureDetector(
@@ -762,23 +811,36 @@ class _KartuDiskusi extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      size: 15,
-                      color: AppColors.textMuted,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      '${item.jumlahJawaban} Jawaban',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: AppColors.textSecondary,
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 13,
+                        color: AppColors.textMuted,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        '${item.jumlahJawaban} Jawaban',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

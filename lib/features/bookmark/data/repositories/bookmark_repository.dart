@@ -10,6 +10,7 @@ class BookmarkRepository {
   final SejarahRepository _sejarahRepository;
   final BudayaRepository _budayaRepository;
   static Set<String>? _cachedTags;
+  static List<BookmarkItemModel>? _cachedBookmarks;
 
   BookmarkRepository({
     FirebaseFirestore? firestore,
@@ -32,8 +33,10 @@ class BookmarkRepository {
   CollectionReference<Map<String, dynamic>> get _koleksi =>
       _firestore.collection('users').doc(_uid).collection('bookmarks');
 
+  // section bersihkan cache
   static void bersihkanCache() {
     _cachedTags = null;
+    _cachedBookmarks = null;
   }
 
   Future<bool> isBookmarked(String kodeTag) async {
@@ -70,6 +73,7 @@ class BookmarkRepository {
 
     _cachedTags ??= {};
     _cachedTags!.add(tag);
+    _cachedBookmarks = null;
 
     try {
       await _koleksi.doc(tag).set({
@@ -88,6 +92,7 @@ class BookmarkRepository {
     if (tag.isEmpty) return false;
 
     _cachedTags?.remove(tag);
+    _cachedBookmarks = null;
 
     try {
       await _koleksi.doc(tag).delete();
@@ -97,13 +102,17 @@ class BookmarkRepository {
     }
   }
 
-  Future<List<BookmarkItemModel>> getAllBookmarks() async {
+  // section ambil semua bookmark
+  Future<List<BookmarkItemModel>> getAllBookmarks({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedBookmarks != null) {
+      return _cachedBookmarks!;
+    }
+
     try {
       final snap = await _koleksi.get();
       _cachedTags = snap.docs.map((d) => d.id.trim()).toSet();
 
-      final List<BookmarkItemModel> items = [];
-      for (final doc in snap.docs) {
+      final futures = snap.docs.map((doc) async {
         final map = doc.data();
         final itemType = (map['itemType'] as String? ?? 'sejarah').toLowerCase();
         final kodeTag = doc.id;
@@ -112,33 +121,37 @@ class BookmarkRepository {
           case 'sejarah':
             final sejarah = await _sejarahRepository.getSejarahByKodeTag(kodeTag);
             if (sejarah != null) {
-              items.add(BookmarkItemModel.fromMap(map, sejarah: sejarah));
+              return BookmarkItemModel.fromMap(map, sejarah: sejarah);
             }
           case 'budaya':
             final budaya = await _budayaRepository.getBudayaByKodeTag(kodeTag);
             if (budaya != null) {
-              items.add(BookmarkItemModel.fromMap(map, budaya: budaya));
+              return BookmarkItemModel.fromMap(map, budaya: budaya);
             }
           case 'pulau':
             final pulau = pulauDariId(
               kodeTag.replaceFirst(BookmarkItemModel.awalanPulau, ''),
             );
             if (pulau != null) {
-              items.add(BookmarkItemModel.fromMap(map, pulau: pulau));
+              return BookmarkItemModel.fromMap(map, pulau: pulau);
             }
           case 'provinsi':
             final wilayah = provinsiDariNama(
               kodeTag.replaceFirst(BookmarkItemModel.awalanProvinsi, ''),
             );
             if (wilayah != null) {
-              items.add(BookmarkItemModel.fromMap(map, wilayah: wilayah));
+              return BookmarkItemModel.fromMap(map, wilayah: wilayah);
             }
         }
-      }
+        return null;
+      });
 
+      final resolved = await Future.wait(futures);
+      final items = resolved.whereType<BookmarkItemModel>().toList();
+      _cachedBookmarks = items;
       return items;
     } catch (_) {
-      return [];
+      return _cachedBookmarks ?? [];
     }
   }
 }

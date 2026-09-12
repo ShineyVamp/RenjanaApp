@@ -26,13 +26,6 @@ class _MainPageState extends State<MainPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
 
-  // Halaman ini baru tercapai setelah sesi tersedia, jadi kunjungan dicatat
-  // di sini, bukan di main().
-  @override
-  void initState() {
-    super.initState();
-    RuntunRepository().catatKunjunganHariIni();
-  }
 
   bool get _isAdmin {
     final user = widget.currentUser ?? PreferenceHandler.user;
@@ -75,8 +68,14 @@ class _MainPageState extends State<MainPage> {
     Icons.person_outline,
   ];
 
-  List<Widget> _getPages() {
-    return [
+  late final List<Widget> _pages;
+
+  // section siklus hidup
+  @override
+  void initState() {
+    super.initState();
+    RuntunRepository().catatKunjunganHariIni();
+    _pages = [
       HomePage(
         userName: _userName,
         isAdmin: _isAdmin,
@@ -91,8 +90,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = _getPages();
-
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
@@ -100,7 +97,10 @@ class _MainPageState extends State<MainPage> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
-          child: pages[_selectedIndex],
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: _pages,
+          ),
         ),
       ),
       bottomNavigationBar: Container(
@@ -116,7 +116,7 @@ class _MainPageState extends State<MainPage> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
-                  children: List.generate(pages.length, (index) {
+                  children: List.generate(_pages.length, (index) {
                     final isSelected = _selectedIndex == index;
                     return Expanded(
                       child: GestureDetector(

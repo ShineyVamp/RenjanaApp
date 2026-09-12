@@ -41,6 +41,17 @@ class _ProfilePageState extends State<ProfilePage> {
   final UsulanRepository _usulanRepository = UsulanRepository();
   final LencanaRepository _lencanaRepository = LencanaRepository();
 
+  static UserSQLModel? _cachedUser;
+  static int _cachedJumlahDibuka = 0;
+  static int _cachedJumlahProvinsi = 0;
+  static String _cachedGelar = 'Pelajar';
+  static RingkasanRuntun _cachedRuntun = const RingkasanRuntun();
+  static RingkasanKuis _cachedRingkasanKuis = const RingkasanKuis();
+  static int _cachedUsulanTotal = 0;
+  static int _cachedUsulanTerbuka = 0;
+  static int _cachedUsulanDisetujui = 0;
+  static bool _hasCachedProfile = false;
+
   UserSQLModel? _user;
   int _jumlahDibuka = 0;
   int _jumlahProvinsi = 0;
@@ -52,41 +63,75 @@ class _ProfilePageState extends State<ProfilePage> {
   int _usulanDisetujui = 0;
   bool _isLoading = true;
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
+    final sesi = PreferenceHandler.user;
+    if (_hasCachedProfile) {
+      _user = _cachedUser ?? sesi;
+      _jumlahDibuka = _cachedJumlahDibuka;
+      _jumlahProvinsi = _cachedJumlahProvinsi;
+      _gelar = _cachedGelar;
+      _runtun = _cachedRuntun;
+      _ringkasanKuis = _cachedRingkasanKuis;
+      _usulanTotal = _cachedUsulanTotal;
+      _usulanTerbuka = _cachedUsulanTerbuka;
+      _usulanDisetujui = _cachedUsulanDisetujui;
+      _isLoading = false;
+    } else if (sesi != null) {
+      _user = sesi;
+      _isLoading = false;
+    }
     _muatData();
   }
 
+  // section muat data
   Future<void> _muatData() async {
     final sesi = PreferenceHandler.user;
 
-    // data terbaru dibaca dari database lewat id, bukan dari salinan sesi
-    final user =
-        await _userRepository.getUserById(PreferenceHandler.userId) ?? sesi;
+    final results = await Future.wait([
+      _userRepository.getUserById(PreferenceHandler.userId),
+      _arsipDibacaRepository.semua(),
+      _runtunRepository.ringkasan(),
+      _hasilKuisRepository.ringkasan(),
+      _usulanRepository.jumlahMilikSaya(),
+      _usulanRepository.jumlahMilikSaya(status: StatusUsulan.menunggu),
+      _usulanRepository.jumlahMilikSaya(status: StatusUsulan.revisi),
+      _usulanRepository.jumlahDisetujui(),
+      _lencanaRepository.evaluasi(),
+    ]);
 
-    final refs = await _arsipDibacaRepository.semua();
-    final dibaca = await _jelajahRepository.ambilDariRiwayat(refs);
+    final user = (results[0] as UserSQLModel?) ?? sesi;
+    final refs = results[1] as List<dynamic>;
+    final runtun = results[2] as RingkasanRuntun;
+    final kuis = results[3] as RingkasanKuis;
+    final usulanTotal = results[4] as int;
+    final usulanMenunggu = results[5] as int;
+    final usulanRevisi = results[6] as int;
+    final usulanDisetujui = results[7] as int;
+    final statusLencana = results[8] as List<StatusLencana>;
+
+    final dibaca = await _jelajahRepository.ambilDariRiwayat(refs.cast());
     final provinsi = dibaca
         .map((item) => item.asalProvinsi?.trim().toLowerCase())
         .whereType<String>()
         .where((nama) => nama.isNotEmpty)
         .toSet();
 
-    final runtun = await _runtunRepository.ringkasan();
-    final kuis = await _hasilKuisRepository.ringkasan();
-    final usulanTotal = await _usulanRepository.jumlahMilikSaya();
-    final usulanMenunggu = await _usulanRepository.jumlahMilikSaya(
-      status: StatusUsulan.menunggu,
-    );
-    final usulanRevisi = await _usulanRepository.jumlahMilikSaya(
-      status: StatusUsulan.revisi,
-    );
-    final usulanDisetujui = await _usulanRepository.jumlahDisetujui();
-
-    final statusLencana = await _lencanaRepository.evaluasi();
     final terbuka = statusLencana.where((s) => s.terbuka).length;
     final gelar = gelarDariLencana(terbuka);
+
+    _cachedUser = user;
+    _cachedJumlahDibuka = refs.length;
+    _cachedJumlahProvinsi = provinsi.length;
+    _cachedGelar = gelar.nama;
+    _cachedRuntun = runtun;
+    _cachedRingkasanKuis = kuis;
+    _cachedUsulanTotal = usulanTotal;
+    _cachedUsulanTerbuka = usulanMenunggu + usulanRevisi;
+    _cachedUsulanDisetujui = usulanDisetujui;
+    _hasCachedProfile = true;
 
     if (!mounted) return;
     setState(() {

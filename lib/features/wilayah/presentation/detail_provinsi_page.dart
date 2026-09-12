@@ -97,11 +97,30 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
     provinsi: null,
   );
 
-  Future<void> _muatData() async {
+  static final Map<String, (int, List<HasilJelajah>, ProgresProvinsi?)> _cacheProvinsi = {};
+
+  // section muat data
+  Future<void> _muatData({bool showLoader = true}) async {
     final nama = widget.provinsi.nama;
-    final jumlah = await _wilayahRepository.jumlahArsipProvinsi(nama);
-    final acak = await _wilayahRepository.arsipAcakProvinsi(nama, jumlah: 5);
-    final progres = await _progresRepository.progresProvinsi(nama);
+    final cached = _cacheProvinsi[nama];
+    if (cached != null) {
+      _jumlahArsip = cached.$1;
+      _rekomendasi = cached.$2;
+      _progres = cached.$3;
+      _isLoading = false;
+      if (!showLoader) return;
+    }
+
+    final results = await Future.wait([
+      _wilayahRepository.jumlahArsipProvinsi(nama),
+      _wilayahRepository.arsipAcakProvinsi(nama, jumlah: 5),
+      _progresRepository.progresProvinsi(nama),
+    ]);
+    final jumlah = results[0] as int;
+    final acak = results[1] as List<HasilJelajah>;
+    final progres = results[2] as ProgresProvinsi?;
+    _cacheProvinsi[nama] = (jumlah, acak, progres);
+
     if (!mounted) return;
     setState(() {
       _jumlahArsip = jumlah;

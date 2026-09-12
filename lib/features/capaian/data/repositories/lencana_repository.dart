@@ -172,6 +172,7 @@ class LencanaRepository {
     }
 
     _cachedTerbuka?[kode] = disematkan;
+    _cachedStatus = null;
 
     try {
       await _koleksiPengguna().doc(kode).set({
@@ -217,9 +218,18 @@ class LencanaRepository {
   static String _pulauArsip(HasilJelajah item) =>
       pulauDariProvinsi(item.asalProvinsi)?.id ?? '';
 
+  static List<StatusLencana>? _cachedStatus;
+  static DateTime? _terakhirEvaluasi;
+
   // Menghitung kemajuan seluruh lencana, membuka yang sudah memenuhi syarat,
   // lalu mengembalikan status akhirnya.
-  Future<List<StatusLencana>> evaluasi() async {
+  Future<List<StatusLencana>> evaluasi({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedStatus != null && _terakhirEvaluasi != null) {
+      if (DateTime.now().difference(_terakhirEvaluasi!).inMinutes < 5) {
+        return _cachedStatus!;
+      }
+    }
+
     final semuaArsip = await _jelajahRepository.semuaArsip();
     final refs = await _arsipDibacaRepository.semua();
     final dibuka = await _jelajahRepository.ambilDariRiwayat(refs);
@@ -326,6 +336,8 @@ class LencanaRepository {
     }
 
     if (baruTerbuka.isNotEmpty) await _buka(baruTerbuka);
+    _cachedStatus = hasil;
+    _terakhirEvaluasi = DateTime.now();
     return hasil;
   }
 

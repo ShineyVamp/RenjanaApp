@@ -12,6 +12,10 @@ class KomunitasRepository {
   static List<DiskusiModel>? _cachedDiskusi;
   static final Map<int, List<JawabanModel>> _cachedJawaban = {};
   static List<NotifikasiKomunitasModel>? _cachedNotifikasi;
+  static Set<int> _cachedIdSuaraSayaDiskusi = {};
+  static Set<int> _cachedIdSuaraSayaJawaban = {};
+  static bool _suaraDiskusiLoaded = false;
+  static bool _suaraJawabanLoaded = false;
 
   KomunitasRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -25,17 +29,48 @@ class KomunitasRepository {
     return intId > 0 ? 'user_$intId' : 'guest';
   }
 
+  // section ambil id suara pengguna aktif
+  Future<Set<int>> getDaftarIdSuaraSaya(String targetTipe) async {
+    final uid = _userUid;
+    if (uid == 'guest') return const {};
+    try {
+      final snap = await _firestore
+          .collection('suara')
+          .where('userUid', isEqualTo: uid)
+          .where('targetTipe', isEqualTo: targetTipe)
+          .get();
+      final set = snap.docs
+          .map((d) => (d.data()['targetId'] as num?)?.toInt())
+          .whereType<int>()
+          .toSet();
+      if (targetTipe == 'diskusi') {
+        _cachedIdSuaraSayaDiskusi = Set<int>.from(set);
+        _suaraDiskusiLoaded = true;
+      } else {
+        _cachedIdSuaraSayaJawaban = Set<int>.from(set);
+        _suaraJawabanLoaded = true;
+      }
+      return set;
+    } catch (_) {
+      return targetTipe == 'diskusi'
+          ? _cachedIdSuaraSayaDiskusi
+          : _cachedIdSuaraSayaJawaban;
+    }
+  }
+
   // daftar diskusi
   Future<List<DiskusiModel>> getDaftarDiskusi({
     String? kategori,
     String? refArsip,
     String? kataKunci,
+    bool forceRefresh = false,
   }) async {
     List<DiskusiModel> daftar;
-    if (_cachedDiskusi != null) {
+    if (!forceRefresh && _cachedDiskusi != null) {
       daftar = _cachedDiskusi!;
     } else {
       try {
+        final votedDiskusi = await getDaftarIdSuaraSaya('diskusi');
         final snapshot = await _firestore
             .collection('diskusi')
             .orderBy('dibuatPada', descending: true)
@@ -45,7 +80,11 @@ class KomunitasRepository {
         daftar = snapshot.docs.map((doc) {
           final d = doc.data();
           d['id'] = (d['id'] as num?)?.toInt() ?? int.tryParse(doc.id) ?? doc.id.hashCode.abs();
-          return DiskusiModel.fromMap(d);
+          final disId = d['id'] as int;
+          return DiskusiModel.fromMap(
+            d,
+            suaraSaya: votedDiskusi.contains(disId) ? 1 : 0,
+          );
         }).toList();
 
         _cachedDiskusi = daftar;
@@ -74,12 +113,15 @@ class KomunitasRepository {
     return hasil;
   }
 
-  // stream realtime daftar diskusi
+  // section stream realtime daftar diskusi
   Stream<List<DiskusiModel>> streamDaftarDiskusi({
     String? kategori,
     String? refArsip,
     String? kataKunci,
   }) {
+    if (!_suaraDiskusiLoaded) {
+      getDaftarIdSuaraSaya('diskusi');
+    }
     return _firestore
         .collection('diskusi')
         .orderBy('dibuatPada', descending: true)
@@ -88,10 +130,14 @@ class KomunitasRepository {
         .map((snapshot) {
       final daftar = snapshot.docs.map((doc) {
         final d = doc.data();
-        d['id'] = (d['id'] as num?)?.toInt() ??
+        final id = (d['id'] as num?)?.toInt() ??
             int.tryParse(doc.id) ??
             doc.id.hashCode.abs();
-        return DiskusiModel.fromMap(d);
+        d['id'] = id;
+        return DiskusiModel.fromMap(
+          d,
+          suaraSaya: _cachedIdSuaraSayaDiskusi.contains(id) ? 1 : 0,
+        );
       }).toList();
 
       _cachedDiskusi = daftar;
@@ -114,11 +160,18 @@ class KomunitasRepository {
     });
   }
 
-  // ambil diskusi by id
+  // section ambil diskusi by id
   Future<DiskusiModel?> getDiskusiById(int id) async {
+    if (!_suaraDiskusiLoaded) {
+      await getDaftarIdSuaraSaya('diskusi');
+    }
     if (_cachedDiskusi != null) {
       for (final d in _cachedDiskusi!) {
-        if (d.id == id) return d;
+        if (d.id == id) {
+          return d.copyWith(
+            suaraSaya: _cachedIdSuaraSayaDiskusi.contains(id) ? 1 : 0,
+          );
+        }
       }
     }
 
@@ -132,13 +185,16 @@ class KomunitasRepository {
       if (snap.docs.isNotEmpty) {
         final d = snap.docs.first.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? id;
-        return DiskusiModel.fromMap(d);
+        return DiskusiModel.fromMap(
+          d,
+          suaraSaya: _cachedIdSuaraSayaDiskusi.contains(id) ? 1 : 0,
+        );
       }
     } catch (_) {}
     return null;
   }
 
-  // tambah diskusi
+  // section tambah diskusi
   Future<int> tambahDiskusi(DiskusiModel model) async {
     try {
       final docRef = _firestore.collection('diskusi').doc();
@@ -148,6 +204,7 @@ class KomunitasRepository {
       doc['userUid'] = PreferenceHandler.userUid;
       doc['username'] = PreferenceHandler.userUsername;
       doc['penulis'] = PreferenceHandler.userName;
+      doc['fotoProfil'] = PreferenceHandler.user?.fotoProfil ?? '';
       doc['dibuatPada'] = DateTime.now().millisecondsSinceEpoch;
       doc['createdAt'] = FieldValue.serverTimestamp();
       await docRef.set(doc);
@@ -160,7 +217,7 @@ class KomunitasRepository {
     }
   }
 
-  // hapus diskusi
+  // section hapus diskusi
   Future<int> hapusDiskusi(int id) async {
     try {
       final snap = await _firestore
@@ -183,27 +240,43 @@ class KomunitasRepository {
     }
   }
 
-  // daftar jawaban komentar utama
-  Future<List<JawabanModel>> getDaftarJawaban(int diskusiId) async {
-    if (_cachedJawaban.containsKey(diskusiId)) {
+  // section daftar jawaban
+  Future<List<JawabanModel>> getDaftarJawaban(int diskusiId, {bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedJawaban.containsKey(diskusiId)) {
       return _cachedJawaban[diskusiId]!
           .where((j) => j.indukId == null || j.indukId == 0)
           .toList();
     }
 
     try {
+      final votedJawaban = await getDaftarIdSuaraSaya('jawaban');
       final snapshot = await _firestore
           .collection('jawaban')
           .where('diskusiId', isEqualTo: diskusiId)
-          .orderBy('dibuatPada', descending: false)
           .get();
+
+      final balasanCount = <int, int>{};
+      for (final doc in snapshot.docs) {
+        final d = doc.data();
+        final indukId = (d['indukId'] as num?)?.toInt();
+        if (indukId != null && indukId > 0) {
+          balasanCount[indukId] = (balasanCount[indukId] ?? 0) + 1;
+        }
+      }
 
       final list = snapshot.docs.map((doc) {
         final d = doc.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? int.tryParse(doc.id) ?? doc.id.hashCode.abs();
-        return JawabanModel.fromMap(d);
+        final jId = d['id'] as int;
+        final jumlahBalas = balasanCount[jId] ?? ((d['jumlahBalasan'] as num?)?.toInt() ?? 0);
+        return JawabanModel.fromMap(
+          d,
+          suaraSaya: votedJawaban.contains(jId) ? 1 : 0,
+          jumlahBalasan: jumlahBalas,
+        );
       }).toList();
 
+      list.sort((a, b) => a.dibuatPada.compareTo(b.dibuatPada));
       _cachedJawaban[diskusiId] = list;
       return list.where((j) => j.indukId == null || j.indukId == 0).toList();
     } catch (_) {
@@ -211,74 +284,120 @@ class KomunitasRepository {
     }
   }
 
-  // daftar balasan komentar tertentu
-  Future<List<JawabanModel>> getDaftarBalasan(int indukId) async {
-    for (final list in _cachedJawaban.values) {
-      final balasan = list.where((j) => j.indukId == indukId).toList();
-      if (balasan.isNotEmpty) return balasan;
+  // section daftar balasan
+  Future<List<JawabanModel>> getDaftarBalasan(int indukId, {bool forceRefresh = false}) async {
+    if (!forceRefresh) {
+      for (final list in _cachedJawaban.values) {
+        final balasan = list.where((j) => j.indukId == indukId).toList();
+        if (balasan.isNotEmpty) return balasan;
+      }
     }
 
     try {
+      final votedJawaban = await getDaftarIdSuaraSaya('jawaban');
       final snapshot = await _firestore
           .collection('jawaban')
           .where('indukId', isEqualTo: indukId)
-          .orderBy('dibuatPada', descending: false)
           .get();
 
-      return snapshot.docs.map((doc) {
+      final list = snapshot.docs.map((doc) {
         final d = doc.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? int.tryParse(doc.id) ?? doc.id.hashCode.abs();
-        return JawabanModel.fromMap(d);
+        final jId = d['id'] as int;
+        return JawabanModel.fromMap(
+          d,
+          suaraSaya: votedJawaban.contains(jId) ? 1 : 0,
+        );
       }).toList();
+
+      list.sort((a, b) => a.dibuatPada.compareTo(b.dibuatPada));
+      return list;
     } catch (_) {
       return const [];
     }
   }
 
-  // stream realtime daftar jawaban komentar utama
+  // section stream jawaban
   Stream<List<JawabanModel>> streamDaftarJawaban(int diskusiId) {
+    if (!_suaraJawabanLoaded) {
+      getDaftarIdSuaraSaya('jawaban');
+    }
     return _firestore
         .collection('jawaban')
         .where('diskusiId', isEqualTo: diskusiId)
-        .orderBy('dibuatPada', descending: false)
         .snapshots()
         .map((snapshot) {
+      final balasanCount = <int, int>{};
+      for (final doc in snapshot.docs) {
+        final d = doc.data();
+        final indukId = (d['indukId'] as num?)?.toInt();
+        if (indukId != null && indukId > 0) {
+          balasanCount[indukId] = (balasanCount[indukId] ?? 0) + 1;
+        }
+      }
+
       final list = snapshot.docs.map((doc) {
         final d = doc.data();
-        d['id'] = (d['id'] as num?)?.toInt() ??
+        final id = (d['id'] as num?)?.toInt() ??
             int.tryParse(doc.id) ??
             doc.id.hashCode.abs();
-        return JawabanModel.fromMap(d);
+        d['id'] = id;
+        final jumlahBalas = balasanCount[id] ?? ((d['jumlahBalasan'] as num?)?.toInt() ?? 0);
+        return JawabanModel.fromMap(
+          d,
+          suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
+          jumlahBalasan: jumlahBalas,
+        );
       }).toList();
 
+      list.sort((a, b) => a.dibuatPada.compareTo(b.dibuatPada));
       _cachedJawaban[diskusiId] = list;
       return list.where((j) => j.indukId == null || j.indukId == 0).toList();
     });
   }
 
-  // stream realtime balasan
+  // section stream balasan
   Stream<List<JawabanModel>> streamDaftarBalasan(int indukId) {
+    if (!_suaraJawabanLoaded) {
+      getDaftarIdSuaraSaya('jawaban');
+    }
     return _firestore
         .collection('jawaban')
         .where('indukId', isEqualTo: indukId)
-        .orderBy('dibuatPada', descending: false)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
+      final list = snapshot.docs.map((doc) {
         final d = doc.data();
-        d['id'] = (d['id'] as num?)?.toInt() ??
+        final id = (d['id'] as num?)?.toInt() ??
             int.tryParse(doc.id) ??
             doc.id.hashCode.abs();
-        return JawabanModel.fromMap(d);
+        d['id'] = id;
+        return JawabanModel.fromMap(
+          d,
+          suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
+          jumlahBalasan: (d['jumlahBalasan'] as num?)?.toInt() ?? 0,
+        );
       }).toList();
+
+      list.sort((a, b) => a.dibuatPada.compareTo(b.dibuatPada));
+      return list;
     });
   }
 
-  // ambil jawaban by id
-  Future<JawabanModel?> getJawabanById(int id) async {
-    for (final list in _cachedJawaban.values) {
-      for (final j in list) {
-        if (j.id == id) return j;
+  // section ambil jawaban by id
+  Future<JawabanModel?> getJawabanById(int id, {bool forceRefresh = false}) async {
+    if (!_suaraJawabanLoaded) {
+      await getDaftarIdSuaraSaya('jawaban');
+    }
+    if (!forceRefresh) {
+      for (final list in _cachedJawaban.values) {
+        for (final j in list) {
+          if (j.id == id) {
+            return j.copyWith(
+              suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
+            );
+          }
+        }
       }
     }
 
@@ -292,13 +411,17 @@ class KomunitasRepository {
       if (snap.docs.isNotEmpty) {
         final d = snap.docs.first.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? id;
-        return JawabanModel.fromMap(d);
+        return JawabanModel.fromMap(
+          d,
+          suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
+          jumlahBalasan: (d['jumlahBalasan'] as num?)?.toInt() ?? 0,
+        );
       }
     } catch (_) {}
     return null;
   }
 
-  // tambah jawaban atau balasan
+  // section tambah jawaban
   Future<int> tambahJawaban(JawabanModel model) async {
     try {
       final docRef = _firestore.collection('jawaban').doc();
@@ -308,6 +431,7 @@ class KomunitasRepository {
       doc['userUid'] = PreferenceHandler.userUid;
       doc['username'] = PreferenceHandler.userUsername;
       doc['penulis'] = PreferenceHandler.userName;
+      doc['fotoProfil'] = PreferenceHandler.user?.fotoProfil ?? '';
       doc['dibuatPada'] = DateTime.now().millisecondsSinceEpoch;
       doc['createdAt'] = FieldValue.serverTimestamp();
       await docRef.set(doc);
@@ -315,12 +439,36 @@ class KomunitasRepository {
       final baru = JawabanModel.fromMap(doc);
       _cachedJawaban.putIfAbsent(model.diskusiId, () => []).add(baru);
 
-      // perbarui jumlah jawaban di firestore
       _firestore.collection('diskusi').doc('${model.diskusiId}').update({
         'jumlahJawaban': FieldValue.increment(1),
       }).catchError((_) {});
 
-      // buat notifikasi terkait
+      if (model.indukId != null && model.indukId! > 0) {
+        _firestore
+            .collection('jawaban')
+            .where('id', isEqualTo: model.indukId!)
+            .limit(1)
+            .get()
+            .then((snap) {
+          if (snap.docs.isNotEmpty) {
+            snap.docs.first.reference.update({
+              'jumlahBalasan': FieldValue.increment(1),
+            });
+          }
+        }).catchError((_) {});
+
+        for (final list in _cachedJawaban.values) {
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].id == model.indukId!) {
+              list[i] = list[i].copyWith(
+                jumlahBalasan: list[i].jumlahBalasan + 1,
+              );
+              break;
+            }
+          }
+        }
+      }
+
       await _buatNotifikasiTerkait(model, id);
 
       return id;
@@ -476,18 +624,27 @@ class KomunitasRepository {
     return null;
   }
 
-  // toggle suara
-  Future<void> toggleSuara(String targetTipe, int targetId) async {
+  // section toggle suara
+  Future<bool> toggleSuara(String targetTipe, int targetId) async {
     final uid = _userUid;
-    if (uid == 'guest') return;
+    if (uid == 'guest') return false;
 
     final docId = '${targetTipe}_${targetId}_$uid';
     final ref = _firestore.collection('suara').doc(docId);
+    final collectionName = targetTipe == 'diskusi' ? 'diskusi' : 'jawaban';
 
     try {
       final snap = await ref.get();
       if (snap.exists) {
         await ref.delete();
+        if (targetTipe == 'diskusi') {
+          _cachedIdSuaraSayaDiskusi.remove(targetId);
+        } else {
+          _cachedIdSuaraSayaJawaban.remove(targetId);
+        }
+        _updateJumlahSuara(collectionName, targetId, -1);
+        _updateLocalSuaraCache(targetTipe, targetId, delta: -1, hasVoted: false);
+        return false;
       } else {
         await ref.set({
           'targetTipe': targetTipe,
@@ -497,8 +654,106 @@ class KomunitasRepository {
           'nilai': 1,
           'createdAt': FieldValue.serverTimestamp(),
         });
+        if (targetTipe == 'diskusi') {
+          _cachedIdSuaraSayaDiskusi.add(targetId);
+        } else {
+          _cachedIdSuaraSayaJawaban.add(targetId);
+        }
+        _updateJumlahSuara(collectionName, targetId, 1);
+        _updateLocalSuaraCache(targetTipe, targetId, delta: 1, hasVoted: true);
+        return true;
       }
-    } catch (_) {}
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // section update jumlah suara
+  void _updateJumlahSuara(String collection, int id, int delta) {
+    _firestore
+        .collection(collection)
+        .where('id', isEqualTo: id)
+        .limit(1)
+        .get()
+        .then((snap) {
+      if (snap.docs.isNotEmpty) {
+        snap.docs.first.reference.update({
+          'jumlahSuara': FieldValue.increment(delta),
+        });
+      } else {
+        _firestore.collection(collection).doc('$id').update({
+          'jumlahSuara': FieldValue.increment(delta),
+        }).catchError((_) {});
+      }
+    }).catchError((_) {});
+  }
+
+  // section update cache suara
+  void _updateLocalSuaraCache(
+    String targetTipe,
+    int targetId, {
+    required int delta,
+    required bool hasVoted,
+  }) {
+    if (targetTipe == 'diskusi') {
+      if (_cachedDiskusi != null) {
+        for (var i = 0; i < _cachedDiskusi!.length; i++) {
+          if (_cachedDiskusi![i].id == targetId) {
+            final lama = _cachedDiskusi![i];
+            _cachedDiskusi![i] = lama.copyWith(
+              jumlahSuara: (lama.jumlahSuara + delta).clamp(0, 999999),
+              suaraSaya: hasVoted ? 1 : 0,
+            );
+            break;
+          }
+        }
+      }
+    } else {
+      for (final key in _cachedJawaban.keys) {
+        final list = _cachedJawaban[key];
+        if (list != null) {
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].id == targetId) {
+              final lama = list[i];
+              list[i] = lama.copyWith(
+                jumlahSuara: (lama.jumlahSuara + delta).clamp(0, 999999),
+                suaraSaya: hasVoted ? 1 : 0,
+              );
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // section diskusi pengguna
+  Future<List<DiskusiModel>> getDiskusiByUserId(
+    int userId, {
+    String? username,
+    int limit = 8,
+  }) async {
+    try {
+      Query<Map<String, dynamic>> query = _firestore.collection('diskusi');
+      if (userId > 0) {
+        query = query.where('userId', isEqualTo: userId);
+      } else if (username != null && username.isNotEmpty) {
+        query = query.where('username', isEqualTo: username);
+      }
+      final snap = await query.limit(limit).get();
+      final list = snap.docs.map((doc) {
+        final d = doc.data();
+        d['id'] = (d['id'] as num?)?.toInt() ??
+            int.tryParse(doc.id) ??
+            doc.id.hashCode.abs();
+        return DiskusiModel.fromMap(d);
+      }).toList();
+
+      list.sort((a, b) => b.dibuatPada.compareTo(a.dibuatPada));
+      return list;
+    } catch (_) {
+      return const [];
+    }
   }
 
   // cari pengguna untuk mention

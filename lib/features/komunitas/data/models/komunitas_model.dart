@@ -4,6 +4,7 @@ class DiskusiModel {
   final int userId;
   final String penulis;
   final String? username;
+  final String? fotoProfil;
   final String judul;
   final String isi;
   final String kategori;
@@ -22,6 +23,7 @@ class DiskusiModel {
     required this.userId,
     required this.penulis,
     this.username,
+    this.fotoProfil,
     required this.judul,
     required this.isi,
     this.kategori = 'Umum',
@@ -36,14 +38,44 @@ class DiskusiModel {
     this.badgePilihan = const [],
   });
 
+  DiskusiModel copyWith({
+    int? jumlahSuara,
+    int? suaraSaya,
+    int? jumlahJawaban,
+  }) {
+    return DiskusiModel(
+      id: id,
+      userId: userId,
+      penulis: penulis,
+      username: username,
+      fotoProfil: fotoProfil,
+      judul: judul,
+      isi: isi,
+      kategori: kategori,
+      refArsip: refArsip,
+      dibuatPada: dibuatPada,
+      diperbaruiPada: diperbaruiPada,
+      jumlahJawaban: jumlahJawaban ?? this.jumlahJawaban,
+      jumlahSuara: jumlahSuara ?? this.jumlahSuara,
+      suaraSaya: suaraSaya ?? this.suaraSaya,
+      role: role,
+      gelar: gelar,
+      badgePilihan: badgePilihan,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
     if (id != null) 'id': id,
     'userId': userId,
     'penulis': penulis,
+    if (username != null) 'username': username,
+    if (fotoProfil != null) 'fotoProfil': fotoProfil,
     'judul': judul,
     'isi': isi,
     'kategori': kategori,
     'refArsip': refArsip,
+    'jumlahSuara': jumlahSuara,
+    'jumlahJawaban': jumlahJawaban,
     'dibuatPada': dibuatPada.millisecondsSinceEpoch,
     'diperbaruiPada': diperbaruiPada.millisecondsSinceEpoch,
   };
@@ -55,14 +87,26 @@ class DiskusiModel {
     int suaraSaya = 0,
     String role = 'user',
     String? username,
+    String? fotoProfil,
     String gelar = 'Pelajar',
     List<String> badgePilihan = const [],
   }) {
+    final suara = jumlahSuara != 0
+        ? jumlahSuara
+        : (map['jumlahSuara'] as num?)?.toInt() ?? 0;
+    final jawaban = jumlahJawaban != 0
+        ? jumlahJawaban
+        : (map['jumlahJawaban'] as num?)?.toInt() ?? 0;
+    final suaraAktif = suaraSaya != 0
+        ? suaraSaya
+        : (map['suaraSaya'] as num?)?.toInt() ?? 0;
+
     return DiskusiModel(
       id: map['id'] as int?,
       userId: map['userId'] as int? ?? 0,
       penulis: map['penulis'] as String? ?? 'Pengguna',
       username: username ?? (map['username'] as String?),
+      fotoProfil: fotoProfil ?? (map['fotoProfil'] as String?),
       judul: map['judul'] as String? ?? '',
       isi: map['isi'] as String? ?? '',
       kategori: map['kategori'] as String? ?? 'Umum',
@@ -73,9 +117,9 @@ class DiskusiModel {
       diperbaruiPada: DateTime.fromMillisecondsSinceEpoch(
         map['diperbaruiPada'] as int? ?? DateTime.now().millisecondsSinceEpoch,
       ),
-      jumlahJawaban: jumlahJawaban,
-      jumlahSuara: jumlahSuara,
-      suaraSaya: suaraSaya,
+      jumlahJawaban: jawaban,
+      jumlahSuara: suara,
+      suaraSaya: suaraAktif,
       role: role,
       gelar: gelar,
       badgePilihan: badgePilihan,
@@ -92,6 +136,7 @@ class JawabanModel {
   final int userId;
   final String penulis;
   final String? username;
+  final String? fotoProfil;
   final String isi;
   final DateTime dibuatPada;
   final int jumlahSuara;
@@ -109,6 +154,7 @@ class JawabanModel {
     required this.userId,
     required this.penulis,
     this.username,
+    this.fotoProfil,
     required this.isi,
     required this.dibuatPada,
     this.jumlahSuara = 0,
@@ -121,6 +167,31 @@ class JawabanModel {
 
   bool get isBalasan => indukId != null && indukId! > 0;
 
+  JawabanModel copyWith({
+    int? jumlahSuara,
+    int? suaraSaya,
+    int? jumlahBalasan,
+  }) {
+    return JawabanModel(
+      id: id,
+      diskusiId: diskusiId,
+      indukId: indukId,
+      balasKe: balasKe,
+      userId: userId,
+      penulis: penulis,
+      username: username,
+      fotoProfil: fotoProfil,
+      isi: isi,
+      dibuatPada: dibuatPada,
+      jumlahSuara: jumlahSuara ?? this.jumlahSuara,
+      suaraSaya: suaraSaya ?? this.suaraSaya,
+      jumlahBalasan: jumlahBalasan ?? this.jumlahBalasan,
+      role: role,
+      gelar: gelar,
+      badgePilihan: badgePilihan,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
     if (id != null) 'id': id,
     'diskusiId': diskusiId,
@@ -128,7 +199,11 @@ class JawabanModel {
     'balasKe': balasKe,
     'userId': userId,
     'penulis': penulis,
+    if (username != null) 'username': username,
+    if (fotoProfil != null) 'fotoProfil': fotoProfil,
     'isi': isi,
+    'jumlahSuara': jumlahSuara,
+    'jumlahBalasan': jumlahBalasan,
     'dibuatPada': dibuatPada.millisecondsSinceEpoch,
   };
 
@@ -139,9 +214,20 @@ class JawabanModel {
     int jumlahBalasan = 0,
     String role = 'user',
     String? username,
+    String? fotoProfil,
     String gelar = 'Pelajar',
     List<String> badgePilihan = const [],
   }) {
+    final suara = jumlahSuara != 0
+        ? jumlahSuara
+        : (map['jumlahSuara'] as num?)?.toInt() ?? 0;
+    final suaraAktif = suaraSaya != 0
+        ? suaraSaya
+        : (map['suaraSaya'] as num?)?.toInt() ?? 0;
+    final totalBalasan = jumlahBalasan != 0
+        ? jumlahBalasan
+        : (map['jumlahBalasan'] as num?)?.toInt() ?? 0;
+
     return JawabanModel(
       id: map['id'] as int?,
       diskusiId: map['diskusiId'] as int? ?? 0,
@@ -150,17 +236,17 @@ class JawabanModel {
       userId: map['userId'] as int? ?? 0,
       penulis: map['penulis'] as String? ?? 'Pengguna',
       username: username ?? (map['username'] as String?),
+      fotoProfil: fotoProfil ?? (map['fotoProfil'] as String?),
       isi: map['isi'] as String? ?? '',
       dibuatPada: DateTime.fromMillisecondsSinceEpoch(
         map['dibuatPada'] as int? ?? DateTime.now().millisecondsSinceEpoch,
       ),
-      jumlahSuara: jumlahSuara,
-      suaraSaya: suaraSaya,
-      jumlahBalasan: jumlahBalasan,
+      jumlahSuara: suara,
+      suaraSaya: suaraAktif,
+      jumlahBalasan: totalBalasan,
       role: role,
       gelar: gelar,
       badgePilihan: badgePilihan,
     );
   }
 }
-

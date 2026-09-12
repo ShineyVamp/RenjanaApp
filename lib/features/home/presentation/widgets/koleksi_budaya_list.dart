@@ -26,14 +26,24 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
   Map<String, List<BudayaModel>> _grouped = {};
   bool _isLoading = true;
 
+  static Map<String, List<BudayaModel>>? _cachedGrouped;
+
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
+    if (_cachedGrouped != null) {
+      _grouped = _cachedGrouped!;
+      _isLoading = false;
+    }
     _loadItems();
   }
 
+  // section muat data
   Future<void> _loadItems() async {
+    if (_cachedGrouped != null) return;
     final grouped = await _budayaRepository.getBudayaGroupedByJenis();
+    _cachedGrouped = grouped;
     if (!mounted) return;
     setState(() {
       _grouped = grouped;
@@ -121,9 +131,8 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        await context.push(KoleksiKategoriPage(kategori: kategori));
-        await _loadItems();
+      onTap: () {
+        context.push(KoleksiKategoriPage(kategori: kategori));
       },
       child: Container(
         width: itemWidth,
@@ -139,7 +148,11 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
               ),
               child: AspectRatio(
                 aspectRatio: 4 / 3,
-                child: AppImageView(imagePath: coverImage, fit: BoxFit.cover),
+                child: AppImageView(
+                  imagePath: coverImage,
+                  fit: BoxFit.cover,
+                  cacheWidth: 720,
+                ),
               ),
             ),
             Positioned.fill(

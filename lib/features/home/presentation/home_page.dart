@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/navigation.dart';
+import '../../../core/storage/preference_handler.dart';
 import '../../bookmark/presentation/bookmark_page.dart';
 import '../../budaya/data/models/budaya_model.dart';
 import '../../budaya/data/repositories/budaya_repository.dart';
@@ -63,9 +64,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
   SejarahModel? _sejarahHariIni;
   BudayaModel? _budayaHariIni;
 
-  // Diganti untuk memaksa kartu misi harian membangun ulang dan memuat
-  // datanya lagi, tanpa beranda perlu memegang state kartu itu.
-  int _revisiMisi = 0;
+  // section notifikasi revisi misi harian tanpa rebuild beranda
+  final ValueNotifier<int> _revisiMisiNotifier = ValueNotifier<int>(0);
 
   final ScrollController _gulir = ScrollController();
 
@@ -80,6 +80,20 @@ class _HomePageState extends State<HomePage> with RouteAware {
   double _gulirTerakhir = 0;
   double _akumulasiNaik = 0;
   double _akumulasiTurun = 0;
+
+  String _ambilSapaan() {
+    final jam = DateTime.now().hour;
+    if (jam >= 4 && jam < 11) return 'Selamat pagi';
+    if (jam >= 11 && jam < 15) return 'Selamat siang';
+    if (jam >= 15 && jam < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  String get _namaPengguna {
+    final nama = PreferenceHandler.userName;
+    if (nama.isNotEmpty) return nama;
+    return widget.userName;
+  }
 
   @override
   void initState() {
@@ -140,14 +154,12 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   Future<void> _bukaKuis() async {
     await context.push(QuizPage());
-    if (!mounted) return;
-    setState(() => _revisiMisi++);
+    _revisiMisiNotifier.value++;
   }
 
   Future<void> _segarkan() async {
     await _loadFromRepository();
-    if (!mounted) return;
-    setState(() => _revisiMisi++);
+    _revisiMisiNotifier.value++;
   }
 
   @override
@@ -162,23 +174,26 @@ class _HomePageState extends State<HomePage> with RouteAware {
     pengamatRute.unsubscribe(this);
     _gulir.removeListener(_saatMenggulir);
     _gulir.dispose();
+    _revisiMisiNotifier.dispose();
     super.dispose();
   }
 
-  // Dipanggil saat halaman yang menutupi beranda ditutup, mis. detail arsip.
+  // section siklus hidup rute
   @override
   void didPopNext() {
-    if (!mounted) return;
-    setState(() => _revisiMisi++);
+    _revisiMisiNotifier.value++;
   }
 
+  // section muat data
   Future<void> _loadFromRepository() async {
-    final sejarah = await _sejarahRepository.getSejarahHariIni();
-    final budaya = await _budayaRepository.getBudayaHariIni();
+    final results = await Future.wait([
+      _sejarahRepository.getSejarahHariIni(),
+      _budayaRepository.getBudayaHariIni(),
+    ]);
     if (!mounted) return;
     setState(() {
-      _sejarahHariIni = sejarah;
-      _budayaHariIni = budaya;
+      _sejarahHariIni = results[0] as SejarahModel?;
+      _budayaHariIni = results[1] as BudayaModel?;
     });
   }
 
@@ -225,7 +240,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Selamat pagi, ${widget.userName}',
+                            '${_ambilSapaan()}, $_namaPengguna',
                             style: AppTypography.headingMedium(),
                           ),
                           const SizedBox(height: 12),
@@ -252,7 +267,11 @@ class _HomePageState extends State<HomePage> with RouteAware {
                     // section misi harian
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: MisiHarianCard(key: ValueKey(_revisiMisi)),
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: _revisiMisiNotifier,
+                        builder: (context, revisi, _) =>
+                            MisiHarianCard(key: ValueKey(revisi)),
+                      ),
                     ),
                     const SizedBox(height: 28),
 

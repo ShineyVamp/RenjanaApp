@@ -22,6 +22,10 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   final QuizRepository _quizRepository = QuizRepository();
+  static List<QuizSQLModel>? _cachedAllQuizzes;
+  static int? _cachedSalah;
+  static List<TemaKuis>? _cachedThemeRecommendations;
+
   List<QuizSQLModel> _allQuizzes = [];
   int _jumlahSoalSalah = 0;
   bool _isLoading = true;
@@ -43,22 +47,39 @@ class _QuizPageState extends State<QuizPage> {
   // nama tema yang sedang direkomendasikan
   List<String> _recommendedThemes = [];
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
-    _loadData();
+    if (_cachedAllQuizzes != null && _cachedAllQuizzes!.isNotEmpty) {
+      _allQuizzes = _cachedAllQuizzes!;
+      _jumlahSoalSalah = _cachedSalah ?? 0;
+      _themeRecommendations = _cachedThemeRecommendations ?? [];
+      _isLoading = false;
+    }
+    _loadData(showLoader: _cachedAllQuizzes == null || _cachedAllQuizzes!.isEmpty);
   }
 
+  // section muat data
   Future<void> _loadData({bool showLoader = true}) async {
-    if (showLoader) setState(() => _isLoading = true);
-    final list = await _quizRepository.getAllQuizzes();
-    final salah = await _quizRepository.getJumlahSoalSalah();
+    if (showLoader && !_isLoading) {
+      setState(() => _isLoading = true);
+    }
+    final results = await Future.wait([
+      _quizRepository.getAllQuizzes(),
+      _quizRepository.getJumlahSoalSalah(),
+    ]);
+    final list = results[0] as List<QuizSQLModel>;
+    final salah = results[1] as int;
     if (!mounted) return;
     setState(() {
       _allQuizzes = list;
       _jumlahSoalSalah = salah;
       _isLoading = false;
       _syncRecommendedThemes();
+      _cachedAllQuizzes = list;
+      _cachedSalah = salah;
+      _cachedThemeRecommendations = _themeRecommendations;
     });
   }
 
@@ -77,26 +98,31 @@ class _QuizPageState extends State<QuizPage> {
     return pool.take(_maxRecommendations).toList();
   }
 
+  List<TemaKuis> _themeRecommendations = [];
+
   void _syncRecommendedThemes() {
     final tersedia = _allThemes.toSet();
     _recommendedThemes = _recommendedThemes.where(tersedia.contains).toList();
     if (_recommendedThemes.isEmpty) {
       _recommendedThemes = _pickRandomThemes();
     }
+    _perbaruiRekomendasi();
+  }
+
+  void _perbaruiRekomendasi() {
+    final semua = {for (final t in TemaKuis.dariSoal(_allQuizzes)) t.tema: t};
+    _themeRecommendations = [
+      for (final tema in _recommendedThemes)
+        if (semua.containsKey(tema)) semua[tema]!,
+    ];
   }
 
   // Mengacak ulang isi rekomendasi.
   void _shuffleRecommendations() {
-    setState(() => _recommendedThemes = _pickRandomThemes());
-  }
-
-  // Data tema rekomendasi, urut sesuai hasil pengacakan.
-  List<TemaKuis> get _themeRecommendations {
-    final semua = {for (final t in TemaKuis.dariSoal(_allQuizzes)) t.tema: t};
-    return [
-      for (final tema in _recommendedThemes)
-        if (semua.containsKey(tema)) semua[tema]!,
-    ];
+    setState(() {
+      _recommendedThemes = _pickRandomThemes();
+      _perbaruiRekomendasi();
+    });
   }
 
   // Membuka halaman kategori, lalu memuat ulang daftar tema setelah kembali.

@@ -25,24 +25,36 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
 
   // jumlah destinasi yang tampil sekaligus
   static const int _jumlahTampil = 5;
+  static List<BudayaModel>? _cachedItems;
+  static int? _cachedTotal;
 
   List<BudayaModel> _items = [];
   bool _isLoading = true;
   bool _isRefreshing = false;
   int _totalDestinasi = 0;
 
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
-    _loadItems();
+    if (_cachedItems != null && _cachedItems!.isNotEmpty) {
+      _items = _cachedItems!;
+      _totalDestinasi = _cachedTotal ?? _items.length;
+      _isLoading = false;
+    } else {
+      _loadItems(acak: true);
+    }
   }
 
+  // section muat data
   Future<void> _loadItems({bool acak = true}) async {
     final list = await _budayaRepository.getDestinasiList(
       acak: acak,
       limit: _jumlahTampil,
     );
     final total = await _budayaRepository.getDestinasiCount();
+    _cachedItems = list;
+    _cachedTotal = total;
     if (!mounted) return;
     setState(() {
       _items = list;
@@ -189,9 +201,8 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
     const double itemWidth = 340;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        await context.push(DetailBudayaPage(budaya: item));
-        await _loadItems();
+      onTap: () {
+        context.push(DetailBudayaPage(budaya: item));
       },
       child: Container(
         width: itemWidth,
@@ -213,6 +224,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
                     AppImageView(
                       imagePath: item.gambarUtama,
                       fit: BoxFit.cover,
+                      cacheWidth: 720,
                     ),
                     Positioned.fill(
                       child: DecoratedBox(

@@ -27,13 +27,22 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
   Map<String, List<SejarahModel>> _grouped = {};
   bool _isLoading = true;
 
+  static Map<String, List<SejarahModel>>? _cachedGrouped;
+
+  // section siklus hidup
   @override
   void initState() {
     super.initState();
+    if (_cachedGrouped != null) {
+      _grouped = _cachedGrouped!;
+      _isLoading = false;
+    }
     _loadItems();
   }
 
+  // section muat data
   Future<void> _loadItems() async {
+    if (_cachedGrouped != null) return;
     final all = await _sejarahRepository.getAllSejarah();
     final Map<String, List<SejarahModel>> map = {};
     for (final s in all) {
@@ -42,6 +51,7 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
         map.putIfAbsent(key, () => []).add(s);
       }
     }
+    _cachedGrouped = map;
     if (!mounted) return;
     setState(() {
       _grouped = map;
@@ -129,9 +139,8 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        await context.push(ArsipPeriodePage(periode: periode));
-        await _loadItems();
+      onTap: () {
+        context.push(ArsipPeriodePage(periode: periode));
       },
       child: Container(
         width: itemWidth,
@@ -147,7 +156,11 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
               ),
               child: AspectRatio(
                 aspectRatio: 4 / 3,
-                child: AppImageView(imagePath: coverImage, fit: BoxFit.cover),
+                child: AppImageView(
+                  imagePath: coverImage,
+                  fit: BoxFit.cover,
+                  cacheWidth: 720,
+                ),
               ),
             ),
             Positioned.fill(
