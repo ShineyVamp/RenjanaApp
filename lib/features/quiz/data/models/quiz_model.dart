@@ -1,12 +1,9 @@
+// section model kuis
 import 'dart:convert';
 
 class QuizSQLModel {
   int? id;
   final String kategori;
-
-  // Penanda yang lebih sempit di dalam kategori: kode kategori budaya untuk
-  // BUDAYA, nama provinsi untuk KEDAERAHAN, kosong untuk SEJARAH. Nilainya
-  // seragam untuk seluruh soal dalam satu tema.
   final String subKategori;
   final String tema;
   final String soal;
@@ -27,6 +24,7 @@ class QuizSQLModel {
     this.penjelasan,
   });
 
+  // section serialisasi
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
@@ -41,6 +39,21 @@ class QuizSQLModel {
     };
   }
 
+  Map<String, dynamic> toFirestore() {
+    return <String, dynamic>{
+      'id': id,
+      'kategori': kategori,
+      'subKategori': subKategori,
+      'tema': tema,
+      'soal': soal,
+      'daftarJawaban': daftarJawaban,
+      'jawabanBenar': jawabanBenar,
+      'gambar': gambar,
+      'penjelasan': penjelasan,
+    };
+  }
+
+  // section deserialisasi
   factory QuizSQLModel.fromMap(Map<String, dynamic> map) {
     List<String> parsedJawaban = [];
     if (map['daftarJawaban'] is String) {
@@ -56,13 +69,13 @@ class QuizSQLModel {
     }
 
     return QuizSQLModel(
-      id: map['id'] != null ? map['id'] as int : null,
+      id: map['id'] != null ? (map['id'] as num).toInt() : null,
       kategori: map['kategori'] as String? ?? '',
       subKategori: map['subKategori'] as String? ?? '',
       tema: map['tema'] as String? ?? '',
       soal: map['soal'] as String? ?? '',
       daftarJawaban: parsedJawaban,
-      jawabanBenar: map['jawabanBenar'] as int? ?? 0,
+      jawabanBenar: (map['jawabanBenar'] as num?)?.toInt() ?? 0,
       gambar: map['gambar'] as String?,
       penjelasan: map['penjelasan'] as String?,
     );

@@ -15,7 +15,7 @@ class QuizRepository {
   QuizRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // identitas pengguna
+  // section identitas pengguna
   String get _userUid {
     final uid = PreferenceHandler.userUid;
     if (uid.isNotEmpty) return uid;
@@ -26,7 +26,7 @@ class QuizRepository {
     return 'guest';
   }
 
-  // koleksi soal salah
+  // section koleksi soal salah
   CollectionReference<Map<String, dynamic>> _koleksiSoalSalah() {
     return _firestore
         .collection('users')
@@ -34,7 +34,7 @@ class QuizRepository {
         .collection('soal_salah');
   }
 
-  // catat soal salah
+  // section catat soal salah
   Future<void> catatSoalSalah(int quizId) async {
     final uid = _userUid;
     if (uid == 'guest' || quizId <= 0) return;
@@ -51,7 +51,7 @@ class QuizRepository {
     } catch (_) {}
   }
 
-  // hapus soal salah
+  // section hapus soal salah
   Future<void> hapusSoalSalah(int quizId) async {
     final uid = _userUid;
     if (uid == 'guest' || quizId <= 0) return;
@@ -65,13 +65,13 @@ class QuizRepository {
     } catch (_) {}
   }
 
-  // jumlah soal salah
+  // section jumlah soal salah
   Future<int> getJumlahSoalSalah() async {
     final list = await _ambilSoalSalahIds();
     return list.length;
   }
 
-  // ambil ID soal salah
+  // section ambil id soal salah
   Future<Set<int>> _ambilSoalSalahIds() async {
     final uid = _userUid;
     if (uid == 'guest') return const {};
@@ -95,7 +95,7 @@ class QuizRepository {
     }
   }
 
-  // daftar soal salah
+  // section daftar soal salah
   Future<List<QuizSQLModel>> getSoalSalahList() async {
     final ids = await _ambilSoalSalahIds();
     if (ids.isEmpty) return const [];
@@ -104,13 +104,13 @@ class QuizRepository {
     return semua.where((q) => q.id != null && ids.contains(q.id)).toList();
   }
 
-  // tambah kuis
+  // section tambah kuis
   Future<bool> tambahQuiz(QuizSQLModel quiz) async {
     try {
       final ref = _firestore.collection('quiz').doc();
       final idBaru = quiz.id ?? ref.id.hashCode.abs();
       quiz.id = idBaru;
-      await ref.set(quiz.toMap()..['id'] = idBaru);
+      await ref.set(quiz.toFirestore()..['id'] = idBaru);
       _cachedQuizzes?.insert(0, quiz);
       return true;
     } catch (_) {
@@ -118,9 +118,9 @@ class QuizRepository {
     }
   }
 
-  // ambil semua kuis
-  Future<List<QuizSQLModel>> getAllQuizzes() async {
-    if (_cachedQuizzes != null && _cachedQuizzes!.isNotEmpty) {
+  // section ambil semua kuis
+  Future<List<QuizSQLModel>> getAllQuizzes({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedQuizzes != null && _cachedQuizzes!.isNotEmpty) {
       return _cachedQuizzes!;
     }
 
@@ -134,29 +134,14 @@ class QuizRepository {
           }
           return QuizSQLModel.fromMap(data);
         }).toList();
+        list.sort((a, b) => (a.id ?? 0).compareTo(b.id ?? 0));
         _cachedQuizzes = list;
         return list;
       }
     } catch (_) {}
 
-    // inisialisasi dari default seed jika firestore belum terisi
     _cachedQuizzes = List<QuizSQLModel>.from(defaultQuizList);
-    _seedQuizKeFirestore(defaultQuizList);
     return _cachedQuizzes!;
-  }
-
-  // seed kuis di latar belakang
-  Future<void> _seedQuizKeFirestore(List<QuizSQLModel> daftar) async {
-    try {
-      final batch = _firestore.batch();
-      for (var i = 0; i < daftar.length; i++) {
-        final item = daftar[i];
-        final id = item.id ?? (i + 1);
-        final docRef = _firestore.collection('quiz').doc(id.toString());
-        batch.set(docRef, item.toMap()..['id'] = id, SetOptions(merge: true));
-      }
-      await batch.commit();
-    } catch (_) {}
   }
 
   // ambil kuis berdasarkan tema

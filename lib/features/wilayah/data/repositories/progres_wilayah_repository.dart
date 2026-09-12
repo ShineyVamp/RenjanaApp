@@ -53,14 +53,15 @@ class ProgresProvinsi {
   final int jumlahArsip;
   final int arsipDibaca;
 
-  // Arsip provinsi ini yang belum pernah dibuka.
+  // section arsip
   final List<HasilJelajah> belumDibaca;
+  final List<HasilJelajah> sudahDibaca;
 
-  // Tema kuis provinsi ini sudah pernah dikerjakan tanpa salah.
+  // section status kuis
   final bool kuisSempurna;
   final String temaKuis;
 
-  // Arsip provinsi ini bertambah setelah terakhir kali tingkatnya dicatat.
+  // section pembaruan arsip
   final bool adaArsipBaru;
   final int selisihArsipBaru;
 
@@ -70,6 +71,7 @@ class ProgresProvinsi {
     required this.jumlahArsip,
     required this.arsipDibaca,
     this.belumDibaca = const [],
+    this.sudahDibaca = const [],
     this.kuisSempurna = false,
     this.temaKuis = '',
     this.adaArsipBaru = false,
@@ -215,6 +217,9 @@ class ProgresWilayahRepository {
     final belum = arsip
         .where((item) => !dibaca.contains(item.refRiwayat))
         .toList();
+    final sudah = arsip
+        .where((item) => dibaca.contains(item.refRiwayat))
+        .toList();
     final terbaca = arsip.length - belum.length;
 
     final tema = temaKuisProvinsi(namaProvinsi);
@@ -232,8 +237,6 @@ class ProgresWilayahRepository {
       tingkat = TingkatWilayah.tuntas;
     }
 
-    // Provinsi yang tingkatnya pernah tuntas lalu bertambah arsipnya ditandai
-    // agar penggunanya tahu ada yang perlu dibaca lagi.
     final rekam = catatan[namaProvinsi.toLowerCase()];
     final arsipTercatat = (rekam?['jumlahArsip'] as num?)?.toInt() ?? 0;
     final tingkatTercatat = rekam?['tingkat'] as String? ?? '';
@@ -250,6 +253,7 @@ class ProgresWilayahRepository {
       jumlahArsip: arsip.length,
       arsipDibaca: terbaca,
       belumDibaca: belum,
+      sudahDibaca: sudah,
       kuisSempurna: sempurna,
       temaKuis: tema,
       adaArsipBaru: adaBaru,

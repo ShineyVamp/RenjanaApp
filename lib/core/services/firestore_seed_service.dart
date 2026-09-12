@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/local/seed/budaya_seed.dart';
+import '../../data/local/seed/quiz_seed.dart';
 import '../../data/local/seed/sejarah_seed.dart';
+import '../../features/quiz/data/repositories/quiz_repository.dart';
+import '../../features/wilayah/data/repositories/wilayah_repository.dart';
+import '../../features/wilayah/data/static/data_wilayah_nusantara.dart';
 import '../constants/katalog_kategori.dart';
 import 'cloudinary_service.dart';
 
@@ -11,7 +15,7 @@ class FirestoreSeedService {
   FirestoreSeedService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // inisialisasi konten ensiklopedia
+  // section inisialisasi konten ensiklopedia
   Future<void> inisialisasiKontenEnsiklopedia() async {
     try {
       debugPrint('[Seed] Memulai sinkronisasi ensiklopedia di latar belakang...');
@@ -19,6 +23,8 @@ class FirestoreSeedService {
         _seedBudaya(),
         _seedSejarah(),
         _seedKategori(),
+        _seedQuiz(),
+        _seedWilayah(),
       ]);
       debugPrint('[Seed] Sinkronisasi ensiklopedia selesai.');
     } catch (e) {
@@ -156,7 +162,7 @@ class FirestoreSeedService {
     } catch (_) {}
   }
 
-  // seed kategori
+  // section seed kategori
   Future<void> _seedKategori() async {
     try {
       final snap = await _firestore.collection('kategori').limit(1).get();
@@ -172,6 +178,176 @@ class FirestoreSeedService {
         }
       }
       await batch.commit();
+    } catch (_) {}
+  }
+
+  // section seed quiz
+  Future<void> _seedQuiz() async {
+    try {
+      final existingDocs = await _firestore.collection('quiz').get();
+      final Map<String, Map<String, dynamic>> existingBySoal = {};
+      final Map<String, Map<String, dynamic>> existingById = {};
+      int maxId = 0;
+
+      for (final doc in existingDocs.docs) {
+        final data = doc.data();
+        final docId = doc.id;
+        final rawId = data['id'];
+        final intId = (rawId is num) ? rawId.toInt() : int.tryParse(docId) ?? 0;
+        if (intId > maxId) maxId = intId;
+
+        final soalText = (data['soal'] as String? ?? '').trim().toLowerCase();
+        if (soalText.isNotEmpty) {
+          existingBySoal[soalText] = data;
+        }
+        existingById[docId] = data;
+        if (intId > 0) {
+          existingById[intId.toString()] = data;
+        }
+      }
+
+      bool adaPerubahan = false;
+
+      for (var i = 0; i < defaultQuizList.length; i++) {
+        final item = defaultQuizList[i];
+        final soalKey = item.soal.trim().toLowerCase();
+        final existingByItemSoal = existingBySoal[soalKey];
+        final existingByItemId = item.id != null ? existingById[item.id.toString()] : null;
+        final existing = existingByItemSoal ?? existingByItemId;
+
+        int docIdInt = item.id ??
+            ((existing?['id'] is num)
+                ? (existing!['id'] as num).toInt()
+                : (item.id ?? ++maxId));
+
+        final data = item.toFirestore();
+        data['id'] = docIdInt;
+
+        final existingGambar = existing?['gambar'] as String?;
+        if (existingGambar != null && existingGambar.startsWith('http')) {
+          data['gambar'] = existingGambar;
+        } else if (item.gambar != null && item.gambar!.startsWith('assets/')) {
+          data['gambar'] = await CloudinaryService().uploadAsset(
+            item.gambar!,
+            subFolder: 'quiz',
+          );
+        }
+
+        final perluSimpan = existing == null ||
+            existingGambar != data['gambar'];
+
+        if (perluSimpan) {
+          await _firestore
+              .collection('quiz')
+              .doc(docIdInt.toString())
+              .set(data, SetOptions(merge: true));
+          adaPerubahan = true;
+        }
+      }
+
+      if (adaPerubahan) {
+        QuizRepository.bersihkanCache();
+      }
+    } catch (_) {}
+  }
+
+  // section seed wilayah
+  Future<void> _seedWilayah() async {
+    try {
+      final pulauDocs = await _firestore.collection('wilayah_pulau').get();
+      final existingPulauMap = {
+        for (final doc in pulauDocs.docs) doc.id: doc.data(),
+      };
+
+      final provDocs = await _firestore.collection('wilayah_provinsi').get();
+      final existingProvMap = {
+        for (final doc in provDocs.docs) doc.id: doc.data(),
+      };
+
+      bool adaPerubahan = false;
+      final Map<String, String> uploadedProvGambar = {};
+
+      for (final pulau in gugusPulauList) {
+        final existing = existingPulauMap[pulau.id];
+        final data = pulau.toMap();
+
+        final existingGambar = existing?['gambar'] as String?;
+        if (existingGambar != null && existingGambar.startsWith('http')) {
+          data['gambar'] = existingGambar;
+        } else if (pulau.gambar.isNotEmpty && pulau.gambar.startsWith('assets/')) {
+          data['gambar'] = await CloudinaryService().uploadAsset(
+            pulau.gambar,
+            subFolder: 'wilayah',
+          );
+          adaPerubahan = true;
+        }
+
+        final rawProvinsi = data['provinsi'] as List<dynamic>? ?? [];
+        for (var i = 0; i < pulau.provinsi.length; i++) {
+          final prov = pulau.provinsi[i];
+          if (i < rawProvinsi.length && rawProvinsi[i] is Map<String, dynamic>) {
+            final provMap = rawProvinsi[i] as Map<String, dynamic>;
+            final existingProvDoc = existingProvMap[prov.nama.trim()];
+            final existingProvImg = existingProvDoc?['gambar'] as String?;
+
+            if (existingProvImg != null && existingProvImg.startsWith('http')) {
+              provMap['gambar'] = existingProvImg;
+              uploadedProvGambar[prov.nama.trim()] = existingProvImg;
+            } else if (prov.gambar != null && prov.gambar!.startsWith('assets/')) {
+              final uploadedUrl = await CloudinaryService().uploadAsset(
+                prov.gambar!,
+                subFolder: 'wilayah',
+              );
+              provMap['gambar'] = uploadedUrl;
+              uploadedProvGambar[prov.nama.trim()] = uploadedUrl;
+              adaPerubahan = true;
+            } else if (existingProvImg != null) {
+              provMap['gambar'] = existingProvImg;
+            }
+          }
+        }
+
+        await _firestore
+            .collection('wilayah_pulau')
+            .doc(pulau.id)
+            .set(data, SetOptions(merge: true));
+      }
+
+      for (final pulau in gugusPulauList) {
+        for (final prov in pulau.provinsi) {
+          final docId = prov.nama.trim();
+          final provData = prov.toMap();
+          provData['pulauId'] = pulau.id;
+          provData['pulauNama'] = pulau.nama;
+
+          final existingProv = existingProvMap[docId];
+          final existingGambar = existingProv?['gambar'] as String?;
+
+          if (uploadedProvGambar.containsKey(docId)) {
+            provData['gambar'] = uploadedProvGambar[docId];
+          } else if (existingGambar != null && existingGambar.startsWith('http')) {
+            provData['gambar'] = existingGambar;
+          } else if (prov.gambar != null && prov.gambar!.startsWith('assets/')) {
+            final uploadedUrl = await CloudinaryService().uploadAsset(
+              prov.gambar!,
+              subFolder: 'wilayah',
+            );
+            provData['gambar'] = uploadedUrl;
+            adaPerubahan = true;
+          } else if (existingGambar != null) {
+            provData['gambar'] = existingGambar;
+          }
+
+          await _firestore
+              .collection('wilayah_provinsi')
+              .doc(docId)
+              .set(provData, SetOptions(merge: true));
+        }
+      }
+
+      if (adaPerubahan) {
+        WilayahRepository.bersihkanCache();
+      }
     } catch (_) {}
   }
 }

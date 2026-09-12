@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/wilayah_nusantara.dart';
 import '../../../core/extensions/navigation.dart';
-import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/detail_section_block.dart';
 import '../../../core/widgets/detail_top_bar.dart';
 import 'package:renjana/features/bookmark/data/models/bookmark_model.dart';
@@ -14,6 +13,7 @@ import 'package:renjana/core/utils/share_helper.dart';
 import 'package:renjana/features/wilayah/data/repositories/wilayah_repository.dart';
 import 'detail_provinsi_page.dart';
 import 'widgets/kartu_statistik.dart';
+import 'widgets/peta_painter.dart';
 
 class DetailPulauPage extends StatefulWidget {
   final GugusPulau pulau;
@@ -31,10 +31,12 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
   RingkasanPulau? _ringkasan;
   bool _tersimpan = false;
   bool _isLoading = true;
+  PetaGeometri? _geometri;
 
   @override
   void initState() {
     super.initState();
+    _muatGeometri();
     _muatData();
     _periksaBookmark();
   }
@@ -84,6 +86,12 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
     provinsi: null,
   );
 
+  Future<void> _muatGeometri() async {
+    final geometri = await PetaGeometri.muat();
+    if (!mounted) return;
+    setState(() => _geometri = geometri);
+  }
+
   Future<void> _muatData() async {
     final ringkasan = await _wilayahRepository.ringkasanPulau(widget.pulau);
     if (!mounted) return;
@@ -117,10 +125,7 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                 children: [
                   AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: AppImageView(
-                      imagePath: pulau.gambar,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _buildSiluetHeader(pulau),
                   ),
                   const Positioned.fill(
                     child: DecoratedBox(
@@ -137,11 +142,6 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                       ),
                     ),
                   ),
-
-                  // Top bar harus jadi anak terakhir Stack. Lapisan gradien
-                  // di atas menjawab true pada hit test, jadi apa pun yang
-                  // berada di bawahnya tidak bisa disentuh.
-                  // tombol kembali, beranda, simpan, dan bagikan
                   Positioned(
                     top: 0,
                     left: 0,
@@ -311,6 +311,47 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
           ),
         ),
       ),
+    );
+  }
+
+  // section siluet header pulau
+  Widget _buildSiluetHeader(GugusPulau pulau) {
+    final geometri = _geometri;
+    if (geometri == null) {
+      return Container(
+        color: const Color(0xFFEDE8DD),
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.primary,
+          ),
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        final proyeksi = ProyeksiPeta.paskanKotak(
+          size,
+          lonMin: pulau.lonMin,
+          latMax: pulau.latMax,
+          lonMax: pulau.lonMax,
+          latMin: pulau.latMin,
+          tepiX: 28.0,
+          tepiY: 28.0,
+        );
+        final pathIndonesia = proyeksi.bangunPath(geometri.indonesia);
+        final pathTetangga = proyeksi.bangunPath(geometri.tetangga);
+
+        return CustomPaint(
+          size: size,
+          painter: SiluetPulauPainter(
+            pathIndonesia: pathIndonesia,
+            pathTetangga: pathTetangga,
+          ),
+        );
+      },
     );
   }
 }

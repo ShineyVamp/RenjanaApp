@@ -20,6 +20,7 @@ import 'package:renjana/core/utils/share_helper.dart';
 import 'package:renjana/features/wilayah/data/repositories/progres_wilayah_repository.dart';
 import 'package:renjana/features/wilayah/data/repositories/wilayah_repository.dart';
 import 'arsip_provinsi_page.dart';
+import 'penuntasan_provinsi_page.dart';
 import 'widgets/kartu_statistik.dart';
 
 class DetailProvinsiPage extends StatefulWidget {
@@ -131,7 +132,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
   }
 
   // Kartu penuntasan: tingkat sekarang, arsip yang belum dibaca, dan status
-  // kuis provinsi. Muncul juga penanda bila ada arsip yang baru ditambahkan.
+  // section kontainer penuntasan
   Widget _buildPenuntasan() {
     final progres = _progres;
     if (progres == null || progres.jumlahArsip == 0) {
@@ -139,10 +140,13 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
     }
 
     final warna = progres.tingkat.warna;
+    final total = progres.jumlahArsip;
+    final dibaca = progres.arsipDibaca;
+    final rasio = total > 0 ? (dibaca / total) : 0.0;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 6),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
       decoration: AppDekorasi.panelCapaian(
         warna,
         menonjol: progres.tingkat != TingkatWilayah.belum,
@@ -170,7 +174,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                 ),
               ),
               Text(
-                '${progres.arsipDibaca}/${progres.jumlahArsip}',
+                '$dibaca/$total',
                 style: GoogleFonts.dmSerifDisplay(
                   fontSize: 22,
                   color: warna == AppColors.border ? AppColors.primary : warna,
@@ -178,6 +182,19 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                 ),
               ),
             ],
+          ),
+
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: rasio.clamp(0.0, 1.0),
+              minHeight: 6,
+              backgroundColor: AppColors.surfaceMuted.withValues(alpha: 0.3),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                warna == AppColors.border ? AppColors.primary : warna,
+              ),
+            ),
           ),
 
           if (progres.adaArsipBaru) ...[
@@ -211,23 +228,53 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
             ),
           ],
 
-          const SizedBox(height: 6),
-          ...progres.belumDibaca.map(
-            (item) => _buildBarisTugas(
-              'Baca ${item.judul}',
-              selesai: false,
-              onTap: () async {
-                await bukaHasilJelajah(context, item);
-                if (!mounted) return;
-                await _muatData();
-              },
+          const SizedBox(height: 12),
+          // tombol lihat rincian arsip
+          GestureDetector(
+            onTap: () async {
+              await context.push(
+                PenuntasanProvinsiPage(provinsi: widget.provinsi),
+              );
+              if (!mounted) return;
+              await _muatData();
+            },
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.folder_outlined,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Lihat Rincian Arsip ($dibaca Dikunjungi, ${progres.belumDibaca.length} Belum)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ),
             ),
           ),
-          if (progres.belumDibaca.isEmpty)
-            _buildBarisTugas(
-              'Seluruh arsip provinsi ini sudah dibaca',
-              selesai: true,
-            ),
+
+          const SizedBox(height: 8),
           _buildBarisTugas(
             progres.kuisSempurna
                 ? 'Kuis "${progres.temaKuis}" sudah sempurna'
@@ -341,10 +388,12 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                 children: [
                   AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: AppImageView(
-                      imagePath: gambarProvinsi(provinsi),
-                      fit: BoxFit.cover,
-                    ),
+                    child: gambarProvinsi(provinsi).isNotEmpty
+                        ? AppImageView(
+                            imagePath: gambarProvinsi(provinsi),
+                            fit: BoxFit.cover,
+                          )
+                        : _buildFallbackHeader(provinsi.nama, pulau?.nama),
                   ),
                   const Positioned.fill(
                     child: DecoratedBox(
@@ -548,6 +597,56 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // section header cadangan
+  Widget _buildFallbackHeader(String nama, String? pulauNama) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryDark,
+            AppColors.primary,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.account_balance_outlined,
+              size: 48,
+              color: AppColors.gold,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              nama.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+                color: Colors.white,
+              ),
+            ),
+            if (pulauNama != null && pulauNama.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                'PULAU ${pulauNama.toUpperCase()}',
+                style: AppTypography.eyebrow(
+                  fontSize: 10,
+                  color: AppColors.perak,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

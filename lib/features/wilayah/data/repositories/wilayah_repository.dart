@@ -1,25 +1,72 @@
 import 'dart:math';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/wilayah_nusantara.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/jelajah/data/repositories/jelajah_repository.dart';
 
-// Ringkasan arsip satu pulau: totalnya dan rinciannya per provinsi.
+// section ringkasan pulau
 class RingkasanPulau {
   final int total;
-  final Map<String, int> perProvinsi; // kunci = nama provinsi apa adanya
+  final Map<String, int> perProvinsi;
 
   const RingkasanPulau({required this.total, required this.perProvinsi});
 
   int jumlah(String namaProvinsi) => perProvinsi[namaProvinsi] ?? 0;
 }
 
-// Menghubungkan arsip dengan daerah asalnya.
+// section repositori wilayah
 class WilayahRepository {
+  final FirebaseFirestore _firestore;
   final JelajahRepository _jelajahRepository;
 
-  WilayahRepository({JelajahRepository? jelajahRepository})
-    : _jelajahRepository = jelajahRepository ?? JelajahRepository();
+  static List<GugusPulau>? _cachedPulau;
+  static Map<String, Provinsi>? _cachedProvinsi;
+
+  WilayahRepository({
+    FirebaseFirestore? firestore,
+    JelajahRepository? jelajahRepository,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _jelajahRepository = jelajahRepository ?? JelajahRepository();
+
+  // section cache
+  static void bersihkanCache() {
+    _cachedPulau = null;
+    _cachedProvinsi = null;
+  }
+
+  // section muat data wilayah firestore
+  Future<List<GugusPulau>> getAllPulau({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedPulau != null && _cachedPulau!.isNotEmpty) {
+      return _cachedPulau!;
+    }
+
+    try {
+      final snap = await _firestore.collection('wilayah_pulau').get();
+      if (snap.docs.isNotEmpty) {
+        final list = snap.docs.map((doc) => GugusPulau.fromMap(doc.data())).toList();
+        _cachedPulau = list;
+        return list;
+      }
+    } catch (_) {}
+
+    _cachedPulau = List<GugusPulau>.from(gugusPulauList);
+    return _cachedPulau!;
+  }
+
+  Future<List<Provinsi>> getAllProvinsi({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedProvinsi != null && _cachedProvinsi!.isNotEmpty) {
+      return _cachedProvinsi!.values.toList();
+    }
+    final pulauList = await getAllPulau(forceRefresh: forceRefresh);
+    final map = <String, Provinsi>{};
+    for (final p in pulauList) {
+      for (final prov in p.provinsi) {
+        map[prov.nama.toLowerCase()] = prov;
+      }
+    }
+    _cachedProvinsi = map;
+    return map.values.toList();
+  }
 
   // Seluruh arsip dikelompokkan per provinsi, dibaca sekali lalu dibagi di
   // memori.

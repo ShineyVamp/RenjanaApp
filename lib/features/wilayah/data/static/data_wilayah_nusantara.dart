@@ -12,7 +12,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: 6.5,
     lonMax: 107,
     latMin: -6.5,
-    gambar: 'assets/images/onboardin2.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_sumatera.jpg',
     deskripsi:
         'Pulau terbesar keenam di dunia yang menjadi tempat lahir Kerajaan '
         'Sriwijaya dan Kesultanan Aceh. Rumpun Melayu, Minangkabau, Batak, '
@@ -29,6 +29,7 @@ const List<GugusPulau> gugusPulauList = [
             'Gerbang masuk Islam ke Nusantara dan pusat Kesultanan Aceh '
             'Darussalam. Dikenal lewat Tari Saman, Masjid Raya Baiturrahman, '
             'dan kopi Gayo dari dataran tinggi.',
+        // gambar: 'assets/images/wilayah/provinsi_aceh.jpg',
       ),
       Provinsi(
         'Sumatera Utara',
@@ -40,6 +41,7 @@ const List<GugusPulau> gugusPulauList = [
             'Rumah bagi Danau Toba, danau vulkanik terbesar di dunia, serta '
             'masyarakat Batak dengan sistem marga, kain ulos, dan rumah bolon '
             'beratap melengkung.',
+        // gambar: 'assets/images/wilayah/provinsi_sumatera_utara.jpg',
       ),
       Provinsi(
         'Sumatera Barat',
@@ -51,6 +53,7 @@ const List<GugusPulau> gugusPulauList = [
             'Tanah Minangkabau yang menganut garis keturunan ibu, satu-satunya '
             'masyarakat matrilineal terbesar di dunia. Terkenal dengan rumah '
             'gadang bergonjong, randai, dan rendang.',
+        // gambar: 'assets/images/wilayah/provinsi_sumatera_barat.jpg',
       ),
       Provinsi(
         'Riau',
@@ -61,6 +64,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Pusat kebudayaan Melayu daratan yang tumbuh di sepanjang Sungai '
             'Siak. Kaya tradisi lisan berupa pantun, syair, dan tari zapin.',
+        // gambar: 'assets/images/wilayah/provinsi_riau.jpg',
       ),
       Provinsi(
         'Kepulauan Riau',
@@ -72,6 +76,7 @@ const List<GugusPulau> gugusPulauList = [
             'Gugusan pulau tempat Pulau Penyengat berdiri, tempat Raja Ali '
             'Haji menulis Gurindam Dua Belas dan meletakkan dasar bahasa '
             'Melayu yang kelak menjadi bahasa Indonesia.',
+        // gambar: 'assets/images/wilayah/provinsi_kepulauan_riau.jpg',
       ),
       Provinsi(
         'Jambi',
@@ -82,6 +87,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Menyimpan Candi Muaro Jambi, kompleks percandian terluas di Asia '
             'Tenggara, bekas pusat pendidikan Buddha era Sriwijaya.',
+        // gambar: 'assets/images/wilayah/provinsi_jambi.jpg',
       ),
       Provinsi(
         'Bengkulu',
@@ -93,6 +99,7 @@ const List<GugusPulau> gugusPulauList = [
             'Tempat tumbuh bunga Rafflesia arnoldii dan berdirinya Benteng '
             'Marlborough. Setiap tahun menggelar Festival Tabut memperingati '
             'gugurnya Husain bin Ali.',
+        // gambar: 'assets/images/wilayah/provinsi_bengkulu.jpg',
       ),
       Provinsi(
         'Sumatera Selatan',
@@ -104,6 +111,7 @@ const List<GugusPulau> gugusPulauList = [
             'Bekas ibu kota Kerajaan Sriwijaya yang menguasai jalur niaga '
             'maritim Asia. Warisannya hidup lewat kain songket, rumah limas, '
             'dan pempek.',
+        // gambar: 'assets/images/wilayah/provinsi_sumatera_selatan.jpg',
       ),
       Provinsi(
         'Kepulauan Bangka Belitung',
@@ -114,6 +122,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Kepulauan penghasil timah dengan pantai berhias batu granit '
             'raksasa. Budayanya berpadu antara Melayu dan peranakan Tionghoa.',
+        // gambar: 'assets/images/wilayah/provinsi_kepulauan_bangka_belitung.jpg',
       ),
       Provinsi(
         'Lampung',
@@ -124,6 +133,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Gerbang Sumatera dari Jawa, dikenal lewat kain tapis bersulam '
             'benang emas dan mahkota siger yang menjadi lambang daerah.',
+        // gambar: 'assets/images/wilayah/provinsi_lampung.jpg',
       ),
     ],
   ),
@@ -136,7 +146,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: -5.5,
     lonMax: 115.5,
     latMin: -9,
-    gambar: 'assets/images/borobudurB.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_jawa.jpg',
     deskripsi:
         'Pulau terpadat di dunia dan panggung utama sejarah Nusantara, dari '
         'Mataram Kuno, Majapahit, hingga Proklamasi 1945. Batik, gamelan, dan '
@@ -152,6 +162,7 @@ const List<GugusPulau> gugusPulauList = [
             'Bekas Kesultanan Banten yang masyhur lewat atraksi debus. Di '
             'pedalamannya, masyarakat Baduy masih memelihara adat tanpa '
             'listrik dan kendaraan bermotor.',
+        // gambar: 'assets/images/wilayah/provinsi_banten.jpg',
       ),
       Provinsi(
         'DKI Jakarta',
@@ -162,6 +173,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Ibu kota tempat Proklamasi dibacakan. Budaya Betawi hidup lewat '
             'ondel-ondel, gambang kromong, dan lenong di tengah kota modern.',
+        // gambar: 'assets/images/wilayah/provinsi_dki_jakarta.jpg',
       ),
       Provinsi(
         'Jawa Barat',
@@ -173,6 +185,7 @@ const List<GugusPulau> gugusPulauList = [
             'Jantung kebudayaan Sunda dengan angklung, wayang golek, dan tari '
             'jaipong. Lanskapnya dipenuhi gunung api yang melahirkan banyak '
             'cerita rakyat.',
+        // gambar: 'assets/images/wilayah/provinsi_jawa_barat.jpg',
       ),
       Provinsi(
         'Jawa Tengah',
@@ -184,6 +197,7 @@ const List<GugusPulau> gugusPulauList = [
             'Tempat berdirinya Candi Borobudur dan Prambanan serta Keraton '
             'Surakarta. Pusat kerajinan batik tulis Solo, Pekalongan, dan '
             'Lasem.',
+        // gambar: 'assets/images/wilayah/provinsi_jawa_tengah.jpg',
       ),
       Provinsi(
         'DI Yogyakarta',
@@ -195,6 +209,7 @@ const List<GugusPulau> gugusPulauList = [
             'Satu-satunya daerah yang masih dipimpin sultan. Keraton '
             'Ngayogyakarta menjaga hidup gamelan, tari bedhaya, wayang kulit, '
             'dan tempa keris.',
+        // gambar: 'assets/images/wilayah/provinsi_di_yogyakarta.jpg',
       ),
       Provinsi(
         'Jawa Timur',
@@ -206,6 +221,7 @@ const List<GugusPulau> gugusPulauList = [
             'Bekas pusat Majapahit dan medan Pertempuran 10 November. Kaya '
             'kesenian rakyat seperti reog Ponorogo, ludruk, dan karapan sapi '
             'Madura.',
+        // gambar: 'assets/images/wilayah/provinsi_jawa_timur.jpg',
       ),
     ],
   ),
@@ -218,7 +234,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: 4.5,
     lonMax: 119.5,
     latMin: -4.5,
-    gambar: 'assets/images/onboardin1.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_kalimantan.jpg',
     deskripsi:
         'Bagian Indonesia dari Pulau Borneo, dijalin ribuan kilometer sungai '
         'yang menjadi jalan utama kehidupan. Tanah rumpun Dayak dan Banjar '
@@ -233,6 +249,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Dilintasi garis khatulistiwa tepat di Kota Pontianak. Rumah bagi '
             'Dayak Iban dan Kanayatn dengan tenun ikat serta rumah panjang.',
+        // gambar: 'assets/images/wilayah/provinsi_kalimantan_barat.jpg',
       ),
       Provinsi(
         'Kalimantan Tengah',
@@ -243,6 +260,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Pusat kepercayaan Kaharingan dengan upacara Tiwah, ritual '
             'pengantaran arwah leluhur yang berlangsung berhari-hari.',
+        // gambar: 'assets/images/wilayah/provinsi_kalimantan_tengah.jpg',
       ),
       Provinsi(
         'Kalimantan Selatan',
@@ -253,6 +271,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Tanah Banjar dengan pasar terapung di atas Sungai Barito dan kain '
             'sasirangan yang dahulu dipakai sebagai kain penyembuh.',
+        // gambar: 'assets/images/wilayah/provinsi_kalimantan_selatan.jpg',
       ),
       Provinsi(
         'Kalimantan Timur',
@@ -263,6 +282,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Tempat berdirinya Kutai Martadipura, kerajaan Hindu tertua di '
             'Indonesia, yang meninggalkan prasasti Yupa abad ke-4.',
+        // gambar: 'assets/images/wilayah/provinsi_kalimantan_timur.jpg',
       ),
       Provinsi(
         'Kalimantan Utara',
@@ -273,6 +293,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Provinsi termuda di Indonesia, dihuni suku Tidung dan Dayak '
             'Kenyah yang terkenal dengan tari Kancet dan manik-manik.',
+        // gambar: 'assets/images/wilayah/provinsi_kalimantan_utara.jpg',
       ),
     ],
   ),
@@ -285,7 +306,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: 2.5,
     lonMax: 125.5,
     latMin: -6.5,
-    gambar: 'assets/images/onboardin1.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_sulawesi.jpg',
     deskripsi:
         'Pulau berlengan empat yang mempertemukan pelaut Bugis-Makassar, '
         'masyarakat Toraja di pegunungan, dan Minahasa di utara. Dari sini '
@@ -300,6 +321,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Tanah Minahasa dengan tari perang Kabasaran dan Taman Nasional '
             'Bunaken yang menjadi salah satu titik selam terbaik dunia.',
+        // gambar: 'assets/images/wilayah/provinsi_sulawesi_utara.jpg',
       ),
       Provinsi(
         'Gorontalo',
@@ -311,6 +333,7 @@ const List<GugusPulau> gugusPulauList = [
             'Daerah dengan adat yang berpaut erat pada syariat Islam. Dikenal '
             'lewat sulaman karawo yang dikerjakan dengan mencabut serat kain '
             'satu per satu.',
+        // gambar: 'assets/images/wilayah/provinsi_gorontalo.jpg',
       ),
       Provinsi(
         'Sulawesi Tengah',
@@ -321,6 +344,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Menyimpan patung megalit berusia ribuan tahun di Lembah Bada dan '
             'kain kulit kayu (fuya) yang ditempa dari kulit pohon beringin.',
+        // gambar: 'assets/images/wilayah/provinsi_sulawesi_tengah.jpg',
       ),
       Provinsi(
         'Sulawesi Barat',
@@ -331,6 +355,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Tanah suku Mandar, pembuat perahu sandeq bercadik yang dikenal '
             'sebagai perahu layar tercepat di Nusantara.',
+        // gambar: 'assets/images/wilayah/provinsi_sulawesi_barat.jpg',
       ),
       Provinsi(
         'Sulawesi Selatan',
@@ -342,6 +367,7 @@ const List<GugusPulau> gugusPulauList = [
             'Pertemuan tiga rumpun besar: Bugis, Makassar, dan Toraja. Dari '
             'sini lahir kapal pinisi, rumah tongkonan, dan falsafah harga '
             'diri siri’ na pacce.',
+        // gambar: 'assets/images/wilayah/provinsi_sulawesi_selatan.jpg',
       ),
       Provinsi(
         'Sulawesi Tenggara',
@@ -352,6 +378,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Rumah Kesultanan Buton dengan Benteng Keraton Buton, benteng '
             'batu terluas di dunia, serta tenun Buton bermotif geometris.',
+        // gambar: 'assets/images/wilayah/provinsi_sulawesi_tenggara.jpg',
       ),
     ],
   ),
@@ -364,7 +391,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: -7.8,
     lonMax: 125.5,
     latMin: -11,
-    gambar: 'assets/images/onboardin3.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_balinusra.jpg',
     deskripsi:
         'Rangkaian pulau dari Bali hingga Timor yang menyimpan keragaman '
         'paling padat di Nusantara: Hindu Bali dengan subak dan odalan, Sasak '
@@ -380,6 +407,7 @@ const List<GugusPulau> gugusPulauList = [
             'Pulau dengan ribuan pura dan sistem pengairan subak warisan '
             'UNESCO. Kehidupan warganya diatur kalender upacara, dari odalan '
             'hingga Nyepi.',
+        // gambar: 'assets/images/wilayah/provinsi_bali.jpg',
       ),
       Provinsi(
         'Nusa Tenggara Barat',
@@ -390,6 +418,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Menyatukan Lombok dengan budaya Sasak dan Sumbawa dengan tradisi '
             'Samawa. Dikenal lewat tenun songket Sukarara dan gendang beleq.',
+        // gambar: 'assets/images/wilayah/provinsi_nusa_tenggara_barat.jpg',
       ),
       Provinsi(
         'Nusa Tenggara Timur',
@@ -400,6 +429,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Rumah komodo di Pulau Rinca dan Flores, tenun ikat Sumba, serta '
             'Pasola, tradisi lempar lembing berkuda sebagai upacara panen.',
+        // gambar: 'assets/images/wilayah/provinsi_nusa_tenggara_timur.jpg',
       ),
     ],
   ),
@@ -412,7 +442,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: 3,
     lonMax: 135,
     latMin: -8.5,
-    gambar: 'assets/images/onboardin2.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_maluku.jpg',
     deskripsi:
         'Kepulauan Rempah yang menarik pedagang Arab, Tiongkok, dan Eropa '
         'berabad-abad lamanya demi pala dan cengkeh. Tradisi baharinya hidup '
@@ -427,6 +457,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Tanah empat kesultanan: Ternate, Tidore, Bacan, dan Jailolo. '
             'Cengkeh dari sini pernah menjadi komoditas termahal di dunia.',
+        // gambar: 'assets/images/wilayah/provinsi_maluku_utara.jpg',
       ),
       Provinsi(
         'Maluku',
@@ -438,6 +469,7 @@ const List<GugusPulau> gugusPulauList = [
             'Pusat perdagangan pala Kepulauan Banda dan tempat lahir tradisi '
             'pela gandong, ikatan persaudaraan antarnegeri yang melintasi '
             'batas agama.',
+        // gambar: 'assets/images/wilayah/provinsi_maluku.jpg',
       ),
     ],
   ),
@@ -450,7 +482,7 @@ const List<GugusPulau> gugusPulauList = [
     latMax: 0.5,
     lonMax: 141.5,
     latMin: -9.5,
-    gambar: 'assets/images/onboardin3.jpg',
+    // // gambar: 'assets/images/wilayah/pulau_papua.jpg',
     deskripsi:
         'Wilayah paling timur Indonesia dengan lebih dari 250 bahasa daerah, '
         'jumlah terbanyak di negeri ini. Menyimpan ukiran Asmat, honai suku '
@@ -465,6 +497,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Gerbang menuju Raja Ampat, kawasan dengan keanekaragaman hayati '
             'laut tertinggi di dunia, serta rumah suku Moi.',
+        // gambar: 'assets/images/wilayah/provinsi_papua_barat_daya.jpg',
       ),
       Provinsi(
         'Papua Barat',
@@ -475,6 +508,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Titik masuk penyebaran Injil di Tanah Papua pada 1855. Dihuni '
             'suku Arfak dengan tari Tumbu Tanah dan rumah kaki seribu.',
+        // gambar: 'assets/images/wilayah/provinsi_papua_barat.jpg',
       ),
       Provinsi(
         'Papua Tengah',
@@ -485,6 +519,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Kawasan Danau Paniai dan pegunungan tengah, wilayah suku Mee dan '
             'Moni yang mengenal noken sebagai tas anyaman serbaguna.',
+        // gambar: 'assets/images/wilayah/provinsi_papua_tengah.jpg',
       ),
       Provinsi(
         'Papua Pegunungan',
@@ -495,6 +530,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Lembah Baliem, tanah suku Dani yang tinggal di rumah honai dan '
             'menggelar Festival Lembah Baliem setiap tahun.',
+        // gambar: 'assets/images/wilayah/provinsi_papua_pegunungan.jpg',
       ),
       Provinsi(
         'Papua',
@@ -505,6 +541,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Kawasan Danau Sentani dengan tradisi lukisan kulit kayu khombow '
             'dan tifa sebagai pengiring tari perang.',
+        // gambar: 'assets/images/wilayah/provinsi_papua.jpg',
       ),
       Provinsi(
         'Papua Selatan',
@@ -515,6 +552,7 @@ const List<GugusPulau> gugusPulauList = [
         deskripsi:
             'Tanah suku Asmat yang ukiran kayunya dikoleksi museum dunia, '
             'dipahat tanpa sketsa sebagai penghormatan kepada leluhur.',
+        // gambar: 'assets/images/wilayah/provinsi_papua_selatan.jpg',
       ),
     ],
   ),

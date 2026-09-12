@@ -15,7 +15,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Rengasdengklok',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/perumusan.jpg',
+    gambar: null,
     penjelasan:
         'Naskah proklamasi dirumuskan di kediaman Laksamana Tadashi Maeda di Jalan Imam Bonjol No. 1, Jakarta, pada 16-17 Agustus 1945 dini hari.',
   ),
@@ -42,7 +42,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Serangan Umum 1 Maret',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/rengasdengklok.jpg',
+    gambar: null,
     penjelasan:
         'Peristiwa Rengasdengklok terjadi pada 16 Agustus 1945 dini hari ketika para pemuda membawa Bung Karno dan Bung Hatta ke Karawang.',
   ),
@@ -58,7 +58,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Gedung Pancasila',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/170845history.png',
+    gambar: null,
     penjelasan:
         'Teks proklamasi dibacakan oleh Ir. Soekarno didampingi Drs. Mohammad Hatta di halaman rumah Bung Karno di Jl. Pegangsaan Timur No. 56.',
   ),
@@ -108,7 +108,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Keibodan dan Seinendan',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/1308history.png',
+    gambar: null,
     penjelasan:
         'BPUPKI (Badan Penyelidik Usaha-usaha Persiapan Kemerdekaan Indonesia) dibentuk untuk merumuskan dasar negara dan UUD.',
   ),
@@ -127,7 +127,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Candi Sewu',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/borobudurB.jpg',
+    gambar: null,
     penjelasan:
         'Candi Borobudur dibangun pada abad ke-8 oleh Dinasti Syailendra dan diakui sebagai Situs Warisan Dunia oleh UNESCO.',
   ),
@@ -139,7 +139,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Senjata tradisional khas Jawa yang memiliki lekukan (luk) khas dan diakui UNESCO sebagai warisan budaya adalah...',
     daftarJawaban: ['Keris', 'Rencong', 'Mandau', 'Kujang'],
     jawabanBenar: 0,
-    gambar: 'assets/images/kerisB.jpg',
+    gambar: null,
     penjelasan:
         'Keris merupakan mahakarya senjata tikam tradisional Nusantara yang mengandung nilai spiritual, metalurgi tinggi, dan estetika mendalam.',
   ),
@@ -151,7 +151,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Rumah adat khas masyarakat suku Toraja yang beratap melengkung seperti haluan perahu dinamakan...',
     daftarJawaban: ['Tongkonan', 'Rumah Gadang', 'Joglo', 'Honai'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         'Tongkonan adalah rumah adat suku Toraja yang berfungsi sebagai pusat kehidupan sosial dan ritual keluarga adat Toraja.',
   ),
@@ -201,7 +201,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Perahu Lancang',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         'Kapal Pinisi merupakan perahu layar tradisional legendaris suku Bugis dan Makassar dari Bulukumba yang mampu mengarungi samudra dunia.',
   ),
@@ -248,7 +248,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Danau Sentani',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         'Danau Toba adalah kaldera raksasa hasil letusan gunung berapi purba ribuan tahun lalu dan memiliki Pulau Samosir di bagian tengahnya.',
   ),
@@ -287,7 +287,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'adalah...',
     daftarJawaban: ['TARI SAMAN ACEH', 'CANDI PRAMBANAN', 'CONGKLAK', 'DEBUS'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TARI SAMAN ACEH berasal dari Aceh dan tercatat dalam '
         'arsip Renjana pada kategori tarian tradisional.',
@@ -345,7 +345,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'LEMPAH KUNING',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] RUMAH BOLON berasal dari Sumatera Utara dan tercatat '
         'dalam arsip Renjana pada kategori rumah adat.',
@@ -405,7 +405,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Ikrar Sumpah Pemuda',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] RENDANG berasal dari Sumatera Barat dan tercatat dalam '
         'arsip Renjana pada kategori kuliner tradisional.',
@@ -460,7 +460,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'adalah...',
     daftarJawaban: ['TARI ZAPIN', 'NGABEN', 'Garda Kedaulatan', 'RENDANG'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TARI ZAPIN berasal dari Riau dan tercatat dalam arsip '
         'Renjana pada kategori tarian tradisional.',
@@ -519,7 +519,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'MASJID RAYA BAITURRAHMAN',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] GAMBUS MELAYU berasal dari Kepulauan Riau dan tercatat '
         'dalam arsip Renjana pada kategori alat musik dan lagu daerah.',
@@ -579,7 +579,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'PEMPEK',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/1308history.png',
+    gambar: null,
     penjelasan:
         '[Karangan] AKSARA INCUNG berasal dari Jambi dan tercatat dalam '
         'arsip Renjana pada kategori bahasa dan sastra daerah.',
@@ -634,7 +634,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Bengkulu adalah...',
     daftarJawaban: ['TABOT', 'RENDANG', 'LEMPAH KUNING', 'NGABEN'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TABOT berasal dari Bengkulu dan tercatat dalam arsip '
         'Renjana pada kategori upacara dan tradisi adat.',
@@ -693,7 +693,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'BENTENG KERATON BUTON',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] PEMPEK berasal dari Sumatera Selatan dan tercatat dalam '
         'arsip Renjana pada kategori kuliner tradisional.',
@@ -748,7 +748,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Kepulauan Bangka Belitung adalah...',
     daftarJawaban: ['LEMPAH KUNING', 'TARI ZAPIN', 'BILI\\', 'UKIRAN ASMAT'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] LEMPAH KUNING berasal dari Kepulauan Bangka Belitung '
         'dan tercatat dalam arsip Renjana pada kategori kuliner '
@@ -804,7 +804,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'adalah...',
     daftarJawaban: ['KAIN TAPIS', 'NGABEN', 'Garda Kedaulatan', 'RENDANG'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] KAIN TAPIS berasal dari Lampung dan tercatat dalam '
         'arsip Renjana pada kategori pakaian adat.',
@@ -864,7 +864,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Detik Proklamasi',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] DEBUS berasal dari Banten dan tercatat dalam arsip '
         'Renjana pada kategori seni pertunjukan dan teater.',
@@ -917,7 +917,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Jakarta adalah...',
     daftarJawaban: ['Detik Proklamasi', 'UKIRAN ASMAT', 'RENDANG', 'TABOT'],
     jawabanBenar: 0,
-    gambar: 'assets/images/170845history.png',
+    gambar: null,
     penjelasan:
         '[Karangan] Detik Proklamasi berasal dari DKI Jakarta dan tercatat '
         'dalam arsip Renjana pada kategori sejarah.',
@@ -977,7 +977,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'CANDI PRAMBANAN',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] CONGKLAK berasal dari Jawa Barat dan tercatat dalam '
         'arsip Renjana pada kategori permainan dan olahraga tradisional.',
@@ -1036,7 +1036,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'MALIN KUNDANG',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/borobudurB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] BOROBUDUR berasal dari Jawa Tengah dan tercatat dalam '
         'arsip Renjana pada kategori seni rupa dan kriya.',
@@ -1096,7 +1096,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'LEGENDA DANAU PANIAI',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/kerisB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] Q-RIS berasal dari DI Yogyakarta dan tercatat dalam '
         'arsip Renjana pada kategori senjata tradisional.',
@@ -1156,7 +1156,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Malam Perumusan Naskah',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] KARAPAN SAPI berasal dari Jawa Timur dan tercatat dalam '
         'arsip Renjana pada kategori permainan dan olahraga tradisional.',
@@ -1215,7 +1215,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'LEMPAH KUNING',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] RUMAH RADAKNG berasal dari Kalimantan Barat dan '
         'tercatat dalam arsip Renjana pada kategori rumah adat.',
@@ -1275,7 +1275,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Kalimantan Tengah adalah...',
     daftarJawaban: ['TIWAH', 'PERESEAN', 'Ikrar Sumpah Pemuda', 'RANDAI'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TIWAH berasal dari Kalimantan Tengah dan tercatat dalam '
         'arsip Renjana pada kategori upacara dan tradisi adat.',
@@ -1340,7 +1340,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'PAPEDA',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/borobudurB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] MASJID SULTAN SURIANSYAH berasal dari Kalimantan '
         'Selatan dan tercatat dalam arsip Renjana pada kategori situs dan '
@@ -1401,7 +1401,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Kalimantan Timur adalah...',
     daftarJawaban: ['MANDAU', 'HONAI', 'WAYANG KULIT PURWA', 'KARAPAN SAPI'],
     jawabanBenar: 0,
-    gambar: 'assets/images/kerisB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] MANDAU berasal dari Kalimantan Timur dan tercatat dalam '
         'arsip Renjana pada kategori senjata tradisional.',
@@ -1461,7 +1461,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Kalimantan Utara adalah...',
     daftarJawaban: ['TARI JUGIT', 'NGABEN', 'Garda Kedaulatan', 'RENDANG'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TARI JUGIT berasal dari Kalimantan Utara dan tercatat '
         'dalam arsip Renjana pada kategori tarian tradisional.',
@@ -1526,7 +1526,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'GAMBUS MELAYU',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TARI KABASARAN berasal dari Sulawesi Utara dan tercatat '
         'dalam arsip Renjana pada kategori tarian tradisional.',
@@ -1581,7 +1581,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Gorontalo adalah...',
     daftarJawaban: ['BILI\\', 'TARI ZAPIN', 'TARI KABASARAN', 'UKIRAN ASMAT'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] BILI\\ berasal dari Gorontalo dan tercatat dalam arsip '
         'Renjana pada kategori pakaian adat.',
@@ -1641,7 +1641,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'KERATON KESULTANAN TERNATE',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] KAIN KULIT KAYU IVO berasal dari Sulawesi Tengah dan '
         'tercatat dalam arsip Renjana pada kategori seni rupa dan kriya.',
@@ -1696,7 +1696,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Sulawesi Barat adalah...',
     daftarJawaban: ['RUMAH BOYANG', 'TIFA', 'BADIK SULAWESI', 'RUMAH BOLON'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] RUMAH BOYANG berasal dari Sulawesi Barat dan tercatat '
         'dalam arsip Renjana pada kategori rumah adat.',
@@ -1751,7 +1751,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Sulawesi Tenggara adalah...',
     daftarJawaban: ['BENTENG KERATON BUTON', 'KARAPAN SAPI', 'MANDAU', 'HONAI'],
     jawabanBenar: 0,
-    gambar: 'assets/images/borobudurB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] BENTENG KERATON BUTON berasal dari Sulawesi Tenggara '
         'dan tercatat dalam arsip Renjana pada kategori situs dan bangunan '
@@ -1812,7 +1812,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'TARI KABASARAN',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] NGABEN berasal dari Bali dan tercatat dalam arsip '
         'Renjana pada kategori upacara dan tradisi adat.',
@@ -1865,7 +1865,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'Tenggara Barat adalah...',
     daftarJawaban: ['PERESEAN', 'SANGKURIANG', 'TIWAH', 'TARI YOSPAN'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] PERESEAN berasal dari Nusa Tenggara Barat dan tercatat '
         'dalam arsip Renjana pada kategori permainan dan olahraga '
@@ -1926,7 +1926,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'Ikrar Sumpah Pemuda',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] SASANDO berasal dari Nusa Tenggara Timur dan tercatat '
         'dalam arsip Renjana pada kategori alat musik dan lagu daerah.',
@@ -1986,7 +1986,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'UKIRAN ASMAT',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/borobudurB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] KERATON KESULTANAN TERNATE berasal dari Maluku Utara '
         'dan tercatat dalam arsip Renjana pada kategori situs dan bangunan '
@@ -2042,7 +2042,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'adalah...',
     daftarJawaban: ['PAPEDA', 'SASANDO', 'Q-RIS', 'MALIN KUNDANG'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] PAPEDA berasal dari Maluku dan tercatat dalam arsip '
         'Renjana pada kategori kuliner tradisional.',
@@ -2101,7 +2101,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'TARI SAMAN ACEH',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/borobudurB.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] LUKISAN CADAS MISOOL berasal dari Papua Barat Daya dan '
         'tercatat dalam arsip Renjana pada kategori situs dan bangunan '
@@ -2162,7 +2162,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'SANGKURIANG',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin3.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TARI YOSPAN berasal dari Papua Barat dan tercatat dalam '
         'arsip Renjana pada kategori tarian tradisional.',
@@ -2221,7 +2221,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'TARI KABASARAN',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/1308history.png',
+    gambar: null,
     penjelasan:
         '[Karangan] LEGENDA DANAU PANIAI berasal dari Papua Tengah dan '
         'tercatat dalam arsip Renjana pada kategori cerita rakyat dan '
@@ -2282,7 +2282,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'MASJID RAYA BAITURRAHMAN',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin1.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] HONAI berasal dari Papua Pegunungan dan tercatat dalam '
         'arsip Renjana pada kategori rumah adat.',
@@ -2337,7 +2337,7 @@ final List<QuizSQLModel> defaultQuizList = [
         'adalah...',
     daftarJawaban: ['TIFA', 'WAYANG KULIT PURWA', 'KARAPAN SAPI', 'MANDAU'],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] TIFA berasal dari Papua dan tercatat dalam arsip '
         'Renjana pada kategori alat musik dan lagu daerah.',
@@ -2395,7 +2395,7 @@ final List<QuizSQLModel> defaultQuizList = [
       'BOROBUDUR',
     ],
     jawabanBenar: 0,
-    gambar: 'assets/images/onboardin2.jpg',
+    gambar: null,
     penjelasan:
         '[Karangan] UKIRAN ASMAT berasal dari Papua Selatan dan tercatat '
         'dalam arsip Renjana pada kategori seni rupa dan kriya.',
