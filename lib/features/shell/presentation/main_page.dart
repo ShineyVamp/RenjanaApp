@@ -67,12 +67,14 @@ class _MainPageState extends State<MainPage> {
     Icons.person_outline,
   ];
 
+  late final ValueNotifier<int> _tabNotifier;
   late final List<Widget> _pages;
 
   // section siklus hidup
   @override
   void initState() {
     super.initState();
+    _tabNotifier = ValueNotifier<int>(_selectedIndex);
     RuntunRepository().catatKunjunganHariIni();
     _pages = [
       HomePage(
@@ -80,11 +82,23 @@ class _MainPageState extends State<MainPage> {
         isAdmin: _isAdmin,
         onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      JelajahPage(onBukaPeta: () => setState(() => _selectedIndex = 2)),
+      JelajahPage(
+        onBukaPeta: () {
+          setState(() => _selectedIndex = 2);
+          _tabNotifier.value = 2;
+        },
+        tabNotifier: _tabNotifier,
+      ),
       const PetaPage(),
       const KomunitasPage(),
       const ProfilePage(),
     ];
+  }
+
+  @override
+  void dispose() {
+    _tabNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -124,6 +138,7 @@ class _MainPageState extends State<MainPage> {
                           setState(() {
                             _selectedIndex = index;
                           });
+                          _tabNotifier.value = index;
                         },
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

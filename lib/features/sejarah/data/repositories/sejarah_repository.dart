@@ -23,7 +23,10 @@ class SejarahRepository {
     }
 
     try {
-      final snap = await _firestore.collection('sejarah').get();
+      final snap = await _firestore
+          .collection('sejarah')
+          .get()
+          .timeout(const Duration(seconds: 10));
       if (snap.docs.isNotEmpty) {
         final list = snap.docs
             .map((doc) => SejarahModel.fromFirestore(doc.data(), doc.id))

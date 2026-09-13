@@ -9,6 +9,7 @@ import '../manage_kategori_page.dart';
 import '../manage_laporan_page.dart';
 import '../manage_lencana_page.dart';
 import '../manage_usulan_page.dart';
+import '../manage_wilayah_page.dart';
 
 class AdminDrawer extends StatelessWidget {
   final UserSQLModel? currentUser;
@@ -78,6 +79,17 @@ class AdminDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 context.push(const AdminManageKategoriPage());
+              },
+            ),
+
+            // menu kelola gambar wilayah
+            _buildDrawerTile(
+              context: context,
+              icon: Icons.landscape_rounded,
+              title: 'Gambar Wilayah',
+              onTap: () {
+                Navigator.pop(context);
+                context.push(const AdminManageWilayahPage());
               },
             ),
 

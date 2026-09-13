@@ -47,6 +47,7 @@ class RuntunRepository {
   static Set<String>? _cachedKunjungan;
   static Set<String>? _cachedBeku;
   static RingkasanRuntun? _cacheRingkasan;
+  static String? _cachedUser;
 
   RuntunRepository({
     FirebaseFirestore? firestore,
@@ -79,10 +80,21 @@ class RuntunRepository {
     _cachedKunjungan = null;
     _cachedBeku = null;
     _cacheRingkasan = null;
+    _cachedUser = null;
   }
 
   // catat kunjungan hari ini
   Future<void> catatKunjunganHariIni() async {
+    final uid = _uid;
+    if (uid == 'guest') return;
+
+    if (_cachedUser != uid) {
+      _cachedKunjungan = null;
+      _cachedBeku = null;
+      _cacheRingkasan = null;
+      _cachedUser = uid;
+    }
+
     final hariIni = _kunci(DateTime.now());
     _cachedKunjungan ??= {};
     if (_cachedKunjungan!.contains(hariIni)) return;
@@ -99,10 +111,20 @@ class RuntunRepository {
   }
 
   Future<void> _muatDataRuntun() async {
+    final uid = _uid;
+    if (uid == 'guest') return;
+
+    if (_cachedUser != uid) {
+      _cachedKunjungan = null;
+      _cachedBeku = null;
+      _cacheRingkasan = null;
+      _cachedUser = uid;
+    }
+
     if (_cachedKunjungan != null && _cachedBeku != null) return;
 
     try {
-      final doc = await _runtunDoc.get();
+      final doc = await _runtunDoc.get().timeout(const Duration(seconds: 10));
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         final rawKunjungan = data['kunjungan'];
@@ -155,13 +177,28 @@ class RuntunRepository {
 
   // ringkasan runtun
   Future<RingkasanRuntun> ringkasan() async {
+    final uid = _uid;
+    if (uid == 'guest') return const RingkasanRuntun();
+
+    if (_cachedUser != uid) {
+      _cachedKunjungan = null;
+      _cachedBeku = null;
+      _cacheRingkasan = null;
+      _cachedUser = uid;
+    }
+
     if (_cacheRingkasan != null) return _cacheRingkasan!;
 
     final tanggal = await _tanggalKunjungan();
     final beku = await _tanggalBeku();
     final gabungan = <String>{...tanggal, ...beku};
 
-    if (gabungan.isEmpty) return const RingkasanRuntun();
+    if (gabungan.isEmpty) {
+      const kosong = RingkasanRuntun();
+      _cacheRingkasan = kosong;
+      _cachedUser = uid;
+      return kosong;
+    }
 
     final hariIni = DateTime.now();
     final awal = DateTime(hariIni.year, hariIni.month, hariIni.day);
@@ -185,6 +222,7 @@ class RuntunRepository {
             pembekuTersedia: (2 - beku.length).clamp(0, 2),
           );
           _cacheRingkasan = res;
+          _cachedUser = uid;
           return res;
         }
       } else {
@@ -210,6 +248,7 @@ class RuntunRepository {
       runtunDibekukan: runtunDibekukan,
     );
     _cacheRingkasan = res;
+    _cachedUser = uid;
     return res;
   }
 

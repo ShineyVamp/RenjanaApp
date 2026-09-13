@@ -72,7 +72,8 @@ class ArsipDibacaRepository {
     try {
       final snapshot = await _koleksi()
           .orderBy('dibacaPada', descending: true)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 10));
 
       final list = snapshot.docs
           .map((doc) => doc.data()['ref'] as String? ?? '')
@@ -83,6 +84,7 @@ class ArsipDibacaRepository {
       _cachedUser = uid;
       return list;
     } catch (_) {
+      if (_cachedUser != uid) return const [];
       return _cachedRefs?.toList() ?? const [];
     }
   }

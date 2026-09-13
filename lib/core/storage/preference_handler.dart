@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:renjana/features/auth/data/models/user_model.dart';
+import '../services/session_cleanup_service.dart';
 
 class PreferenceHandler {
   static late SharedPreferences _prefs;
@@ -19,6 +20,8 @@ class PreferenceHandler {
   static const _keyUserUid = "userUid";
 
   static Future<void> saveUser(UserSQLModel user) async {
+    SessionCleanupService.bersihkanSemuaCachePengguna();
+
     await _prefs.setBool(_keyIsLogin, true);
     // password tidak ikut disimpan
     await _prefs.setString(_keyUserData, user.sanitized().toJson());
@@ -30,6 +33,8 @@ class PreferenceHandler {
     await _prefs.setInt(_keyUserId, user.id ?? 0);
     if (user.uid != null && user.uid!.isNotEmpty) {
       await _prefs.setString(_keyUserUid, user.uid!);
+    } else {
+      await _prefs.remove(_keyUserUid);
     }
   }
 
@@ -91,6 +96,7 @@ class PreferenceHandler {
 
   // logout
   static Future<void> logOut() async {
+    SessionCleanupService.bersihkanSemuaCachePengguna();
     try {
       await FirebaseAuth.instance.signOut();
     } catch (_) {}

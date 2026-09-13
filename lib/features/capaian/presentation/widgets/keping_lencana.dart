@@ -13,6 +13,17 @@ class KepingLencana extends StatelessWidget {
 
   const KepingLencana({super.key, required this.status, this.ukuran = 52});
 
+  IconData _ikonBawaan(String kode, bool terbuka) {
+    if (!terbuka) return Icons.lock_outline_rounded;
+    if (kode.startsWith('RTN')) return Icons.local_fire_department_rounded;
+    if (kode.startsWith('ARS')) return Icons.menu_book_rounded;
+    if (kode.startsWith('KAT')) return Icons.auto_awesome_rounded;
+    if (kode.startsWith('PLU')) return Icons.explore_rounded;
+    if (kode.startsWith('PRD')) return Icons.history_edu_rounded;
+    if (kode.startsWith('USL')) return Icons.volunteer_activism_rounded;
+    return Icons.military_tech_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final terbuka = status.terbuka;
@@ -34,9 +45,7 @@ class KepingLencana extends StatelessWidget {
       child: adaLogo
           ? AppImageView(imagePath: status.gambar, fit: BoxFit.cover)
           : Icon(
-              terbuka
-                  ? Icons.military_tech_rounded
-                  : Icons.lock_outline_rounded,
+              _ikonBawaan(status.lencana.kode, terbuka),
               size: ukuran * 0.46,
               color: terbuka ? AppColors.gold : AppColors.surfaceMuted,
             ),

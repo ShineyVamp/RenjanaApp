@@ -108,6 +108,12 @@ class ProgresWilayahRepository {
         .collection('progres_wilayah');
   }
 
+  // bersihkan cache progres wilayah
+  static void bersihkanCache() {
+    _cachedCatatan = null;
+    _cachedUser = null;
+  }
+
   Future<Map<String, Map<String, Object?>>> _catatan() async {
     final uid = _userUid;
     if (uid == 'guest') return {};
@@ -117,7 +123,7 @@ class ProgresWilayahRepository {
     }
 
     try {
-      final snap = await _koleksi().get();
+      final snap = await _koleksi().get().timeout(const Duration(seconds: 10));
       final map = <String, Map<String, Object?>>{};
       for (final doc in snap.docs) {
         final d = doc.data();
@@ -128,6 +134,7 @@ class ProgresWilayahRepository {
       _cachedUser = uid;
       return map;
     } catch (_) {
+      if (_cachedUser != uid) return const {};
       return _cachedCatatan ?? const {};
     }
   }

@@ -12,6 +12,7 @@ import '../../../core/widgets/header_halaman.dart';
 import 'package:renjana/features/wilayah/data/repositories/progres_wilayah_repository.dart';
 import 'detail_provinsi_page.dart';
 import 'detail_pulau_page.dart';
+import '../../../app/routes/app_routes.dart';
 import 'widgets/peta_painter.dart';
 
 class PetaPage extends StatefulWidget {
@@ -22,7 +23,7 @@ class PetaPage extends StatefulWidget {
 }
 
 class _PetaPageState extends State<PetaPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   final TransformationController _transformasi = TransformationController();
   late final AnimationController _animasiController;
   Animation<Matrix4>? _animasiMatriks;
@@ -48,6 +49,18 @@ class _PetaPageState extends State<PetaPage>
 
   static const double _skalaMin = 1;
   static const double _skalaMaks = 12;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final rute = ModalRoute.of(context);
+    if (rute is PageRoute) pengamatRute.subscribe(this, rute);
+  }
+
+  @override
+  void didPopNext() {
+    _muatTingkat();
+  }
 
   @override
   void initState() {
@@ -104,6 +117,7 @@ class _PetaPageState extends State<PetaPage>
 
   @override
   void dispose() {
+    pengamatRute.unsubscribe(this);
     _transformasi.removeListener(_saatTransformasiBerubah);
     _transformasi.dispose();
     _animasiController.dispose();

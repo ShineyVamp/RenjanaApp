@@ -67,9 +67,6 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   final ScrollController _gulir = ScrollController();
 
-  // Header menghilang begitu pengguna menggulir turun, dan baru kembali
-  // setelah digulir naik sejauh ambangnya. Keduanya diukur dari jarak gerakan,
-  // bukan posisi mutlak, supaya perilakunya sama di bagian mana pun halaman.
   static const double _ambangMunculHeader = 350;
   static const double _ambangSembunyiHeader = 40;
   static const double _tinggiHeader = 58;
@@ -179,15 +176,17 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   // section muat data
   Future<void> _loadFromRepository() async {
-    final results = await Future.wait([
-      _sejarahRepository.getSejarahHariIni(),
-      _budayaRepository.getBudayaHariIni(),
-    ]);
-    if (!mounted) return;
-    setState(() {
-      _sejarahHariIni = results[0] as SejarahModel?;
-      _budayaHariIni = results[1] as BudayaModel?;
-    });
+    try {
+      final results = await Future.wait([
+        _sejarahRepository.getSejarahHariIni(),
+        _budayaRepository.getBudayaHariIni(),
+      ]).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      setState(() {
+        _sejarahHariIni = results[0] as SejarahModel?;
+        _budayaHariIni = results[1] as BudayaModel?;
+      });
+    } catch (_) {}
   }
 
   @override

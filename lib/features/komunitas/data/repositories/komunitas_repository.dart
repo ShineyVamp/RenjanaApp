@@ -17,6 +17,17 @@ class KomunitasRepository {
   static bool _suaraDiskusiLoaded = false;
   static bool _suaraJawabanLoaded = false;
 
+  static void bersihkanCache() {
+    _cachedDiskusi = null;
+    _cachedJawaban.clear();
+    _cachedNotifikasi = null;
+    _cachedIdSuaraSayaDiskusi.clear();
+    _cachedIdSuaraSayaJawaban.clear();
+    _suaraDiskusiLoaded = false;
+    _suaraJawabanLoaded = false;
+    _userPhotoCache.clear();
+  }
+
   KomunitasRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
@@ -1177,12 +1188,5 @@ class KomunitasRepository {
         await snap.docs.first.reference.delete();
       }
     } catch (_) {}
-  }
-
-  // bersihkan cache
-  static void bersihkanCache() {
-    _cachedDiskusi = null;
-    _cachedJawaban.clear();
-    _cachedNotifikasi = null;
   }
 }

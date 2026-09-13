@@ -43,37 +43,58 @@ class FirestoreSeedService {
 
         // periksa gambar utama
         final existingGambar = existing?['gambarUtama'] as String?;
-        if (existingGambar != null && existingGambar.startsWith('http')) {
+        if (item.gambarUtama.startsWith('http')) {
+          data['gambarUtama'] = item.gambarUtama;
+        } else if (existingGambar != null && existingGambar.startsWith('http')) {
           data['gambarUtama'] = existingGambar;
         } else if (item.gambarUtama.startsWith('assets/')) {
-          data['gambarUtama'] = await CloudinaryService().uploadAsset(
+          final url = await CloudinaryService().uploadAsset(
             item.gambarUtama,
             subFolder: 'budaya',
           );
+          if (url.startsWith('http')) {
+            data['gambarUtama'] = url;
+          } else {
+            data['gambarUtama'] = existingGambar ?? '';
+          }
         }
 
         // periksa gambar makna spiritual
         final existingMakna = existing?['gambarMaknaSpiritual'] as String?;
-        if (existingMakna != null && existingMakna.startsWith('http')) {
+        if (item.gambarMaknaSpiritual != null && item.gambarMaknaSpiritual!.startsWith('http')) {
+          data['gambarMaknaSpiritual'] = item.gambarMaknaSpiritual;
+        } else if (existingMakna != null && existingMakna.startsWith('http')) {
           data['gambarMaknaSpiritual'] = existingMakna;
         } else if (item.gambarMaknaSpiritual != null &&
             item.gambarMaknaSpiritual!.startsWith('assets/')) {
-          data['gambarMaknaSpiritual'] = await CloudinaryService().uploadAsset(
+          final url = await CloudinaryService().uploadAsset(
             item.gambarMaknaSpiritual!,
             subFolder: 'budaya',
           );
+          if (url.startsWith('http')) {
+            data['gambarMaknaSpiritual'] = url;
+          } else {
+            data['gambarMaknaSpiritual'] = existingMakna;
+          }
         }
 
         // periksa gambar konteks budaya
         final existingKonteks = existing?['gambarKonteksBudaya'] as String?;
-        if (existingKonteks != null && existingKonteks.startsWith('http')) {
+        if (item.gambarKonteksBudaya != null && item.gambarKonteksBudaya!.startsWith('http')) {
+          data['gambarKonteksBudaya'] = item.gambarKonteksBudaya;
+        } else if (existingKonteks != null && existingKonteks.startsWith('http')) {
           data['gambarKonteksBudaya'] = existingKonteks;
         } else if (item.gambarKonteksBudaya != null &&
             item.gambarKonteksBudaya!.startsWith('assets/')) {
-          data['gambarKonteksBudaya'] = await CloudinaryService().uploadAsset(
+          final url = await CloudinaryService().uploadAsset(
             item.gambarKonteksBudaya!,
             subFolder: 'budaya',
           );
+          if (url.startsWith('http')) {
+            data['gambarKonteksBudaya'] = url;
+          } else {
+            data['gambarKonteksBudaya'] = existingKonteks;
+          }
         }
 
         // simpan jika data baru atau gambar berubah
@@ -100,6 +121,19 @@ class FirestoreSeedService {
         for (final doc in existingDocs.docs) doc.id: doc.data(),
       };
 
+      // bersihkan dokumen lama berformat 6-digit (HIS-ddMMyy-urutan) jika masih ada di firestore
+      final validTags = defaultSejarahList.map((e) => e.kodeTag).toSet();
+      for (final doc in existingDocs.docs) {
+        if (!validTags.contains(doc.id)) {
+          final parts = doc.id.split('-');
+          if (parts.length == 3 && parts[1].length == 6) {
+            try {
+              await _firestore.collection('sejarah').doc(doc.id).delete();
+            } catch (_) {}
+          }
+        }
+      }
+
       for (final item in defaultSejarahList) {
         final existing = existingMap[item.kodeTag];
         final data = item.toFirestore();
@@ -111,10 +145,15 @@ class FirestoreSeedService {
         } else if (existingGambar != null && existingGambar.startsWith('http')) {
           data['gambarUtama'] = existingGambar;
         } else if (item.gambarUtama.startsWith('assets/')) {
-          data['gambarUtama'] = await CloudinaryService().uploadAsset(
+          final url = await CloudinaryService().uploadAsset(
             item.gambarUtama,
             subFolder: 'sejarah',
           );
+          if (url.startsWith('http')) {
+            data['gambarUtama'] = url;
+          } else {
+            data['gambarUtama'] = existingGambar ?? '';
+          }
         }
 
         // periksa gambar alur peristiwa
@@ -143,8 +182,12 @@ class FirestoreSeedService {
               alur.imgPath!,
               subFolder: 'sejarah',
             );
-            alurMap['imgPath'] = url;
-            if (url != alur.imgPath) adaAlurBaru = true;
+            if (url.startsWith('http')) {
+              alurMap['imgPath'] = url;
+              if (url != existingImg) adaAlurBaru = true;
+            } else {
+              alurMap['imgPath'] = existingImg;
+            }
           }
           alurList.add(alurMap);
         }
@@ -208,11 +251,18 @@ class FirestoreSeedService {
         if (existingGambar != null && existingGambar.startsWith('http')) {
           data['gambar'] = existingGambar;
         } else if (pulau.gambar.isNotEmpty && pulau.gambar.startsWith('assets/')) {
-          data['gambar'] = await CloudinaryService().uploadAsset(
+          final uploadedUrl = await CloudinaryService().uploadAsset(
             pulau.gambar,
             subFolder: 'wilayah',
           );
-          adaPerubahan = true;
+          if (uploadedUrl.startsWith('http')) {
+            data['gambar'] = uploadedUrl;
+            adaPerubahan = true;
+          } else if (existingGambar != null) {
+            data['gambar'] = existingGambar;
+          } else {
+            data['gambar'] = '';
+          }
         }
 
         final rawProvinsi = data['provinsi'] as List<dynamic>? ?? [];
@@ -231,9 +281,15 @@ class FirestoreSeedService {
                 prov.gambar!,
                 subFolder: 'wilayah',
               );
-              provMap['gambar'] = uploadedUrl;
-              uploadedProvGambar[prov.nama.trim()] = uploadedUrl;
-              adaPerubahan = true;
+              if (uploadedUrl.startsWith('http')) {
+                provMap['gambar'] = uploadedUrl;
+                uploadedProvGambar[prov.nama.trim()] = uploadedUrl;
+                adaPerubahan = true;
+              } else if (existingProvImg != null) {
+                provMap['gambar'] = existingProvImg;
+              } else {
+                provMap['gambar'] = null;
+              }
             } else if (existingProvImg != null) {
               provMap['gambar'] = existingProvImg;
             }
@@ -265,8 +321,14 @@ class FirestoreSeedService {
               prov.gambar!,
               subFolder: 'wilayah',
             );
-            provData['gambar'] = uploadedUrl;
-            adaPerubahan = true;
+            if (uploadedUrl.startsWith('http')) {
+              provData['gambar'] = uploadedUrl;
+              adaPerubahan = true;
+            } else if (existingGambar != null) {
+              provData['gambar'] = existingGambar;
+            } else {
+              provData['gambar'] = null;
+            }
           } else if (existingGambar != null) {
             provData['gambar'] = existingGambar;
           }

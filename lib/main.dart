@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:device_preview/presets.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -35,9 +36,9 @@ void main() async {
   FirestoreSeedService().inisialisasiKontenEnsiklopedia();
   // kategori
   await KategoriRepository().muat();
-  // final c = DevicePreview.controller;
-  // await c.applyPreset(DevicePresets.pixel10);
-  // await c.setOrientation(Orientation.portrait);
+  final c = DevicePreview.controller;
+  await c.applyPreset(DevicePresets.pixel10);
+  await c.setOrientation(Orientation.portrait);
   runApp(const RenjanaApp());
 }
 

@@ -11,6 +11,7 @@ class BookmarkRepository {
   final BudayaRepository _budayaRepository;
   static Set<String>? _cachedTags;
   static List<BookmarkItemModel>? _cachedBookmarks;
+  static String? _cachedUser;
 
   BookmarkRepository({
     FirebaseFirestore? firestore,
@@ -37,19 +38,24 @@ class BookmarkRepository {
   static void bersihkanCache() {
     _cachedTags = null;
     _cachedBookmarks = null;
+    _cachedUser = null;
   }
 
   Future<bool> isBookmarked(String kodeTag) async {
     final tag = kodeTag.trim();
     if (tag.isEmpty) return false;
 
-    if (_cachedTags != null) {
+    final currentUid = _uid;
+    if (currentUid == 'guest') return false;
+
+    if (_cachedTags != null && _cachedUser == currentUid) {
       return _cachedTags!.contains(tag);
     }
 
     try {
-      final snap = await _koleksi.get();
+      final snap = await _koleksi.get().timeout(const Duration(seconds: 10));
       _cachedTags = snap.docs.map((d) => d.id.trim()).toSet();
+      _cachedUser = currentUid;
       return _cachedTags!.contains(tag);
     } catch (_) {
       return false;
@@ -104,12 +110,15 @@ class BookmarkRepository {
 
   // section ambil semua bookmark
   Future<List<BookmarkItemModel>> getAllBookmarks({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedBookmarks != null) {
+    final currentUid = _uid;
+    if (currentUid == 'guest') return const [];
+
+    if (!forceRefresh && _cachedBookmarks != null && _cachedUser == currentUid) {
       return _cachedBookmarks!;
     }
 
     try {
-      final snap = await _koleksi.get();
+      final snap = await _koleksi.get().timeout(const Duration(seconds: 10));
       _cachedTags = snap.docs.map((d) => d.id.trim()).toSet();
 
       final futures = snap.docs.map((doc) async {
@@ -149,8 +158,10 @@ class BookmarkRepository {
       final resolved = await Future.wait(futures);
       final items = resolved.whereType<BookmarkItemModel>().toList();
       _cachedBookmarks = items;
+      _cachedUser = currentUid;
       return items;
     } catch (_) {
+      if (_cachedUser != currentUid) return [];
       return _cachedBookmarks ?? [];
     }
   }

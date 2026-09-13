@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/lencana_model.dart';
 import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 import '../../../../core/storage/preference_handler.dart';
@@ -91,7 +92,10 @@ class LencanaRepository {
     if (_cachedLogo != null) return _cachedLogo!;
 
     try {
-      final snap = await _firestore.collection('lencana_ikon').get();
+      final snap = await _firestore
+          .collection('lencana_ikon')
+          .get()
+          .timeout(const Duration(seconds: 10));
       final map = <String, String>{};
       for (final doc in snap.docs) {
         final g = doc.data()['gambar'] as String? ?? '';
@@ -99,7 +103,8 @@ class LencanaRepository {
       }
       _cachedLogo = map;
       return map;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[LencanaRepository] Gagal memuat logo lencana: $e');
       return _cachedLogo ?? const {};
     }
   }
@@ -120,14 +125,22 @@ class LencanaRepository {
     _cachedLogo?[kode] = finalGambar ?? '';
     try {
       if (finalGambar == null || finalGambar.isEmpty) {
-        await _firestore.collection('lencana_ikon').doc(kode).delete();
+        await _firestore
+            .collection('lencana_ikon')
+            .doc(kode)
+            .delete()
+            .timeout(const Duration(seconds: 10));
       } else {
         await _firestore
             .collection('lencana_ikon')
             .doc(kode)
-            .set({'gambar': finalGambar}, SetOptions(merge: true));
+            .set({'gambar': finalGambar}, SetOptions(merge: true))
+            .timeout(const Duration(seconds: 10));
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[LencanaRepository] Gagal menyimpan logo lencana: $e');
+      rethrow;
+    }
   }
 
   // kode lencana terbuka
@@ -152,6 +165,7 @@ class LencanaRepository {
       _cachedUser = uid;
       return map;
     } catch (_) {
+      if (_cachedUser != uid) return const {};
       return _cachedTerbuka ?? const {};
     }
   }
@@ -216,11 +230,16 @@ class LencanaRepository {
 
   static List<StatusLencana>? _cachedStatus;
   static DateTime? _terakhirEvaluasi;
+  static String? _cachedStatusUser;
 
   // Menghitung kemajuan seluruh lencana, membuka yang sudah memenuhi syarat,
   // lalu mengembalikan status akhirnya.
   Future<List<StatusLencana>> evaluasi({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedStatus != null && _terakhirEvaluasi != null) {
+    final uid = _userUid;
+    if (!forceRefresh &&
+        _cachedStatus != null &&
+        _terakhirEvaluasi != null &&
+        _cachedStatusUser == uid) {
       if (DateTime.now().difference(_terakhirEvaluasi!).inMinutes < 5) {
         return _cachedStatus!;
       }
@@ -326,6 +345,7 @@ class LencanaRepository {
 
     if (baruTerbuka.isNotEmpty) await _buka(baruTerbuka);
     _cachedStatus = hasil;
+    _cachedStatusUser = uid;
     _terakhirEvaluasi = DateTime.now();
     return hasil;
   }
@@ -333,5 +353,14 @@ class LencanaRepository {
   Future<int> jumlahTerbuka() async {
     final status = await evaluasi();
     return status.where((s) => s.terbuka).length;
+  }
+
+  // bersihkan cache lencana pengguna
+  static void bersihkanCache() {
+    _cachedStatus = null;
+    _cachedStatusUser = null;
+    _terakhirEvaluasi = null;
+    _cachedTerbuka = null;
+    _cachedUser = null;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../app/routes/navigasi_arsip.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
@@ -17,14 +18,15 @@ import 'package:renjana/features/jelajah/data/repositories/jelajah_repository.da
 class JelajahPage extends StatefulWidget {
   // Membuka tab Peta dari kartu "Telusuri lewat peta".
   final VoidCallback? onBukaPeta;
+  final ValueNotifier<int>? tabNotifier;
 
-  const JelajahPage({super.key, this.onBukaPeta});
+  const JelajahPage({super.key, this.onBukaPeta, this.tabNotifier});
 
   @override
-  State<JelajahPage> createState() => _JelajahPageState();
+  State<JelajahPage> createState() => JelajahPageState();
 }
 
-class _JelajahPageState extends State<JelajahPage> {
+class JelajahPageState extends State<JelajahPage> with RouteAware {
   final JelajahRepository _repository = JelajahRepository();
   final RiwayatRepository _riwayatRepository = RiwayatRepository();
   final TextEditingController _controller = TextEditingController();
@@ -44,34 +46,69 @@ class _JelajahPageState extends State<JelajahPage> {
   bool get _adaQuery => _query.trim().isNotEmpty;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final rute = ModalRoute.of(context);
+    if (rute is PageRoute) pengamatRute.subscribe(this, rute);
+  }
+
+  @override
   void initState() {
     super.initState();
     _muatRiwayat();
+    widget.tabNotifier?.addListener(_saatTabBerubah);
+  }
+
+  void _saatTabBerubah() {
+    if (widget.tabNotifier?.value == 1 && mounted) {
+      _muatRiwayat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant JelajahPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tabNotifier != widget.tabNotifier) {
+      oldWidget.tabNotifier?.removeListener(_saatTabBerubah);
+      widget.tabNotifier?.addListener(_saatTabBerubah);
+    }
   }
 
   @override
   void dispose() {
+    pengamatRute.unsubscribe(this);
+    widget.tabNotifier?.removeListener(_saatTabBerubah);
     _penunda?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
+  @override
+  void didPopNext() {
+    _muatRiwayat();
+  }
+
+  // memuat riwayat pencarian dan arsip dibuka
+  Future<void> segarkan() => _muatRiwayat();
+
   Future<void> _muatRiwayat() async {
-    final refs = await _riwayatRepository.dibuka(
-      batas: RiwayatRepository.batasDibuka,
-    );
-    final dicari = await _riwayatRepository.pencarian(
-      batas: RiwayatRepository.batasPencarian,
-    );
-    final dibuka = await _repository.ambilDariRiwayat(
-      refs,
-      batas: RiwayatRepository.batasDibuka,
-    );
-    if (!mounted) return;
-    setState(() {
-      _terakhirDicari = dicari;
-      _terakhirDibuka = dibuka;
-    });
+    try {
+      final refs = await _riwayatRepository.dibuka(
+        batas: RiwayatRepository.batasDibuka,
+      );
+      final dicari = await _riwayatRepository.pencarian(
+        batas: RiwayatRepository.batasPencarian,
+      );
+      final dibuka = await _repository.ambilDariRiwayat(
+        refs,
+        batas: RiwayatRepository.batasDibuka,
+      );
+      if (!mounted) return;
+      setState(() {
+        _terakhirDicari = dicari;
+        _terakhirDibuka = dibuka;
+      });
+    } catch (_) {}
   }
 
   // Dipanggil tiap ketikan; pencariannya sendiri baru jalan setelah jeda.
@@ -161,11 +198,19 @@ class _JelajahPageState extends State<JelajahPage> {
             if (_adaQuery) _buildSaring(),
             Expanded(
               child: _adaQuery
-                  ? _buildHasilPencarian()
-                  : SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                      child: _buildBerandaJelajah(),
+                  ? RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async => _jalankanPencarian(_query),
+                      child: _buildHasilPencarian(),
+                    )
+                  : RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: _muatRiwayat,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                        child: _buildBerandaJelajah(),
+                      ),
                     ),
             ),
           ],
@@ -450,38 +495,37 @@ class _JelajahPageState extends State<JelajahPage> {
     }
 
     if (_pencarian.hasil.isEmpty) {
-      return Padding(
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 44, horizontal: 10),
-        child: Column(
-          children: [
-            const Icon(
-              Icons.search_rounded,
-              size: 46,
-              color: AppColors.surfaceMuted,
+        children: [
+          const Icon(
+            Icons.search_rounded,
+            size: 46,
+            color: AppColors.surfaceMuted,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _saring == null
+                ? 'Tidak ada hasil untuk "${_query.trim()}"'
+                : 'Tidak ada ${_saring!.label.toLowerCase()} untuk '
+                      '"${_query.trim()}"',
+            textAlign: TextAlign.center,
+            style: AppTypography.labelBold(fontSize: 15),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _saring == null
+                ? 'Coba kata kunci lain, atau telusuri lewat Peta Nusantara.'
+                : 'Pilih penyaring Semua untuk melihat jenis lainnya.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              height: 1.5,
+              color: AppColors.textSecondary,
             ),
-            const SizedBox(height: 12),
-            Text(
-              _saring == null
-                  ? 'Tidak ada hasil untuk "${_query.trim()}"'
-                  : 'Tidak ada ${_saring!.label.toLowerCase()} untuk '
-                        '"${_query.trim()}"',
-              textAlign: TextAlign.center,
-              style: AppTypography.labelBold(fontSize: 15),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _saring == null
-                  ? 'Coba kata kunci lain, atau telusuri lewat Peta Nusantara.'
-                  : 'Pilih penyaring Semua untuk melihat jenis lainnya.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                height: 1.5,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 

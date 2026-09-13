@@ -36,6 +36,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
       ProgresWilayahRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
 
+  late Provinsi _provinsi;
   int _jumlahArsip = 0;
   List<HasilJelajah> _rekomendasi = [];
   ProgresProvinsi? _progres;
@@ -45,6 +46,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
   @override
   void initState() {
     super.initState();
+    _provinsi = widget.provinsi;
     _muatData();
     _periksaBookmark();
   }
@@ -55,7 +57,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
   }
 
   String get _kunciBookmark =>
-      BookmarkItemModel.kunciProvinsi(widget.provinsi.nama);
+      BookmarkItemModel.kunciProvinsi(_provinsi.nama);
 
   Future<void> _periksaBookmark() async {
     final tersimpan = await _bookmarkRepository.isBookmarked(_kunciBookmark);
@@ -89,9 +91,9 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
 
   Future<void> _bagikan() => bagikanArsip(
     context,
-    judul: widget.provinsi.nama,
+    judul: _provinsi.nama,
     jenis: 'Provinsi',
-    keterangan: widget.provinsi.deskripsi,
+    keterangan: _provinsi.deskripsi,
     provinsi: null,
   );
 
@@ -109,23 +111,36 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
       if (!showLoader) return;
     }
 
-    final results = await Future.wait([
-      _wilayahRepository.jumlahArsipProvinsi(nama),
-      _wilayahRepository.arsipAcakProvinsi(nama, jumlah: 5),
-      _progresRepository.progresProvinsi(nama),
-    ]);
-    final jumlah = results[0] as int;
-    final acak = results[1] as List<HasilJelajah>;
-    final progres = results[2] as ProgresProvinsi?;
-    _cacheProvinsi[nama] = (jumlah, acak, progres);
+    try {
+      final results = await Future.wait([
+        _wilayahRepository.jumlahArsipProvinsi(nama),
+        _wilayahRepository.arsipAcakProvinsi(nama, jumlah: 5),
+        _progresRepository.progresProvinsi(nama),
+        _wilayahRepository.getProvinsi(nama),
+      ]).timeout(const Duration(seconds: 10));
 
-    if (!mounted) return;
-    setState(() {
-      _jumlahArsip = jumlah;
-      _rekomendasi = acak;
-      _progres = progres;
-      _isLoading = false;
-    });
+      final jumlah = results[0] as int;
+      final acak = results[1] as List<HasilJelajah>;
+      final progres = results[2] as ProgresProvinsi?;
+      final provTerbaru = results[3] as Provinsi?;
+      _cacheProvinsi[nama] = (jumlah, acak, progres);
+
+      if (!mounted) return;
+      setState(() {
+        if (provTerbaru != null) {
+          _provinsi = provTerbaru;
+        }
+        _jumlahArsip = jumlah;
+        _rekomendasi = acak;
+        _progres = progres;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // Kartu penuntasan: tingkat sekarang, arsip yang belum dibaca, dan status
@@ -230,7 +245,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
           GestureDetector(
             onTap: () async {
               await context.push(
-                PenuntasanProvinsiPage(provinsi: widget.provinsi),
+                PenuntasanProvinsiPage(provinsi: _provinsi),
               );
               if (!mounted) return;
               await _muatData();
@@ -277,14 +292,14 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
 
 
   Future<void> _bukaArsipLengkap() async {
-    await context.push(ArsipProvinsiPage(provinsi: widget.provinsi));
+    await context.push(ArsipProvinsiPage(provinsi: _provinsi));
     if (!mounted) return;
     await _muatData();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provinsi = widget.provinsi;
+    final provinsi = _provinsi;
     final pulau = pulauDariProvinsi(provinsi.nama);
 
     return Scaffold(

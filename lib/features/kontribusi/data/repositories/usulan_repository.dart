@@ -49,6 +49,10 @@ class UsulanRepository {
 
   static List<Usulan>? _cachedUsulan;
 
+  static void bersihkanCache() {
+    _cachedUsulan = null;
+  }
+
   UsulanRepository({
     FirebaseFirestore? firestore,
     SejarahRepository? sejarahRepository,

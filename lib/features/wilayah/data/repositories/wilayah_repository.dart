@@ -41,7 +41,10 @@ class WilayahRepository {
     }
 
     try {
-      final snap = await _firestore.collection('wilayah_pulau').get();
+      final snap = await _firestore
+          .collection('wilayah_pulau')
+          .get()
+          .timeout(const Duration(seconds: 10));
       if (snap.docs.isNotEmpty) {
         final list = snap.docs.map((doc) => GugusPulau.fromMap(doc.data())).toList();
         _cachedPulau = list;
@@ -66,6 +69,46 @@ class WilayahRepository {
     }
     _cachedProvinsi = map;
     return map.values.toList();
+  }
+
+  // cari satu provinsi
+  Future<Provinsi?> getProvinsi(String namaProvinsi) async {
+    final semua = await getAllProvinsi();
+    final target = namaProvinsi.trim().toLowerCase();
+    for (final prov in semua) {
+      if (prov.nama.trim().toLowerCase() == target) return prov;
+    }
+    return null;
+  }
+
+  // perbarui gambar provinsi ke firestore
+  Future<void> updateGambarProvinsi(String namaProvinsi, String gambarUrl) async {
+    final targetDoc = namaProvinsi.trim();
+    await _firestore.collection('wilayah_provinsi').doc(targetDoc).set({
+      'gambar': gambarUrl,
+    }, SetOptions(merge: true));
+
+    final pulau = pulauDariProvinsi(namaProvinsi);
+    if (pulau != null) {
+      try {
+        final docRef = _firestore.collection('wilayah_pulau').doc(pulau.id);
+        final snap = await docRef.get().timeout(const Duration(seconds: 8));
+        if (snap.exists) {
+          final data = snap.data() ?? {};
+          final listProv = List<dynamic>.from(data['provinsi'] ?? []);
+          for (var i = 0; i < listProv.length; i++) {
+            if (listProv[i] is Map &&
+                (listProv[i]['nama'] as String?)?.trim().toLowerCase() ==
+                    namaProvinsi.trim().toLowerCase()) {
+              listProv[i]['gambar'] = gambarUrl;
+            }
+          }
+          await docRef.update({'provinsi': listProv});
+        }
+      } catch (_) {}
+    }
+
+    bersihkanCache();
   }
 
   // Seluruh arsip dikelompokkan per provinsi, dibaca sekali lalu dibagi di

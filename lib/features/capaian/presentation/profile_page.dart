@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
@@ -28,11 +29,16 @@ import 'widgets/bottom_sheet_ganti_password.dart';
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
+  // bersihkan cache profil statis
+  static void bersihkanCache() {
+    _ProfilePageState.bersihkanCache();
+  }
+
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with RouteAware {
   final UserRepository _userRepository = UserRepository();
   final JelajahRepository _jelajahRepository = JelajahRepository();
   final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
@@ -50,6 +56,18 @@ class _ProfilePageState extends State<ProfilePage> {
   static int _cachedUsulanDisetujui = 0;
   static bool _hasCachedProfile = false;
 
+  static void bersihkanCache() {
+    _cachedUser = null;
+    _cachedJumlahDibuka = 0;
+    _cachedJumlahProvinsi = 0;
+    _cachedGelar = 'Pelajar';
+    _cachedRuntun = const RingkasanRuntun();
+    _cachedUsulanTotal = 0;
+    _cachedUsulanTerbuka = 0;
+    _cachedUsulanDisetujui = 0;
+    _hasCachedProfile = false;
+  }
+
   UserSQLModel? _user;
   int _jumlahDibuka = 0;
   int _jumlahProvinsi = 0;
@@ -60,12 +78,31 @@ class _ProfilePageState extends State<ProfilePage> {
   int _usulanDisetujui = 0;
   bool _isLoading = true;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final rute = ModalRoute.of(context);
+    if (rute is PageRoute) pengamatRute.subscribe(this, rute);
+  }
+
+  @override
+  void dispose() {
+    pengamatRute.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _muatData();
+  }
+
   // section siklus hidup
   @override
   void initState() {
     super.initState();
     final sesi = PreferenceHandler.user;
-    if (_hasCachedProfile) {
+    final currentUserId = PreferenceHandler.userId;
+    if (_hasCachedProfile && _cachedUser?.id == currentUserId && currentUserId > 0) {
       _user = _cachedUser ?? sesi;
       _jumlahDibuka = _cachedJumlahDibuka;
       _jumlahProvinsi = _cachedJumlahProvinsi;

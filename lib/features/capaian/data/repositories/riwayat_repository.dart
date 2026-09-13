@@ -62,11 +62,20 @@ class RiwayatRepository {
     try {
       final snapshot = await _koleksi()
           .where('jenis', isEqualTo: jenis)
-          .orderBy('dicatatPada', descending: true)
-          .limit(jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 10));
 
-      final list = snapshot.docs
+      final docs = snapshot.docs.toList();
+      docs.sort((a, b) {
+        final waktuA = (a.data()['dicatatPada'] as num?)?.toInt() ?? 0;
+        final waktuB = (b.data()['dicatatPada'] as num?)?.toInt() ?? 0;
+        return waktuB.compareTo(waktuA);
+      });
+
+      final maxSimpan = jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip;
+      final docsLimited = docs.length > maxSimpan ? docs.sublist(0, maxSimpan) : docs;
+
+      final list = docsLimited
           .map((d) => d.data()['nilai'] as String? ?? '')
           .where((n) => n.isNotEmpty)
           .toList();
@@ -80,6 +89,7 @@ class RiwayatRepository {
 
       return batas != null && list.length > batas ? list.sublist(0, batas) : list;
     } catch (_) {
+      if (_cachedUser != uid) return const [];
       final fallback = jenis == jenisPencarian ? _cachedPencarian : _cachedDibuka;
       return fallback ?? const [];
     }

@@ -24,7 +24,10 @@ class BudayaRepository {
     }
 
     try {
-      final snap = await _firestore.collection('budaya').get();
+      final snap = await _firestore
+          .collection('budaya')
+          .get()
+          .timeout(const Duration(seconds: 10));
       if (snap.docs.isNotEmpty) {
         final list = snap.docs
             .map((doc) => BudayaModel.fromFirestore(doc.data(), doc.id))

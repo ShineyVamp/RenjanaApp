@@ -9,7 +9,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../data/static/data_wilayah_nusantara.dart';
 
 // Garis pantai hasil ekstraksi Natural Earth 110m. Titik disimpan sebagai
-// Offset(lon, lat), bukan koordinat layar.
+// Offset(lon, lat)
 class PetaGeometri {
   final List<List<List<Offset>>> indonesia;
   final List<List<List<Offset>>> tetangga;
@@ -52,8 +52,6 @@ class PetaGeometri {
   }
 }
 
-// Proyeksi Mercator yang dipaskan ke kotak tampilan nasional, sama seperti
-// d3.geoMercator().fitExtent() pada prototipe.
 class ProyeksiPeta {
   final double skala;
   final double geserX;
@@ -145,7 +143,6 @@ class PetaPainter extends CustomPainter {
   final Path pathIndonesia;
   final Path pathTetangga;
 
-  // Ketebalan garis dibagi skala peta, hasilnya tebal yang tetap di layar.
   final double skalaTampilan;
 
   const PetaPainter({
@@ -214,10 +211,7 @@ class SiluetPulauPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFEDE8DD),
-          Color(0xFFE4DDD0),
-        ],
+        colors: [Color(0xFFEDE8DD), Color(0xFFE4DDD0)],
       ).createShader(rect);
     canvas.drawRect(rect, bgPaint);
 
@@ -268,4 +262,3 @@ class SiluetPulauPainter extends CustomPainter {
       oldDelegate.pathIndonesia != pathIndonesia ||
       oldDelegate.pathTetangga != pathTetangga;
 }
-

@@ -58,11 +58,7 @@ class _SplashPageState extends State<SplashPage> {
             const SizedBox(height: 12),
             Text('RENJANA', style: AppTypography.headingLarge()),
             const SizedBox(height: 6),
-            Text(
-              'Museum Indonesia Dalam Genggaman',
-              style: AppTypography.bodyLarge(),
-            ),
-            const SizedBox(height: 24),
+            Text('Indonesia Dalam Genggaman', style: AppTypography.bodyLarge()),
             SizedBox(
               height: 50,
               width: 250,
