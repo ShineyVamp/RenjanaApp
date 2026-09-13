@@ -1,10 +1,3 @@
-// Katalog kategori beserta daftar field khas tiap kategori.
-//
-// Isinya disimpan di tabel `kategori` dan dihidrasi sekali saat aplikasi mulai
-// lewat KategoriRepository.muat(). Daftar bawaan di berkas ini dipakai sebagai
-// isi awal tabel sekaligus cadangan bila hidrasi belum jalan.
-//
-// Ranah memisahkan beberapa katalog di dalam satu tabel yang sama.
 import 'dart:convert';
 
 // Kategori budaya, mis. Rumah Adat atau Kuliner Tradisional.
@@ -221,8 +214,10 @@ List<KategoriItem> _lengkapi(String ranah, List<KategoriItem> daftar) => [
     daftar[i].salin(ranah: ranah, urutan: i + 1, bawaan: true),
 ];
 
-List<KategoriItem> get periodeSejarahList => KatalogKategori.ranah(ranahPeriode);
-List<KategoriItem> get peristiwaSejarahList => KatalogKategori.ranah(ranahPeristiwa);
+List<KategoriItem> get periodeSejarahList =>
+    KatalogKategori.ranah(ranahPeriode);
+List<KategoriItem> get peristiwaSejarahList =>
+    KatalogKategori.ranah(ranahPeristiwa);
 
 KategoriItem? periodeByKode(String kode) {
   final target = kode.trim().toUpperCase();
@@ -243,7 +238,8 @@ KategoriItem? peristiwaByKode(String kode) {
 }
 
 String namaPeristiwa(String kode) => peristiwaByKode(kode)?.nama ?? kode;
-List<FieldKategori> fieldPeristiwa(String kode) => peristiwaByKode(kode)?.field ?? const [];
+List<FieldKategori> fieldPeristiwa(String kode) =>
+    peristiwaByKode(kode)?.field ?? const [];
 
 final Map<String, List<KategoriItem>> _bawaan = {
   ranahBudaya: _lengkapi(ranahBudaya, _budayaMentah),
@@ -650,10 +646,7 @@ const List<KategoriItem> _peristiwaMentah = [
         label: 'Pendiri / Inisiator',
         tipe: TipeField.daftar,
       ),
-      FieldKategori(
-        kunci: 'tahunBerdiri',
-        label: 'Tahun & Tempat Berdiri',
-      ),
+      FieldKategori(kunci: 'tahunBerdiri', label: 'Tahun & Tempat Berdiri'),
       FieldKategori(
         kunci: 'tujuan',
         label: 'Tujuan & Visi Gerakan',
@@ -694,4 +687,3 @@ const List<KategoriItem> _peristiwaMentah = [
     ],
   ),
 ];
-
