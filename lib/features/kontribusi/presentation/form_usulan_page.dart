@@ -34,8 +34,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   late JenisUsulan _jenis;
   String? _provinsi;
   String? _gambar;
-  String _jenisMedia = 'gambar';
-  final _mediaUrl = TextEditingController();
   bool _menyimpan = false;
 
   // sejarah
@@ -103,9 +101,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     _gambar = awal.teks(KunciUsulan.gambar).isEmpty
         ? null
         : awal.teks(KunciUsulan.gambar);
-    final jm = awal.teks(KunciUsulan.jenisMedia);
-    if (jm.isNotEmpty) _jenisMedia = jm;
-    _mediaUrl.text = awal.teks(KunciUsulan.mediaUrl);
 
     switch (awal.jenis) {
       case JenisUsulan.sejarah:
@@ -174,7 +169,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       _deskripsi,
       _maknaSpiritual,
       _konteksBudaya,
-      _mediaUrl,
       ..._detail.values,
       ..._detailPeristiwa.values,
     ]) {
@@ -222,10 +216,8 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         isi[KunciUsulan.periode] = _periode;
         isi[KunciUsulan.jenisPeristiwa] = _jenisPeristiwa;
         isi[KunciUsulan.detailPeristiwa] = _rakitDetailPeristiwa();
-        isi[KunciUsulan.jenisMedia] = _jenisMedia;
-        isi[KunciUsulan.mediaUrl] = _jenisMedia == 'gambar'
-            ? ''
-            : _mediaUrl.text.trim();
+        isi[KunciUsulan.jenisMedia] = 'gambar';
+        isi[KunciUsulan.mediaUrl] = '';
         isi[KunciUsulan.blokKonten] =
             BlokKontenModel.listToMapList(_blokKontenSejarah);
         final daftar = _peristiwa
@@ -243,10 +235,8 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         isi[KunciUsulan.konteksBudaya] = _konteksBudaya.text.trim();
         isi[KunciUsulan.destinasi] = _destinasi;
         isi[KunciUsulan.detailKategori] = _rakitDetail();
-        isi[KunciUsulan.jenisMedia] = _jenisMedia;
-        isi[KunciUsulan.mediaUrl] = _jenisMedia == 'gambar'
-            ? ''
-            : _mediaUrl.text.trim();
+        isi[KunciUsulan.jenisMedia] = 'gambar';
+        isi[KunciUsulan.mediaUrl] = '';
         isi[KunciUsulan.blokKonten] =
             BlokKontenModel.listToMapList(_blokKontenBudaya);
     }
@@ -661,36 +651,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         onPilih: _pilihGambar,
         onHapus: () => setState(() => _gambar = null),
       ),
-      PilihanDropdown<String>(
-        label: 'Format Media Utama',
-        nilai: _jenisMedia,
-        wajib: true,
-        pilihan: const [
-          DropdownMenuItem(value: 'gambar', child: Text('Foto / Gambar Saja')),
-          DropdownMenuItem(
-            value: 'video',
-            child: Text('Video Berkas / Galeri'),
-          ),
-          DropdownMenuItem(
-            value: 'youtube',
-            child: Text('Video Tautan YouTube'),
-          ),
-        ],
-        onChanged: (nilai) {
-          if (nilai == null) return;
-          setState(() => _jenisMedia = nilai);
-        },
-      ),
-      if (_jenisMedia != 'gambar')
-        IsianTeks(
-          label: _jenisMedia == 'youtube'
-              ? 'Tautan Video YouTube'
-              : 'Path / URL Video',
-          controller: _mediaUrl,
-          petunjuk: _jenisMedia == 'youtube'
-              ? 'Contoh: https://www.youtube.com/watch?v=...'
-              : 'Contoh: https://... atau path berkas video',
-        ),
 
       if (peristiwa != null && peristiwa.field.isNotEmpty) ...[
         JudulBagian(
@@ -798,36 +758,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         onPilih: _pilihGambar,
         onHapus: () => setState(() => _gambar = null),
       ),
-      PilihanDropdown<String>(
-        label: 'Format Media Utama',
-        nilai: _jenisMedia,
-        wajib: true,
-        pilihan: const [
-          DropdownMenuItem(value: 'gambar', child: Text('Foto / Gambar Saja')),
-          DropdownMenuItem(
-            value: 'video',
-            child: Text('Video Berkas / Galeri'),
-          ),
-          DropdownMenuItem(
-            value: 'youtube',
-            child: Text('Video Tautan YouTube'),
-          ),
-        ],
-        onChanged: (nilai) {
-          if (nilai == null) return;
-          setState(() => _jenisMedia = nilai);
-        },
-      ),
-      if (_jenisMedia != 'gambar')
-        IsianTeks(
-          label: _jenisMedia == 'youtube'
-              ? 'Tautan Video YouTube'
-              : 'Path / URL Video',
-          controller: _mediaUrl,
-          petunjuk: _jenisMedia == 'youtube'
-              ? 'Contoh: https://www.youtube.com/watch?v=...'
-              : 'Contoh: https://... atau path berkas video',
-        ),
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: GestureDetector(
