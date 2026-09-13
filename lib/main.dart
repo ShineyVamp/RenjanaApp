@@ -36,9 +36,9 @@ void main() async {
   FirestoreSeedService().inisialisasiKontenEnsiklopedia();
   // kategori
   await KategoriRepository().muat();
-  final c = DevicePreview.controller;
-  await c.applyPreset(DevicePresets.pixel10);
-  await c.setOrientation(Orientation.portrait);
+  // final c = DevicePreview.controller;
+  // await c.applyPreset(DevicePresets.pixel10);
+  // await c.setOrientation(Orientation.portrait);
   runApp(const RenjanaApp());
 }
 
