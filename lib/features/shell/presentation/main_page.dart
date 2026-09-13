@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/preference_handler.dart';
 import 'package:renjana/features/capaian/data/repositories/runtun_repository.dart';
@@ -52,12 +51,12 @@ class _MainPageState extends State<MainPage> {
     'Profil',
   ];
 
-  final List<String> _activeIcons = [
-    'assets/animations/home.json',
-    'assets/animations/compass.json',
-    'assets/animations/map.json',
-    '',
-    'assets/animations/person.json',
+  final List<IconData> _activeIcons = [
+    Icons.home_rounded,
+    Icons.explore_rounded,
+    Icons.map_rounded,
+    Icons.forum_rounded,
+    Icons.person_rounded,
   ];
 
   final List<IconData> _inactiveIcons = [
@@ -146,24 +145,15 @@ class _MainPageState extends State<MainPage> {
                               height: 28,
                               width: 28,
                               child: Center(
-                                child: isSelected
-                                    ? (_activeIcons[index].isNotEmpty
-                                        ? Lottie.asset(
-                                            _activeIcons[index],
-                                            frameRate: const FrameRate(120),
-                                            repeat: false,
-                                            fit: BoxFit.contain,
-                                          )
-                                        : const Icon(
-                                            Icons.forum_rounded,
-                                            size: 24,
-                                            color: AppColors.primary,
-                                          ))
-                                    : Icon(
-                                        _inactiveIcons[index],
-                                        size: 24,
-                                        color: AppColors.textMuted,
-                                      ),
+                                child: Icon(
+                                  isSelected
+                                      ? _activeIcons[index]
+                                      : _inactiveIcons[index],
+                                  size: 24,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.textMuted,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 4),
