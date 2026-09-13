@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/auth/data/models/user_model.dart';
+import '../../firebase_options.dart';
 
 class FirebaseAuthService {
   static final FirebaseAuthService _instance = FirebaseAuthService._internal();
@@ -95,8 +97,29 @@ class FirebaseAuthService {
 
     final docSnap = await _usersCol.doc(firebaseUser.uid).get();
     if (docSnap.exists && docSnap.data() != null) {
+      final docData = docSnap.data()!;
+      final firestoreEmail = docData['email'] as String? ?? '';
+      // auto-heal sinkronisasi email firebase auth bila berbeda dengan firestore
+      if (firestoreEmail.isNotEmpty &&
+          firebaseUser.email != null &&
+          firestoreEmail.toLowerCase() != firebaseUser.email!.toLowerCase()) {
+        try {
+          final idToken = await firebaseUser.getIdToken();
+          if (idToken != null) {
+            final apiKey = DefaultFirebaseOptions.currentPlatform.apiKey;
+            final url =
+                'https://identitytoolkit.googleapis.com/v1/accounts:update?key=$apiKey';
+            await Dio().post(url, data: {
+              'idToken': idToken,
+              'email': firestoreEmail.trim().toLowerCase(),
+              'returnSecureToken': true,
+            });
+            await firebaseUser.reload();
+          }
+        } catch (_) {}
+      }
       return UserSQLModel.fromFirestore(
-        docSnap.data()!,
+        docData,
         docId: firebaseUser.uid,
       );
     }
@@ -251,6 +274,156 @@ class FirebaseAuthService {
           }
         }
       } catch (_) {}
+    }
+  }
+
+  // cari email dari identifier
+  Future<String?> resolveEmailFromIdentifier(String identifier) async {
+    final bersih = identifier.trim();
+    if (bersih.isEmpty) return null;
+    if (bersih.contains('@')) return bersih;
+
+    try {
+      final snap = await _usersCol
+          .where('username', isEqualTo: bersih.toLowerCase())
+          .limit(1)
+          .get();
+      if (snap.docs.isNotEmpty) {
+        return snap.docs.first.data()['email'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // reset password
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email.trim());
+  }
+
+  // ganti password
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw FirebaseAuthException(
+        code: 'user-not-found',
+        message: 'Pengguna tidak terautentikasi.',
+      );
+    }
+
+    final cred = EmailAuthProvider.credential(
+      email: user.email!,
+      password: currentPassword.trim(),
+    );
+    await user.reauthenticateWithCredential(cred);
+    await user.updatePassword(newPassword.trim());
+  }
+
+  // perbarui email autentikasi
+  Future<({bool sukses, String? galat, bool butuhReauth})> updateAuthEmail(
+    String newEmail, {
+    String? passwordKonfirmasi,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return (
+        sukses: false,
+        galat: 'Sesi pengguna tidak ditemukan.',
+        butuhReauth: false,
+      );
+    }
+
+    final emailBersih = newEmail.trim().toLowerCase();
+    if (emailBersih == user.email?.toLowerCase()) {
+      return (sukses: true, galat: null, butuhReauth: false);
+    }
+
+    try {
+      if (passwordKonfirmasi != null &&
+          passwordKonfirmasi.isNotEmpty &&
+          user.email != null) {
+        final cred = EmailAuthProvider.credential(
+          email: user.email!,
+          password: passwordKonfirmasi.trim(),
+        );
+        await user.reauthenticateWithCredential(cred);
+      }
+
+      final idToken = await user.getIdToken();
+      if (idToken == null) {
+        return (
+          sukses: false,
+          galat: 'Gagal mendapatkan token sesi.',
+          butuhReauth: false,
+        );
+      }
+
+      final apiKey = DefaultFirebaseOptions.currentPlatform.apiKey;
+      final url =
+          'https://identitytoolkit.googleapis.com/v1/accounts:update?key=$apiKey';
+      await Dio().post(url, data: {
+        'idToken': idToken,
+        'email': emailBersih,
+        'returnSecureToken': true,
+      });
+
+      await user.reload();
+      return (sukses: true, galat: null, butuhReauth: false);
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final errorMsg = data is Map
+          ? (data['error']?['message'] as String? ?? '')
+          : '';
+
+      if (errorMsg.contains('CREDENTIAL_TOO_OLD') ||
+          errorMsg.contains('TOKEN_EXPIRED')) {
+        return (
+          sukses: false,
+          galat:
+              'Sesi login telah kedaluwarsa. Masukkan password Anda untuk mengonfirmasi penggantian email.',
+          butuhReauth: true,
+        );
+      }
+      if (errorMsg.contains('EMAIL_EXISTS')) {
+        return (
+          sukses: false,
+          galat: 'Email tersebut sudah digunakan akun lain.',
+          butuhReauth: false,
+        );
+      }
+      if (errorMsg.contains('INVALID_EMAIL')) {
+        return (
+          sukses: false,
+          galat: 'Format email tidak valid.',
+          butuhReauth: false,
+        );
+      }
+      return (
+        sukses: false,
+        galat: 'Gagal memperbarui email di Firebase Auth: $errorMsg',
+        butuhReauth: false,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        return (
+          sukses: false,
+          galat: 'Password konfirmasi salah.',
+          butuhReauth: true,
+        );
+      }
+      return (
+        sukses: false,
+        galat: e.message ?? 'Gagal memperbarui email.',
+        butuhReauth: false,
+      );
+    } catch (e) {
+      return (
+        sukses: false,
+        galat: 'Gagal memperbarui email: $e',
+        butuhReauth: false,
+      );
     }
   }
 

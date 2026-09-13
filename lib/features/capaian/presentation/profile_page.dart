@@ -22,6 +22,8 @@ import 'package:renjana/features/capaian/data/repositories/runtun_repository.dar
 import 'edit_profil_page.dart';
 import 'jejak_saya_page.dart';
 import 'widgets/panel_lencana.dart';
+import '../../auth/presentation/widgets/dialog_lupa_password.dart';
+import 'widgets/bottom_sheet_ganti_password.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -203,6 +205,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               PanelLencana(onBerubah: _muatData),
                               const SizedBox(height: 14),
                               _buildPanelKontribusi(),
+                              const SizedBox(height: 14),
+                              _buildPanelKeamanan(user),
                               const SizedBox(height: 26),
                               _buildTombolLogout(),
                               const SizedBox(height: 18),
@@ -563,6 +567,136 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // section keamanan akun
+  Widget _buildPanelKeamanan(UserSQLModel? user) {
+    final email = (user?.email ?? '').trim().isNotEmpty
+        ? user!.email
+        : PreferenceHandler.userEmail;
+
+    return Container(
+      decoration: AppDekorasi.panel(),
+      padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('KEAMANAN AKUN', style: AppTypography.eyebrow()),
+          const SizedBox(height: 12),
+
+          // opsi ganti password
+          InkWell(
+            onTap: () {
+              BottomSheetGantiPassword.show(context, emailPengguna: email);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.key_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ganti Password',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Perbarui password dengan memasukkan password lama',
+                          style: AppTypography.caption(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Divider(color: AppColors.borderPrimary, height: 1),
+          ),
+
+          // opsi lupa password
+          InkWell(
+            onTap: () {
+              DialogLupaPassword.show(context, emailAwal: email);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.lock_reset_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Lupa Password',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Kirim tautan pemulihan kata sandi ke email Anda',
+                          style: AppTypography.caption(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

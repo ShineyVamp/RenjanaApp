@@ -9,6 +9,7 @@ import '../../../core/widgets/custom_app_bar.dart';
 import 'package:renjana/features/shell/presentation/main_page.dart';
 import 'package:renjana/features/auth/data/repositories/user_repository.dart';
 import 'register_page.dart';
+import 'widgets/dialog_lupa_password.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -132,7 +133,28 @@ class _LoginPageState extends State<LoginPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 10),
+
+                // tombol lupa password
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      DialogLupaPassword.show(
+                        context,
+                        emailAwal: _emailController.text.trim(),
+                      );
+                    },
+                    child: Text(
+                      'Lupa Password?',
+                      style: AppTypography.labelBold(
+                        color: AppColors.primary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
                 // tombol masuk
                 AppButton(

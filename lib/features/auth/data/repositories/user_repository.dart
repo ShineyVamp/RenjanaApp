@@ -10,9 +10,17 @@ import '../models/user_model.dart';
 class HasilSuntingProfil {
   final UserSQLModel? user;
   final String? galat;
+  final bool butuhReautentikasi;
 
-  const HasilSuntingProfil.berhasil(this.user) : galat = null;
-  const HasilSuntingProfil.gagal(this.galat) : user = null;
+  const HasilSuntingProfil.berhasil(this.user)
+      : galat = null,
+        butuhReautentikasi = false;
+  const HasilSuntingProfil.gagal(this.galat)
+      : user = null,
+        butuhReautentikasi = false;
+  const HasilSuntingProfil.butuhReauth(this.galat)
+      : user = null,
+        butuhReautentikasi = true;
 
   bool get sukses => user != null;
 }
@@ -159,6 +167,7 @@ class UserRepository {
     required String email,
     String? fotoProfil,
     bool hapusFoto = false,
+    String? passwordKonfirmasi,
   }) async {
     final namaBersih = nama.trim();
     final usernameBersih = username.trim().toLowerCase();
@@ -190,6 +199,24 @@ class UserRepository {
     }
 
     final currentUser = await getUserByUid(userUid);
+
+    // sinkronisasi email ke firebase auth jika email berubah
+    if (currentUser != null &&
+        emailBersih.toLowerCase() != currentUser.email.toLowerCase()) {
+      final resEmail = await _authService.updateAuthEmail(
+        emailBersih,
+        passwordKonfirmasi: passwordKonfirmasi,
+      );
+      if (resEmail.butuhReauth) {
+        return HasilSuntingProfil.butuhReauth(resEmail.galat);
+      }
+      if (!resEmail.sukses) {
+        return HasilSuntingProfil.gagal(
+          resEmail.galat ?? 'Gagal memperbarui email autentikasi.',
+        );
+      }
+    }
+
     final oldFoto = currentUser?.fotoProfil;
 
     String? fotoFinal = fotoProfil;
@@ -276,5 +303,100 @@ class UserRepository {
 
   Future<void> inisialisasiAdminBawaan() async {
     await _authService.seedAdminAccounts();
+  }
+
+  // reset password
+  Future<({bool sukses, String pesan})> kirimResetPassword(
+    String identifier,
+  ) async {
+    final bersih = identifier.trim();
+    if (bersih.isEmpty) {
+      return (sukses: false, pesan: 'Email atau username tidak boleh kosong.');
+    }
+
+    try {
+      final emailTujuan = await _authService.resolveEmailFromIdentifier(bersih);
+      if (emailTujuan == null || emailTujuan.isEmpty) {
+        return (
+          sukses: false,
+          pesan: 'Akun dengan username atau email tersebut tidak ditemukan.',
+        );
+      }
+
+      await _authService.sendPasswordResetEmail(emailTujuan);
+      return (
+        sukses: true,
+        pesan:
+            'Tautan pemulihan kata sandi telah dikirim ke $emailTujuan. Silakan periksa kotak masuk atau folder spam Anda.',
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        return (
+          sukses: false,
+          pesan: 'Pengguna dengan email tersebut tidak ditemukan.',
+        );
+      }
+      if (e.code == 'invalid-email') {
+        return (sukses: false, pesan: 'Format email tidak valid.');
+      }
+      return (
+        sukses: false,
+        pesan: e.message ?? 'Gagal mengirim email pemulihan.',
+      );
+    } catch (e) {
+      return (sukses: false, pesan: 'Terjadi kesalahan: $e');
+    }
+  }
+
+  // ganti password dengan password lama
+  Future<({bool sukses, String pesan})> gantiPassword({
+    required String passwordLama,
+    required String passwordBaru,
+  }) async {
+    final lama = passwordLama.trim();
+    final baru = passwordBaru.trim();
+
+    if (lama.isEmpty) {
+      return (sukses: false, pesan: 'Password lama tidak boleh kosong.');
+    }
+    if (baru.isEmpty) {
+      return (sukses: false, pesan: 'Password baru tidak boleh kosong.');
+    }
+    if (baru.length < 8) {
+      return (sukses: false, pesan: 'Password baru minimal 8 karakter.');
+    }
+    if (lama == baru) {
+      return (
+        sukses: false,
+        pesan: 'Password baru tidak boleh sama dengan password lama.',
+      );
+    }
+
+    try {
+      await _authService.changePassword(
+        currentPassword: lama,
+        newPassword: baru,
+      );
+      return (sukses: true, pesan: 'Password berhasil diperbarui.');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        return (sukses: false, pesan: 'Password lama tidak sesuai.');
+      }
+      if (e.code == 'weak-password') {
+        return (
+          sukses: false,
+          pesan: 'Password baru terlalu lemah. Gunakan minimal 8 karakter.',
+        );
+      }
+      if (e.code == 'requires-recent-login') {
+        return (
+          sukses: false,
+          pesan: 'Sesi Anda telah kedaluwarsa. Silakan logout dan login kembali.',
+        );
+      }
+      return (sukses: false, pesan: e.message ?? 'Gagal mengubah password.');
+    } catch (e) {
+      return (sukses: false, pesan: 'Terjadi kesalahan: $e');
+    }
   }
 }

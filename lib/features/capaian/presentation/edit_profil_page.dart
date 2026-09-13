@@ -85,6 +85,49 @@ class _EditProfilPageState extends State<EditProfilPage> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
+    if (hasil.butuhReautentikasi) {
+      final pwd = await _tanyaPasswordKonfirmasi();
+      if (pwd == null || pwd.trim().isEmpty) return;
+
+      setState(() => _menyimpan = true);
+      final hasilReauth = await _userRepository.perbaruiProfil(
+        id: widget.user.id ?? PreferenceHandler.userId,
+        nama: _nama.text,
+        username: _username.text,
+        email: _email.text,
+        fotoProfil: _foto,
+        hapusFoto: _hapusFoto,
+        passwordKonfirmasi: pwd.trim(),
+      );
+      if (!mounted) return;
+      setState(() => _menyimpan = false);
+
+      if (!hasilReauth.sukses) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(hasilReauth.galat ?? 'Gagal menyimpan perubahan.'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      await PreferenceHandler.saveUser(hasilReauth.user!);
+      if (!mounted) return;
+
+      context.pop(true);
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Profil dan email berhasil diperbarui'),
+          duration: Duration(milliseconds: 1400),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.success,
+        ),
+      );
+      return;
+    }
+
     if (!hasil.sukses) {
       messenger.showSnackBar(
         SnackBar(
@@ -108,6 +151,105 @@ class _EditProfilPageState extends State<EditProfilPage> {
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.success,
       ),
+    );
+  }
+
+  Future<String?> _tanyaPasswordKonfirmasi() async {
+    final controller = TextEditingController();
+    bool obscure = true;
+
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: AppColors.borderLight),
+              ),
+              title: Text(
+                'Konfirmasi Penggantian Email',
+                style: AppTypography.headingSmall(),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Demi keamanan akun, masukkan password Anda untuk mengonfirmasi penggantian email.',
+                    style: AppTypography.bodySmall(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    obscureText: obscure,
+                    style: AppTypography.bodyMedium(
+                      color: AppColors.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.background,
+                      hintText: 'Password Anda saat ini',
+                      hintStyle: AppTypography.bodyMedium(
+                        color: Colors.black38,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderLight,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_off : Icons.visibility,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () {
+                          setDialogState(() => obscure = !obscure);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(
+                    'Batal',
+                    style: AppTypography.labelBold(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(controller.text),
+                  child: Text(
+                    'Konfirmasi',
+                    style: AppTypography.labelBold(color: AppColors.primary),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
