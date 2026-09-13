@@ -14,8 +14,6 @@ enum JenisSyarat {
   arsipPeriode,
   // seluruh arsip pada satu gugus pulau sudah dibuka
   arsipPulau,
-  // sejumlah tema kuis pernah dikerjakan tanpa salah
-  kuisSempurna,
   // runtun harian terpanjang mencapai sekian hari
   runtun,
   // sejumlah arsip berbeda pernah dibuka
@@ -106,20 +104,6 @@ const List<Lencana> _lencanaKebiasaan = [
     keterangan: 'Datang tiga puluh hari berturut-turut',
     syarat: JenisSyarat.runtun,
     ambang: 30,
-  ),
-  Lencana(
-    kode: 'KUS-1',
-    nama: 'Tanpa Cela',
-    keterangan: 'Selesaikan satu tema kuis tanpa jawaban salah',
-    syarat: JenisSyarat.kuisSempurna,
-    ambang: 1,
-  ),
-  Lencana(
-    kode: 'KUS-5',
-    nama: 'Lima Tema Sempurna',
-    keterangan: 'Kerjakan lima tema kuis tanpa jawaban salah',
-    syarat: JenisSyarat.kuisSempurna,
-    ambang: 5,
   ),
   Lencana(
     kode: 'ARS-10',

@@ -28,14 +28,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
       'stepNumber': '02/03',
       'title': 'Setiap Tempat\nmenyimpan kisah.',
       'description':
-          'Telusuri Sejarah, Budaya, dan berbagi sumber terpercaya. Uji pengetahuanmu melalui kuis interaktif.',
+          'Telusuri Sejarah, Budaya, dan berbagai sumber terpercaya dalam genggaman.',
       'imagePath': 'assets/images/onboardin2.jpg',
     },
     {
       'stepNumber': '03/03',
       'title': 'Kisah dari\ndaerahmu juga berarti.',
       'description':
-          'Telusuri Sejarah, Budaya, dan berbagai sumber terpercaya. Uji pengetahuanmu melalui kuis interaktif.',
+          'Turut berkontribusi memperkaya khazanah nusantara dengan membagikan warisan budaya leluhur.',
       'imagePath': 'assets/images/onboardin3.jpg',
     },
   ];

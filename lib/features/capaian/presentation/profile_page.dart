@@ -15,14 +15,12 @@ import '../../jelajah/data/repositories/jelajah_repository.dart';
 import '../../kontribusi/data/models/usulan_model.dart';
 import '../../kontribusi/data/repositories/usulan_repository.dart';
 import '../../kontribusi/presentation/kontribusi_page.dart';
-import '../../quiz/data/repositories/hasil_kuis_repository.dart';
 import '../data/models/lencana_model.dart';
 import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
 import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
 import 'package:renjana/features/capaian/data/repositories/runtun_repository.dart';
 import 'edit_profil_page.dart';
 import 'jejak_saya_page.dart';
-import 'riwayat_kuis_page.dart';
 import 'widgets/panel_lencana.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -37,7 +35,6 @@ class _ProfilePageState extends State<ProfilePage> {
   final JelajahRepository _jelajahRepository = JelajahRepository();
   final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
   final RuntunRepository _runtunRepository = RuntunRepository();
-  final HasilKuisRepository _hasilKuisRepository = HasilKuisRepository();
   final UsulanRepository _usulanRepository = UsulanRepository();
   final LencanaRepository _lencanaRepository = LencanaRepository();
 
@@ -46,7 +43,6 @@ class _ProfilePageState extends State<ProfilePage> {
   static int _cachedJumlahProvinsi = 0;
   static String _cachedGelar = 'Pelajar';
   static RingkasanRuntun _cachedRuntun = const RingkasanRuntun();
-  static RingkasanKuis _cachedRingkasanKuis = const RingkasanKuis();
   static int _cachedUsulanTotal = 0;
   static int _cachedUsulanTerbuka = 0;
   static int _cachedUsulanDisetujui = 0;
@@ -57,7 +53,6 @@ class _ProfilePageState extends State<ProfilePage> {
   int _jumlahProvinsi = 0;
   String _gelar = 'Pelajar';
   RingkasanRuntun _runtun = const RingkasanRuntun();
-  RingkasanKuis _ringkasanKuis = const RingkasanKuis();
   int _usulanTotal = 0;
   int _usulanTerbuka = 0;
   int _usulanDisetujui = 0;
@@ -74,7 +69,6 @@ class _ProfilePageState extends State<ProfilePage> {
       _jumlahProvinsi = _cachedJumlahProvinsi;
       _gelar = _cachedGelar;
       _runtun = _cachedRuntun;
-      _ringkasanKuis = _cachedRingkasanKuis;
       _usulanTotal = _cachedUsulanTotal;
       _usulanTerbuka = _cachedUsulanTerbuka;
       _usulanDisetujui = _cachedUsulanDisetujui;
@@ -94,7 +88,6 @@ class _ProfilePageState extends State<ProfilePage> {
       _userRepository.getUserById(PreferenceHandler.userId),
       _arsipDibacaRepository.semua(),
       _runtunRepository.ringkasan(),
-      _hasilKuisRepository.ringkasan(),
       _usulanRepository.jumlahMilikSaya(),
       _usulanRepository.jumlahMilikSaya(status: StatusUsulan.menunggu),
       _usulanRepository.jumlahMilikSaya(status: StatusUsulan.revisi),
@@ -105,12 +98,11 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = (results[0] as UserSQLModel?) ?? sesi;
     final refs = results[1] as List<dynamic>;
     final runtun = results[2] as RingkasanRuntun;
-    final kuis = results[3] as RingkasanKuis;
-    final usulanTotal = results[4] as int;
-    final usulanMenunggu = results[5] as int;
-    final usulanRevisi = results[6] as int;
-    final usulanDisetujui = results[7] as int;
-    final statusLencana = results[8] as List<StatusLencana>;
+    final usulanTotal = results[3] as int;
+    final usulanMenunggu = results[4] as int;
+    final usulanRevisi = results[5] as int;
+    final usulanDisetujui = results[6] as int;
+    final statusLencana = results[7] as List<StatusLencana>;
 
     final dibaca = await _jelajahRepository.ambilDariRiwayat(refs.cast());
     final provinsi = dibaca
@@ -127,7 +119,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _cachedJumlahProvinsi = provinsi.length;
     _cachedGelar = gelar.nama;
     _cachedRuntun = runtun;
-    _cachedRingkasanKuis = kuis;
     _cachedUsulanTotal = usulanTotal;
     _cachedUsulanTerbuka = usulanMenunggu + usulanRevisi;
     _cachedUsulanDisetujui = usulanDisetujui;
@@ -140,7 +131,6 @@ class _ProfilePageState extends State<ProfilePage> {
       _jumlahProvinsi = provinsi.length;
       _gelar = gelar.nama;
       _runtun = runtun;
-      _ringkasanKuis = kuis;
       _usulanTotal = usulanTotal;
       _usulanTerbuka = usulanMenunggu + usulanRevisi;
       _usulanDisetujui = usulanDisetujui;
@@ -193,7 +183,7 @@ class _ProfilePageState extends State<ProfilePage> {
               )
             : Column(
                 children: [
-                  // header tetap, sejajar dengan Jelajah, Peta, dan Kuis
+                  // header tetap, sejajar dengan Jelajah dan Peta
                   const HeaderHalaman(judul: 'Profil', garisBawah: false),
                   Expanded(
                     child: Center(
@@ -211,8 +201,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               _buildStatistik(),
                               const SizedBox(height: 18),
                               PanelLencana(onBerubah: _muatData),
-                              const SizedBox(height: 14),
-                              _buildPanelRekorKuis(),
                               const SizedBox(height: 14),
                               _buildPanelKontribusi(),
                               const SizedBox(height: 26),
@@ -515,75 +503,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // section rekor kuis, ringkas dalam satu kotak
-  Widget _buildPanelRekorKuis() {
-    final ringkas = _ringkasanKuis;
-    final adaData = ringkas.percobaan > 0;
-
-    return GestureDetector(
-      onTap: () async {
-        await context.push(const RiwayatKuisPage());
-        if (!mounted) return;
-        await _muatData();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
-        decoration: AppDekorasi.panel(),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('REKOR KUIS', style: AppTypography.eyebrow()),
-                  const SizedBox(height: 2),
-                  Text(
-                    adaData ? 'Ketepatan ${ringkas.persen}%' : 'Belum ada kuis',
-                    style: GoogleFonts.dmSerifDisplay(
-                      fontSize: 24,
-                      color: AppColors.textPrimary,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    adaData
-                        ? '${ringkas.totalBenar} benar dari '
-                              '${ringkas.totalSoal} soal · '
-                              '${ringkas.percobaan} percobaan'
-                        : 'Kerjakan satu kuis untuk mulai mencatat rekor',
-                    style: AppTypography.bodySmall().copyWith(
-                      fontSize: 11,
-                      height: 1.35,
-                    ),
-                  ),
-                  if (ringkas.temaSempurna > 0) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      '${ringkas.temaSempurna} tema sempurna',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 20,
-              color: AppColors.primary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // section kontribusi, memakai bentuk yang sama dengan panel rekor kuis
+  // section kontribusi
   Widget _buildPanelKontribusi() {
     final adaTindakan = _usulanTerbuka > 0;
 

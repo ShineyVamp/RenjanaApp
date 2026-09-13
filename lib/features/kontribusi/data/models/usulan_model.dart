@@ -8,7 +8,7 @@ import '../../../sejarah/data/models/sejarah_model.dart';
 import 'blok_konten_model.dart';
 
 // Jenis arsip yang diusulkan. Nilainya ikut tersimpan di kolom `jenis`.
-enum JenisUsulan { sejarah, budaya, kuis }
+enum JenisUsulan { sejarah, budaya }
 
 // Usulan bisa berupa arsip baru atau perbaikan arsip yang sudah terbit.
 enum MaksudUsulan { baru, koreksi }
@@ -23,8 +23,6 @@ extension RupaJenisUsulan on JenisUsulan {
         return 'Sejarah';
       case JenisUsulan.budaya:
         return 'Budaya';
-      case JenisUsulan.kuis:
-        return 'Tema Kuis';
     }
   }
 
@@ -34,8 +32,6 @@ extension RupaJenisUsulan on JenisUsulan {
         return Icons.history_edu_rounded;
       case JenisUsulan.budaya:
         return Icons.temple_hindu_rounded;
-      case JenisUsulan.kuis:
-        return Icons.quiz_rounded;
     }
   }
 }
@@ -122,14 +118,6 @@ class KunciUsulan {
   static const String konteksBudaya = 'konteksBudaya';
   static const String detailKategori = 'detailKategori';
   static const String destinasi = 'destinasi';
-
-  // tema kuis
-  static const String tema = 'tema';
-  static const String kategoriKuis = 'kategoriKuis';
-  static const String subKategori = 'subKategori';
-
-  // daftar soal: {soal, jawaban[4], benar, penjelasan}
-  static const String soal = 'soal';
 
   // Salinan arsip sebelum dikoreksi, dipakai memulihkannya bila admin menarik
   // kembali persetujuan.

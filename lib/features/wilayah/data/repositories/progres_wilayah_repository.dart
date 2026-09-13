@@ -7,9 +7,7 @@ import '../../../../core/constants/wilayah_nusantara.dart';
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
-import 'package:renjana/features/quiz/data/models/hasil_kuis_model.dart';
 import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
-import 'package:renjana/features/quiz/data/repositories/hasil_kuis_repository.dart';
 import 'wilayah_repository.dart';
 
 // Tingkat penuntasan satu provinsi.
@@ -20,9 +18,8 @@ extension RupaTingkat on TingkatWilayah {
   Color get warna {
     switch (this) {
       case TingkatWilayah.dikuasai:
-        return AppColors.gold;
       case TingkatWilayah.tuntas:
-        return AppColors.perak;
+        return AppColors.gold;
       case TingkatWilayah.dikunjungi:
         return AppColors.perunggu;
       case TingkatWilayah.belum:
@@ -57,10 +54,6 @@ class ProgresProvinsi {
   final List<HasilJelajah> belumDibaca;
   final List<HasilJelajah> sudahDibaca;
 
-  // section status kuis
-  final bool kuisSempurna;
-  final String temaKuis;
-
   // section pembaruan arsip
   final bool adaArsipBaru;
   final int selisihArsipBaru;
@@ -72,8 +65,6 @@ class ProgresProvinsi {
     required this.arsipDibaca,
     this.belumDibaca = const [],
     this.sudahDibaca = const [],
-    this.kuisSempurna = false,
-    this.temaKuis = '',
     this.adaArsipBaru = false,
     this.selisihArsipBaru = 0,
   });
@@ -85,7 +76,6 @@ class ProgresWilayahRepository {
   final FirebaseFirestore _firestore;
   final WilayahRepository _wilayahRepository;
   final ArsipDibacaRepository _arsipDibacaRepository;
-  final HasilKuisRepository _hasilKuisRepository;
 
   static Map<String, Map<String, Object?>>? _cachedCatatan;
   static String? _cachedUser;
@@ -94,14 +84,10 @@ class ProgresWilayahRepository {
     FirebaseFirestore? firestore,
     WilayahRepository? wilayahRepository,
     ArsipDibacaRepository? arsipDibacaRepository,
-    HasilKuisRepository? hasilKuisRepository,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _wilayahRepository = wilayahRepository ?? WilayahRepository(),
         _arsipDibacaRepository =
-            arsipDibacaRepository ?? ArsipDibacaRepository(),
-        _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository();
-
-  static String temaKuisProvinsi(String provinsi) => 'Kekayaan $provinsi';
+            arsipDibacaRepository ?? ArsipDibacaRepository();
 
   // identitas pengguna
   String get _userUid {
@@ -178,8 +164,7 @@ class ProgresWilayahRepository {
     final arsip = await _wilayahRepository.arsipProvinsi(namaProvinsi);
     final dibaca = await _refDibaca();
     final catatan = await _catatan();
-    final rekor = await _hasilKuisRepository.rekorPerTema();
-    return _hitung(namaProvinsi, arsip, dibaca, catatan, rekor, simpan: true);
+    return _hitung(namaProvinsi, arsip, dibaca, catatan, simpan: true);
   }
 
   // Tingkat seluruh provinsi sekaligus, untuk pewarnaan penanda peta.
@@ -188,7 +173,6 @@ class ProgresWilayahRepository {
     final kelompok = await _wilayahRepository.arsipPerProvinsi();
     final dibaca = await _refDibaca();
     final catatan = await _catatan();
-    final rekor = await _hasilKuisRepository.rekorPerTema();
 
     final hasil = <String, TingkatWilayah>{};
     for (final provinsi in semuaProvinsi) {
@@ -198,7 +182,6 @@ class ProgresWilayahRepository {
         kelompok[kunci] ?? const [],
         dibaca,
         catatan,
-        rekor,
         simpan: false,
       );
       hasil[kunci] = progres.tingkat;
@@ -210,8 +193,7 @@ class ProgresWilayahRepository {
     String namaProvinsi,
     List<HasilJelajah> arsip,
     Set<String> dibaca,
-    Map<String, Map<String, Object?>> catatan,
-    Map<String, HasilKuis> rekor, {
+    Map<String, Map<String, Object?>> catatan, {
     required bool simpan,
   }) async {
     final belum = arsip
@@ -222,17 +204,12 @@ class ProgresWilayahRepository {
         .toList();
     final terbaca = arsip.length - belum.length;
 
-    final tema = temaKuisProvinsi(namaProvinsi);
-    final sempurna = rekor[tema.toLowerCase()]?.sempurna ?? false;
-
     final semua = arsip.isNotEmpty && belum.isEmpty;
     final TingkatWilayah tingkat;
     if (terbaca == 0) {
       tingkat = TingkatWilayah.belum;
     } else if (!semua) {
       tingkat = TingkatWilayah.dikunjungi;
-    } else if (sempurna) {
-      tingkat = TingkatWilayah.dikuasai;
     } else {
       tingkat = TingkatWilayah.tuntas;
     }
@@ -254,8 +231,6 @@ class ProgresWilayahRepository {
       arsipDibaca: terbaca,
       belumDibaca: belum,
       sudahDibaca: sudah,
-      kuisSempurna: sempurna,
-      temaKuis: tema,
       adaArsipBaru: adaBaru,
       selisihArsipBaru: adaBaru ? arsip.length - arsipTercatat : 0,
     );

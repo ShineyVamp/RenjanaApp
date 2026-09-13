@@ -4,7 +4,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/budaya_kategori.dart';
-import '../../../../core/constants/kuis_kategori.dart';
 import '../../../../core/widgets/app_image.dart';
 import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
 import 'package:renjana/features/kontribusi/data/models/usulan_model.dart';
@@ -46,8 +45,6 @@ class PratinjauUsulan extends StatelessWidget {
         return _isiSejarah();
       case JenisUsulan.budaya:
         return _isiBudaya();
-      case JenisUsulan.kuis:
-        return _isiKuis();
     }
   }
 
@@ -147,65 +144,6 @@ class PratinjauUsulan extends StatelessWidget {
     }
   }
 
-  List<Widget> _isiKuis() {
-    final kategori = usulan.teks(KunciUsulan.kategoriKuis);
-    final sub = usulan.teks(KunciUsulan.subKategori);
-    final soal = usulan.daftar(KunciUsulan.soal);
-
-    return [
-      _baris('Tema', usulan.teks(KunciUsulan.tema)),
-      _baris('Kategori', kategori),
-      if (kategoriPunyaSubKategori(kategori))
-        _baris('Kelompok', labelSubKategori(kategori, sub)),
-      _baris('Provinsi', usulan.provinsi),
-      _judul('${soal.length} Soal'),
-      ...List.generate(soal.length, (i) {
-        final s = soal[i];
-        final jawaban = (s['jawaban'] as List? ?? const [])
-            .map((e) => '$e')
-            .toList();
-        final benar = (s['benar'] as num?)?.toInt() ?? 0;
-
-        return _kotak([
-          _blok('Soal ${i + 1}', s['soal']?.toString() ?? ''),
-          ...List.generate(jawaban.length, (j) {
-            final tepat = j == benar;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    tepat ? Icons.check_circle_rounded : Icons.circle_outlined,
-                    size: 15,
-                    color: tepat ? AppColors.success : AppColors.surfaceMuted,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      jawaban[j],
-                      style: AppTypography.caption(
-                        fontSize: 12,
-                        fontWeight: tepat ? FontWeight.w800 : FontWeight.normal,
-                        color: tepat
-                            ? AppColors.textPrimary
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-          if ((s['penjelasan']?.toString() ?? '').isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: _blok('Penjelasan', s['penjelasan'].toString()),
-            ),
-        ]);
-      }),
-    ];
-  }
 
   // section potongan tampilan
 

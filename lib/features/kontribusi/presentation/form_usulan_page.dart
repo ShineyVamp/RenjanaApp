@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/budaya_kategori.dart';
-import '../../../core/constants/kuis_kategori.dart';
 import '../../../core/constants/wilayah_nusantara.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/services/cloudinary_service.dart';
@@ -64,11 +63,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   // isian yang sudah diketik tidak hilang saat kategorinya diganti.
   final Map<String, TextEditingController> _detail = {};
 
-  // tema kuis
-  final _tema = TextEditingController();
-  String _kategoriKuis = kategoriSejarah;
-  String _subKategori = '';
-  final List<_EntriSoal> _soal = [];
 
   // Menyunting usulan yang sudah tersimpan, berbeda dari usulan koreksi yang
   // isinya baru disalin dari arsip dan belum punya id.
@@ -101,7 +95,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       _muatDariUsulan(awal);
     } else {
       _peristiwa.add(_EntriPeristiwa());
-      _soal.add(_EntriSoal());
     }
   }
 
@@ -164,19 +157,9 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         }
         _blokKontenBudaya = List.from(awal.daftarBlokKonten);
 
-      case JenisUsulan.kuis:
-        _tema.text = awal.teks(KunciUsulan.tema);
-        final kat = awal.teks(KunciUsulan.kategoriKuis);
-        if (kuisKategoriList.contains(kat)) _kategoriKuis = kat;
-        _subKategori = awal.teks(KunciUsulan.subKategori);
-        for (final s in awal.daftar(KunciUsulan.soal)) {
-          _soal.add(_EntriSoal.dariMap(s));
-        }
-        if (_soal.isEmpty) _soal.add(_EntriSoal());
     }
 
     if (_peristiwa.isEmpty) _peristiwa.add(_EntriPeristiwa());
-    if (_soal.isEmpty) _soal.add(_EntriSoal());
   }
 
   @override
@@ -191,7 +174,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       _deskripsi,
       _maknaSpiritual,
       _konteksBudaya,
-      _tema,
       _mediaUrl,
       ..._detail.values,
       ..._detailPeristiwa.values,
@@ -200,9 +182,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     }
     for (final p in _peristiwa) {
       p.buang();
-    }
-    for (final s in _soal) {
-      s.buang();
     }
     super.dispose();
   }
@@ -270,15 +249,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
             : _mediaUrl.text.trim();
         isi[KunciUsulan.blokKonten] =
             BlokKontenModel.listToMapList(_blokKontenBudaya);
-
-      case JenisUsulan.kuis:
-        isi[KunciUsulan.tema] = _tema.text.trim();
-        isi[KunciUsulan.kategoriKuis] = _kategoriKuis;
-        isi[KunciUsulan.subKategori] = _subKategori;
-        isi[KunciUsulan.soal] = _soal
-            .map((s) => s.toMap())
-            .where((m) => (m['soal'] as String).isNotEmpty)
-            .toList();
     }
     return isi;
   }
@@ -331,8 +301,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         return _judulSejarah.text.trim();
       case JenisUsulan.budaya:
         return _judulBudaya.text.trim();
-      case JenisUsulan.kuis:
-        return _tema.text.trim();
     }
   }
 
@@ -356,11 +324,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       return;
     }
     if (!mounted) return;
-
-    if (_jenis == JenisUsulan.kuis && _soalKurang) {
-      _beriTahu('Setiap soal butuh pertanyaan dan empat pilihan.', gagal: true);
-      return;
-    }
 
     setState(() => _menyimpan = true);
 
@@ -426,14 +389,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     );
   }
 
-  // Soal dianggap kurang bila pertanyaannya kosong atau pilihannya tidak
-  // lengkap empat.
-  bool get _soalKurang => _soal.any((s) {
-    final map = s.toMap();
-    final jawaban = (map['jawaban'] as List).cast<String>();
-    return (map['soal'] as String).isEmpty ||
-        jawaban.any((j) => j.trim().isEmpty);
-  });
 
   void _beriTahu(String pesan, {bool gagal = false}) {
     final messenger = ScaffoldMessenger.of(context);
@@ -637,8 +592,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         return _buildIsianSejarah();
       case JenisUsulan.budaya:
         return _buildIsianBudaya();
-      case JenisUsulan.kuis:
-        return _buildIsianKuis();
     }
   }
 
@@ -940,128 +893,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     ];
   }
 
-  List<Widget> _buildIsianKuis() {
-    final opsi = opsiSubKategori(_kategoriKuis);
-
-    return [
-      const JudulBagian(teks: 'Tema Kuis'),
-      IsianTeks(
-        label: 'Nama Tema',
-        controller: _tema,
-        wajib: true,
-        petunjuk: 'Contoh: Kekayaan Sumatera Barat',
-      ),
-      PilihanDropdown<String>(
-        label: 'Kategori',
-        nilai: _kategoriKuis,
-        wajib: true,
-        pilihan: [
-          for (final k in kuisKategoriList)
-            DropdownMenuItem(value: k, child: Text(k)),
-        ],
-        onChanged: (nilai) {
-          if (nilai == null) return;
-          setState(() {
-            _kategoriKuis = nilai;
-            // penanda lama tidak berlaku di kategori baru
-            _subKategori = '';
-          });
-        },
-      ),
-      if (opsi.isNotEmpty)
-        PilihanDropdown<String>(
-          key: ValueKey('sub-$_kategoriKuis'),
-          label: _kategoriKuis == kategoriBudaya
-              ? 'Kategori Budaya'
-              : 'Provinsi Asal',
-          nilai: opsi.any((o) => o.nilai == _subKategori) ? _subKategori : '',
-          pilihan: [
-            const DropdownMenuItem(value: '', child: Text('Tanpa penanda')),
-            ...opsi.map(
-              (o) => DropdownMenuItem(
-                value: o.nilai,
-                child: Text(o.label, overflow: TextOverflow.ellipsis),
-              ),
-            ),
-          ],
-          onChanged: (nilai) => setState(() => _subKategori = nilai ?? ''),
-          petunjuk: 'Menentukan kelompok tema ini di halaman kategori kuis.',
-        ),
-
-      const JudulBagian(
-        teks: 'Soal',
-        keterangan: 'Minimal satu soal, tiap soal butuh empat pilihan jawaban.',
-      ),
-      ...List.generate(_soal.length, (i) {
-        final entri = _soal[i];
-        return KotakEntri(
-          judul: 'SOAL ${i + 1}',
-          onHapus: _soal.length > 1
-              ? () => setState(() => _soal.removeAt(i).buang())
-              : null,
-          children: [
-            IsianTeks(
-              label: 'Pertanyaan',
-              controller: entri.soal,
-              baris: 2,
-              wajib: true,
-            ),
-            ...List.generate(4, (j) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 30),
-                      child: GestureDetector(
-                        onTap: () => setState(() => entri.benar = j),
-                        behavior: HitTestBehavior.opaque,
-                        child: Icon(
-                          entri.benar == j
-                              ? Icons.radio_button_checked_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          size: 20,
-                          color: entri.benar == j
-                              ? AppColors.success
-                              : AppColors.surfaceMuted,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: IsianTeks(
-                        label: 'Pilihan ${String.fromCharCode(65 + j)}',
-                        controller: entri.jawaban[j],
-                        wajib: true,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Ketuk lingkaran di kiri untuk menandai jawaban benar.',
-                style: AppTypography.caption(fontSize: 10.5),
-              ),
-            ),
-            IsianTeks(
-              label: 'Penjelasan',
-              controller: entri.penjelasan,
-              baris: 3,
-              petunjuk: 'Muncul setelah soal dijawab. Boleh dikosongkan.',
-            ),
-          ],
-        );
-      }),
-      _buildTombolTambah(
-        'Tambah soal',
-        () => setState(() => _soal.add(_EntriSoal())),
-      ),
-    ];
-  }
 
   Widget _buildTombolTambah(String teks, VoidCallback onTap) {
     return Padding(
@@ -1128,45 +959,4 @@ class _EntriPeristiwa {
   }
 }
 
-// Satu soal kuis selagi diisi di form.
-class _EntriSoal {
-  final TextEditingController soal = TextEditingController();
-  final TextEditingController penjelasan = TextEditingController();
-  final List<TextEditingController> jawaban = List.generate(
-    4,
-    (_) => TextEditingController(),
-  );
-  int benar = 0;
 
-  _EntriSoal();
-
-  factory _EntriSoal.dariMap(Map<String, dynamic> map) {
-    final entri = _EntriSoal();
-    entri.soal.text = map['soal']?.toString() ?? '';
-    entri.penjelasan.text = map['penjelasan']?.toString() ?? '';
-    entri.benar = (map['benar'] as num?)?.toInt() ?? 0;
-
-    final daftar = map['jawaban'];
-    if (daftar is List) {
-      for (var i = 0; i < entri.jawaban.length && i < daftar.length; i++) {
-        entri.jawaban[i].text = daftar[i]?.toString() ?? '';
-      }
-    }
-    return entri;
-  }
-
-  Map<String, dynamic> toMap() => {
-    'soal': soal.text.trim(),
-    'jawaban': jawaban.map((c) => c.text.trim()).toList(),
-    'benar': benar,
-    'penjelasan': penjelasan.text.trim(),
-  };
-
-  void buang() {
-    soal.dispose();
-    penjelasan.dispose();
-    for (final c in jawaban) {
-      c.dispose();
-    }
-  }
-}

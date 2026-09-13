@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/local/seed/budaya_seed.dart';
-import '../../data/local/seed/quiz_seed.dart';
 import '../../data/local/seed/sejarah_seed.dart';
-import '../../features/quiz/data/repositories/quiz_repository.dart';
 import '../../features/wilayah/data/repositories/wilayah_repository.dart';
 import '../../features/wilayah/data/static/data_wilayah_nusantara.dart';
 import '../constants/katalog_kategori.dart';
@@ -23,7 +21,6 @@ class FirestoreSeedService {
         _seedBudaya(),
         _seedSejarah(),
         _seedKategori(),
-        _seedQuiz(),
         _seedWilayah(),
       ]);
       debugPrint('[Seed] Sinkronisasi ensiklopedia selesai.');
@@ -181,75 +178,6 @@ class FirestoreSeedService {
     } catch (_) {}
   }
 
-  // section seed quiz
-  Future<void> _seedQuiz() async {
-    try {
-      final existingDocs = await _firestore.collection('quiz').get();
-      final Map<String, Map<String, dynamic>> existingBySoal = {};
-      final Map<String, Map<String, dynamic>> existingById = {};
-      int maxId = 0;
-
-      for (final doc in existingDocs.docs) {
-        final data = doc.data();
-        final docId = doc.id;
-        final rawId = data['id'];
-        final intId = (rawId is num) ? rawId.toInt() : int.tryParse(docId) ?? 0;
-        if (intId > maxId) maxId = intId;
-
-        final soalText = (data['soal'] as String? ?? '').trim().toLowerCase();
-        if (soalText.isNotEmpty) {
-          existingBySoal[soalText] = data;
-        }
-        existingById[docId] = data;
-        if (intId > 0) {
-          existingById[intId.toString()] = data;
-        }
-      }
-
-      bool adaPerubahan = false;
-
-      for (var i = 0; i < defaultQuizList.length; i++) {
-        final item = defaultQuizList[i];
-        final soalKey = item.soal.trim().toLowerCase();
-        final existingByItemSoal = existingBySoal[soalKey];
-        final existingByItemId = item.id != null ? existingById[item.id.toString()] : null;
-        final existing = existingByItemSoal ?? existingByItemId;
-
-        int docIdInt = item.id ??
-            ((existing?['id'] is num)
-                ? (existing!['id'] as num).toInt()
-                : (item.id ?? ++maxId));
-
-        final data = item.toFirestore();
-        data['id'] = docIdInt;
-
-        final existingGambar = existing?['gambar'] as String?;
-        if (existingGambar != null && existingGambar.startsWith('http')) {
-          data['gambar'] = existingGambar;
-        } else if (item.gambar != null && item.gambar!.startsWith('assets/')) {
-          data['gambar'] = await CloudinaryService().uploadAsset(
-            item.gambar!,
-            subFolder: 'quiz',
-          );
-        }
-
-        final perluSimpan = existing == null ||
-            existingGambar != data['gambar'];
-
-        if (perluSimpan) {
-          await _firestore
-              .collection('quiz')
-              .doc(docIdInt.toString())
-              .set(data, SetOptions(merge: true));
-          adaPerubahan = true;
-        }
-      }
-
-      if (adaPerubahan) {
-        QuizRepository.bersihkanCache();
-      }
-    } catch (_) {}
-  }
 
   // section seed wilayah
   Future<void> _seedWilayah() async {

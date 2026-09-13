@@ -9,7 +9,6 @@ import '../manage_kategori_page.dart';
 import '../manage_laporan_page.dart';
 import '../manage_lencana_page.dart';
 import '../manage_usulan_page.dart';
-import '../manage_quiz_page.dart';
 
 class AdminDrawer extends StatelessWidget {
   final UserSQLModel? currentUser;
@@ -36,17 +35,6 @@ class AdminDrawer extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-            ),
-
-            // menu kelola kuis
-            _buildDrawerTile(
-              context: context,
-              icon: Icons.quiz_rounded,
-              title: 'Manage Quiz',
-              onTap: () {
-                Navigator.pop(context);
-                context.push(const AdminManageQuizPage());
-              },
             ),
 
             // menu kelola konten

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:renjana/core/constants/app_colors.dart';
 
 // Kartu disusun beberapa baris ke bawah, kolom berikutnya diakses dengan
-// menggeser ke samping. Dipakai rekomendasi kuis dan daftar arsip daerah.
+// menggeser ke samping. Dipakai daftar arsip daerah dan penuntasan wilayah.
 class GridHorizontal extends StatefulWidget {
   final int jumlahItem;
   final Widget Function(int index) builder;

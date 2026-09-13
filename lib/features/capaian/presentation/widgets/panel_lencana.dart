@@ -81,7 +81,7 @@ class _PanelLencanaState extends State<PanelLencana> {
           const SizedBox(height: 16),
           if (terbuka.isEmpty)
             Text(
-              'Belum ada lencana. Bacalah arsip dan kerjakan kuis untuk mulai '
+              'Belum ada lencana. Bacalah arsip nusantara untuk mulai '
               'mengumpulkannya.',
               style: AppTypography.caption(fontSize: 11.5, height: 1.4),
             )

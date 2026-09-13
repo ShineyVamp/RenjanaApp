@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/storage/preference_handler.dart';
-import 'package:renjana/features/quiz/data/repositories/hasil_kuis_repository.dart';
 import 'riwayat_repository.dart';
 
 // ringkasan kebiasaan harian satu akun
@@ -44,7 +43,6 @@ class MisiHarian {
 class RuntunRepository {
   final FirebaseFirestore _firestore;
   final RiwayatRepository _riwayatRepository;
-  final HasilKuisRepository _hasilKuisRepository;
 
   static Set<String>? _cachedKunjungan;
   static Set<String>? _cachedBeku;
@@ -53,13 +51,10 @@ class RuntunRepository {
   RuntunRepository({
     FirebaseFirestore? firestore,
     RiwayatRepository? riwayatRepository,
-    HasilKuisRepository? hasilKuisRepository,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _riwayatRepository = riwayatRepository ?? RiwayatRepository(),
-       _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository();
+       _riwayatRepository = riwayatRepository ?? RiwayatRepository();
 
   static const int targetArsipHarian = 1;
-  static const int targetKuisHarian = 1;
 
   String get _uid {
     final uid = PreferenceHandler.userUid;
@@ -242,7 +237,6 @@ class RuntunRepository {
   // misi hari ini
   Future<List<MisiHarian>> misiHariIni() async {
     final arsip = await _riwayatRepository.jumlahDibukaHariIni();
-    final kuis = await _hasilKuisRepository.jumlahHariIni();
     final ringkas = await ringkasan();
 
     return [
@@ -259,13 +253,6 @@ class RuntunRepository {
         keterangan: 'Buka satu halaman sejarah atau budaya',
         target: targetArsipHarian,
         tercapai: arsip,
-      ),
-      MisiHarian(
-        kode: 'kuis',
-        nama: 'Selesaikan satu kuis',
-        keterangan: 'Tema apa pun, sependek apa pun',
-        target: targetKuisHarian,
-        tercapai: kuis,
       ),
     ];
   }

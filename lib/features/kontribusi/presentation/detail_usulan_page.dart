@@ -58,8 +58,7 @@ class _DetailUsulanPageState extends State<DetailUsulanPage> {
     await _muatUlang();
   }
 
-  // Membuka arsip yang terbit dari usulan ini. Tema kuis tidak punya halaman
-  // detail, jadi hanya sejarah dan budaya yang bisa dibuka.
+  // Membuka arsip yang terbit dari usulan ini.
   Future<void> _bukaArsip() async {
     final kodeTag = _usulan.koreksi
         ? _usulan.targetKodeTag
@@ -74,8 +73,6 @@ class _DetailUsulanPageState extends State<DetailUsulanPage> {
       case JenisUsulan.budaya:
         final arsip = await _budayaRepository.getBudayaByKodeTag(kodeTag);
         if (arsip != null) tujuan = DetailBudayaPage(budaya: arsip);
-      case JenisUsulan.kuis:
-        tujuan = null;
     }
     if (!mounted) return;
 
@@ -84,12 +81,7 @@ class _DetailUsulanPageState extends State<DetailUsulanPage> {
       messenger.clearSnackBars();
       messenger.showSnackBar(
         SnackBar(
-          content: Text(
-            _usulan.jenis == JenisUsulan.kuis
-                ? 'Tema kuis tidak punya halaman detail. Carilah di halaman '
-                      'Kuis pada kategorinya.'
-                : 'Arsip $kodeTag sudah tidak ada.',
-          ),
+          content: Text('Arsip $kodeTag sudah tidak ada.'),
           duration: const Duration(milliseconds: 2400),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.primaryDark,

@@ -1,21 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/katalog_kategori.dart';
 import '../../../../features/budaya/data/repositories/budaya_repository.dart';
-import '../../../../features/quiz/data/repositories/quiz_repository.dart';
 
 class PemakaiKategori {
   final int arsip;
-  final int soal;
 
-  const PemakaiKategori({this.arsip = 0, this.soal = 0});
+  const PemakaiKategori({this.arsip = 0});
 
-  int get total => arsip + soal;
+  int get total => arsip;
   bool get kosong => total == 0;
 
-  String get ringkasan => [
-    if (arsip > 0) '$arsip arsip',
-    if (soal > 0) '$soal soal',
-  ].join(', ');
+  String get ringkasan => arsip > 0 ? '$arsip arsip' : '';
 }
 
 class KategoriRepository {
@@ -139,19 +134,13 @@ class KategoriRepository {
 
     final kode = item.kode.trim().toUpperCase();
     int arsip = 0;
-    int soal = 0;
 
     try {
       final listBudaya = await BudayaRepository().getAllBudaya();
       arsip = listBudaya.where((b) => b.jenis.trim().toUpperCase() == kode).length;
     } catch (_) {}
 
-    try {
-      final listQuiz = await QuizRepository().getAllQuizzes();
-      soal = listQuiz.where((q) => q.subKategori.trim().toUpperCase() == kode).length;
-    } catch (_) {}
-
-    return PemakaiKategori(arsip: arsip, soal: soal);
+    return PemakaiKategori(arsip: arsip);
   }
 
   // bersihkan cache

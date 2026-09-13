@@ -5,7 +5,6 @@ import '../../../../core/constants/wilayah_nusantara.dart';
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
-import 'package:renjana/features/quiz/data/repositories/hasil_kuis_repository.dart';
 import 'package:renjana/features/jelajah/data/repositories/jelajah_repository.dart';
 import 'package:renjana/features/kontribusi/data/repositories/usulan_repository.dart';
 import '../../../../core/services/cloudinary_service.dart';
@@ -46,7 +45,6 @@ class LencanaRepository {
   final FirebaseFirestore _firestore;
   final JelajahRepository _jelajahRepository;
   final ArsipDibacaRepository _arsipDibacaRepository;
-  final HasilKuisRepository _hasilKuisRepository;
   final RuntunRepository _runtunRepository;
   final UsulanRepository _usulanRepository;
 
@@ -58,14 +56,12 @@ class LencanaRepository {
     FirebaseFirestore? firestore,
     JelajahRepository? jelajahRepository,
     ArsipDibacaRepository? arsipDibacaRepository,
-    HasilKuisRepository? hasilKuisRepository,
     RuntunRepository? runtunRepository,
     UsulanRepository? usulanRepository,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _jelajahRepository = jelajahRepository ?? JelajahRepository(),
         _arsipDibacaRepository =
             arsipDibacaRepository ?? ArsipDibacaRepository(),
-        _hasilKuisRepository = hasilKuisRepository ?? HasilKuisRepository(),
         _runtunRepository = runtunRepository ?? RuntunRepository(),
         _usulanRepository = usulanRepository ?? UsulanRepository();
 
@@ -233,7 +229,6 @@ class LencanaRepository {
     final semuaArsip = await _jelajahRepository.semuaArsip();
     final refs = await _arsipDibacaRepository.semua();
     final dibuka = await _jelajahRepository.ambilDariRiwayat(refs);
-    final rekor = await _hasilKuisRepository.rekorPerTema();
     final runtun = await _runtunRepository.ringkasan();
     final sudahTerbuka = await _kodeTerbuka();
     final usulanTerbit = await _usulanRepository.jumlahDisetujui();
@@ -276,8 +271,6 @@ class LencanaRepository {
       }
     }
 
-    final temaSempurna = rekor.values.where((r) => r.sempurna).length;
-
     final hasil = <StatusLencana>[];
     final baruTerbuka = <String>{};
 
@@ -297,10 +290,6 @@ class LencanaRepository {
         case JenisSyarat.arsipPulau:
           target = totalPulau[lencana.acuan] ?? 0;
           tercapai = bacaPulau[lencana.acuan] ?? 0;
-          break;
-        case JenisSyarat.kuisSempurna:
-          target = lencana.ambang;
-          tercapai = temaSempurna;
           break;
         case JenisSyarat.runtun:
           target = lencana.ambang;

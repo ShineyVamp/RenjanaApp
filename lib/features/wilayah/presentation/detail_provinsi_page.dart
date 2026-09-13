@@ -13,9 +13,7 @@ import '../../../core/widgets/kartu_hasil.dart';
 import 'package:renjana/features/bookmark/data/models/bookmark_model.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/bookmark/data/repositories/bookmark_repository.dart';
-import 'package:renjana/features/quiz/data/repositories/quiz_repository.dart';
 import 'package:renjana/app/routes/navigasi_arsip.dart';
-import 'package:renjana/features/quiz/presentation/mulai_kuis_page.dart';
 import 'package:renjana/core/utils/share_helper.dart';
 import 'package:renjana/features/wilayah/data/repositories/progres_wilayah_repository.dart';
 import 'package:renjana/features/wilayah/data/repositories/wilayah_repository.dart';
@@ -36,7 +34,6 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
   final WilayahRepository _wilayahRepository = WilayahRepository();
   final ProgresWilayahRepository _progresRepository =
       ProgresWilayahRepository();
-  final QuizRepository _quizRepository = QuizRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
 
   int _jumlahArsip = 0;
@@ -273,96 +270,11 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
               ),
             ),
           ),
-
-          const SizedBox(height: 8),
-          _buildBarisTugas(
-            progres.kuisSempurna
-                ? 'Kuis "${progres.temaKuis}" sudah sempurna'
-                : 'Kerjakan kuis "${progres.temaKuis}" tanpa salah',
-            selesai: progres.kuisSempurna,
-            onTap: () async {
-              await _kerjakanKuis(progres.temaKuis);
-              if (!mounted) return;
-              await _muatData();
-            },
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildBarisTugas(
-    String teks, {
-    required bool selesai,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: AppDekorasi.barisAtas,
-        child: Row(
-          children: [
-            Icon(
-              selesai
-                  ? Icons.check_circle_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              size: 17,
-              color: selesai ? AppColors.gold : AppColors.surfaceMuted,
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Text(
-                teks,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: selesai
-                      ? AppColors.textSecondary
-                      : AppColors.textPrimary,
-                ),
-              ),
-            ),
-            if (onTap != null)
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 17,
-                color: AppColors.primary,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Mengerjakan tema kuis provinsi ini. Soalnya diambil saat ditekan karena
-  // admin bisa menambah atau mengurangi isinya kapan saja.
-  Future<void> _kerjakanKuis(String tema) async {
-    final soal = await _quizRepository.getQuizByTema(tema);
-    if (!mounted) return;
-
-    if (soal.isEmpty) {
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.clearSnackBars();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Belum ada soal untuk tema "$tema".'),
-          backgroundColor: AppColors.primaryDark,
-        ),
-      );
-      return;
-    }
-
-    mulaiKuisGabungan(
-      context,
-      judul: tema,
-      kategori: soal.first.kategori,
-      soal: soal,
-    );
-  }
 
   Future<void> _bukaArsipLengkap() async {
     await context.push(ArsipProvinsiPage(provinsi: widget.provinsi));

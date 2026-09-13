@@ -7,8 +7,6 @@ import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import '../../../budaya/data/models/budaya_model.dart';
 import '../../../budaya/data/repositories/budaya_repository.dart';
-import '../../../quiz/data/models/quiz_model.dart';
-import '../../../quiz/data/repositories/quiz_repository.dart';
 import '../../../sejarah/data/models/sejarah_model.dart';
 import '../../../sejarah/data/repositories/sejarah_repository.dart';
 import '../models/blok_konten_model.dart';
@@ -48,7 +46,6 @@ class UsulanRepository {
   final FirebaseFirestore _firestore;
   final SejarahRepository _sejarahRepository;
   final BudayaRepository _budayaRepository;
-  final QuizRepository _quizRepository;
 
   static List<Usulan>? _cachedUsulan;
 
@@ -56,11 +53,9 @@ class UsulanRepository {
     FirebaseFirestore? firestore,
     SejarahRepository? sejarahRepository,
     BudayaRepository? budayaRepository,
-    QuizRepository? quizRepository,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _sejarahRepository = sejarahRepository ?? SejarahRepository(),
-       _budayaRepository = budayaRepository ?? BudayaRepository(),
-       _quizRepository = quizRepository ?? QuizRepository();
+       _budayaRepository = budayaRepository ?? BudayaRepository();
 
   static const int batasUsulanHarian = 5;
 
@@ -545,9 +540,6 @@ class UsulanRepository {
               _ringkasNilai(detail[field.kunci]),
             ),
         ];
-
-      case JenisUsulan.kuis:
-        return const [];
     }
   }
 
@@ -603,8 +595,6 @@ class UsulanRepository {
           return await _terbitkanSejarah(usulan, nama);
         case JenisUsulan.budaya:
           return await _terbitkanBudaya(usulan, nama);
-        case JenisUsulan.kuis:
-          return await _terbitkanKuis(usulan);
       }
     } catch (_) {
       return const HasilTerap.gagal('Gagal menerbitkan arsip.');
@@ -626,8 +616,6 @@ class UsulanRepository {
           await _sejarahRepository.deleteSejarah(terbit);
         case JenisUsulan.budaya:
           await _budayaRepository.deleteBudaya(terbit);
-        case JenisUsulan.kuis:
-          await _quizRepository.deleteQuizzesByTema(terbit);
       }
       return HasilTerap.berhasil(terbit);
     } catch (_) {
@@ -641,8 +629,6 @@ class UsulanRepository {
         return await _sejarahRepository.getSejarahByKodeTag(kodeTag) != null;
       case JenisUsulan.budaya:
         return await _budayaRepository.getBudayaByKodeTag(kodeTag) != null;
-      case JenisUsulan.kuis:
-        return (await _quizRepository.getQuizByTema(kodeTag)).isNotEmpty;
     }
   }
 
@@ -755,49 +741,6 @@ class UsulanRepository {
     );
 
     return HasilTerap.berhasil(kodeTag);
-  }
-
-  // Tema kuis tidak punya ID tag; yang terbit adalah kumpulan soalnya, dan
-  // nama temanya dipakai sebagai penanda hasil.
-  Future<HasilTerap> _terbitkanKuis(Usulan usulan) async {
-    final tema = usulan.teks(KunciUsulan.tema);
-    final daftarSoal = usulan.daftar(KunciUsulan.soal);
-    if (tema.isEmpty || daftarSoal.isEmpty) {
-      return const HasilTerap.gagal('Tema atau soalnya belum lengkap.');
-    }
-
-    final gambar = usulan.teks(KunciUsulan.gambar);
-    var masuk = 0;
-
-    for (final s in daftarSoal) {
-      final jawaban = (s['jawaban'] as List? ?? const [])
-          .map((e) => '$e'.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-      final pertanyaan = s['soal']?.toString().trim() ?? '';
-      if (pertanyaan.isEmpty || jawaban.length < 2) continue;
-
-      final berhasil = await _quizRepository.tambahQuiz(
-        QuizSQLModel(
-          kategori: usulan.teks(KunciUsulan.kategoriKuis),
-          subKategori: usulan.teks(KunciUsulan.subKategori),
-          tema: tema,
-          soal: pertanyaan,
-          daftarJawaban: jawaban,
-          jawabanBenar: (s['benar'] as num?)?.toInt() ?? 0,
-          gambar: gambar.isEmpty ? null : gambar,
-          penjelasan: _kosongJadiNull(s['penjelasan']?.toString() ?? ''),
-        ),
-      );
-      if (berhasil) masuk++;
-    }
-
-    if (masuk == 0) {
-      return const HasilTerap.gagal(
-        'Tidak ada soal yang bisa disimpan. Mungkin soalnya sudah ada.',
-      );
-    }
-    return HasilTerap.berhasil(tema);
   }
 
   // section pembaruan arsip yang sudah terbit
@@ -934,12 +877,6 @@ class UsulanRepository {
           ),
         );
         return HasilTerap.berhasil(arsip.kodeTag);
-
-      case JenisUsulan.kuis:
-        // Soal tidak bisa ditimpa satu per satu, jadi tema lamanya dibersihkan
-        // lalu diisi ulang dari usulan yang sekarang.
-        await _quizRepository.deleteQuizzesByTema(kodeTag);
-        return await _terbitkanKuis(usulan);
     }
   }
 
