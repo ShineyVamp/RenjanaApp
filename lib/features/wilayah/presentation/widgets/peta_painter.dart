@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/wilayah_nusantara.dart';
+import '../../data/static/data_wilayah_nusantara.dart';
 
 // Garis pantai hasil ekstraksi Natural Earth 110m. Titik disimpan sebagai
 // Offset(lon, lat), bukan koordinat layar.

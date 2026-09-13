@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/budaya_kategori.dart';
-import '../../../core/constants/wilayah_nusantara.dart';
+import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/asal_daerah_block.dart';

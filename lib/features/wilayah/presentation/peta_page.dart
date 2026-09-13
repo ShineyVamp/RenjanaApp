@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
-import '../../../core/constants/wilayah_nusantara.dart';
+import '../data/static/data_wilayah_nusantara.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/header_halaman.dart';
 import 'package:renjana/features/wilayah/data/repositories/progres_wilayah_repository.dart';

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../../core/constants/lencana_katalog.dart';
-import '../../../../core/constants/wilayah_nusantara.dart';
+import '../models/lencana_model.dart';
+import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';

@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
-import '../../../core/constants/wilayah_nusantara.dart';
+import '../data/static/data_wilayah_nusantara.dart';
 import '../../../core/widgets/app_bar_halaman.dart';
 import '../../../core/widgets/grid_horizontal.dart';
 import '../../../core/widgets/kartu_hasil.dart';

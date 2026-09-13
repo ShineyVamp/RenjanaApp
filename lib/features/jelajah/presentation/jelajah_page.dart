@@ -7,7 +7,7 @@ import '../../../app/routes/navigasi_arsip.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dekorasi.dart';
 import '../../../core/constants/app_typography.dart';
-import '../../../core/constants/wilayah_nusantara.dart';
+import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 import '../../../core/widgets/header_halaman.dart';
 import '../../../core/widgets/kartu_hasil.dart';
 import 'package:renjana/features/capaian/data/repositories/riwayat_repository.dart';

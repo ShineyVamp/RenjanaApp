@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/wilayah_nusantara.dart';
+import '../static/data_wilayah_nusantara.dart';
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';

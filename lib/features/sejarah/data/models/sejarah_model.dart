@@ -48,7 +48,7 @@ class SejarahModel {
   final String gambarUtama;
   final List<TimelineItemModel> alurPeristiwa;
 
-  // Nama provinsi asal, mengikuti penulisan di wilayah_nusantara.dart.
+  // Nama provinsi asal, mengikuti penulisan di data_wilayah_nusantara.dart.
   final String? provinsi;
 
   // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.

@@ -5,7 +5,7 @@
 // untuk tiap kategori budaya dan satu untuk tiap gugus pulau. Menambah
 // kategori atau pulau otomatis menambah lencananya.
 import '../../../../core/constants/budaya_kategori.dart';
-import '../../../../core/constants/wilayah_nusantara.dart';
+import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 
 enum JenisSyarat {
   // seluruh arsip pada satu kategori budaya sudah dibuka

@@ -1,4 +1,4 @@
-import '../../../../core/constants/wilayah_nusantara.dart';
+import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 import 'package:renjana/features/budaya/data/models/budaya_model.dart';
 import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
 

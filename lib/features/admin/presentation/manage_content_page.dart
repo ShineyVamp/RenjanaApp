@@ -5,7 +5,7 @@ import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/constants/budaya_kategori.dart';
-import '../../../core/constants/wilayah_nusantara.dart';
+import '../../wilayah/data/static/data_wilayah_nusantara.dart';
 import '../../../core/widgets/pembersih_dialog.dart';
 import '../../kontribusi/data/models/blok_konten_model.dart';
 import '../../budaya/data/models/budaya_model.dart';

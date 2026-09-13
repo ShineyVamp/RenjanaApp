@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
-import '../../../core/constants/wilayah_nusantara.dart';
+import '../data/static/data_wilayah_nusantara.dart';
 import '../../../core/widgets/app_bar_halaman.dart';
 import '../../../core/widgets/kartu_hasil.dart';
 import '../../../core/widgets/kotak_pencarian.dart';

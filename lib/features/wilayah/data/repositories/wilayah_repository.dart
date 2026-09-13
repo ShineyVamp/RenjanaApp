@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../core/constants/wilayah_nusantara.dart';
+import '../static/data_wilayah_nusantara.dart';
 import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/jelajah/data/repositories/jelajah_repository.dart';
 

@@ -17,7 +17,7 @@ class BudayaModel {
   final String? konteksBudaya;
   final String? gambarKonteksBudaya;
 
-  // Nama provinsi asal, mengikuti penulisan di wilayah_nusantara.dart.
+  // Nama provinsi asal, mengikuti penulisan di data_wilayah_nusantara.dart.
   final String? provinsi;
 
   // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.
