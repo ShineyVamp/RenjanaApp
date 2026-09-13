@@ -159,7 +159,7 @@ class BudayaModel {
       kategoriLabel: map['kategoriLabel'] as String? ?? 'SENJATA TRADISIONAL',
       tagline: map['tagline'] as String? ?? '',
       deskripsi: map['deskripsi'] as String? ?? '',
-      gambarUtama: map['gambarUtama'] as String? ?? 'assets/images/kerisB.jpg',
+      gambarUtama: map['gambarUtama'] as String? ?? '',
       maknaSpiritual: map['maknaSpiritual'] as String?,
       gambarMaknaSpiritual: map['gambarMaknaSpiritual'] as String?,
       konteksBudaya: map['konteksBudaya'] as String?,

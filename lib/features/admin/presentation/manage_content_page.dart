@@ -85,7 +85,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     );
     String selectedImage = isEditing
         ? sejarahToEdit.gambarUtama
-        : 'assets/images/170845history.png';
+        : '';
     String selectedJenisMedia = isEditing ? sejarahToEdit.jenisMedia : 'gambar';
     final mediaUrlController = TextEditingController(
       text: isEditing ? (sejarahToEdit.mediaUrl ?? '') : '',
@@ -153,15 +153,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     // salinan alur peristiwa yang bisa diedit di dalam dialog
     List<TimelineItemModel> timelineItems = isEditing
         ? List.from(sejarahToEdit.alurPeristiwa)
-        : [
-            const TimelineItemModel(
-              date: '16 AGUSTUS 1945 · 03:00 WIB',
-              title: 'Peristiwa Rengasdengklok',
-              desc: 'Golongan muda mendesak percepatan proklamasi.',
-              imgPath: 'assets/images/rengasdengklok.jpg',
-              hasImage: true,
-            ),
-          ];
+        : [];
 
     final formKey = GlobalKey<FormState>();
 
@@ -1325,7 +1317,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
 
     String selectedImage = isEditing
         ? budayaToEdit.gambarUtama
-        : 'assets/images/kerisB.jpg';
+        : '';
     String selectedJenisMedia = isEditing ? budayaToEdit.jenisMedia : 'gambar';
     final mediaUrlController = TextEditingController(
       text: isEditing ? (budayaToEdit.mediaUrl ?? '') : '',

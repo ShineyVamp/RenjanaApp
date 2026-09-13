@@ -187,7 +187,7 @@ class SejarahModel {
       subtitle: map['subtitle'] as String? ?? '',
       ringkasan: map['ringkasan'] as String? ?? '',
       gambarUtama:
-          map['gambarUtama'] as String? ?? 'assets/images/1308history.png',
+          map['gambarUtama'] as String? ?? '',
       alurPeristiwa: alur,
       provinsi: map['provinsi'] as String?,
       periode: map['periode'] as String?,

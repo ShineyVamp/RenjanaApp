@@ -89,18 +89,7 @@ class AppImageView extends StatelessWidget {
           cacheWidth: targetCacheWidth,
           cacheHeight: targetCacheHeight,
           gaplessPlayback: true,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset(
-              'assets/images/1308history.png',
-              fit: fit,
-              width: width,
-              height: height,
-              cacheWidth: targetCacheWidth,
-              cacheHeight: targetCacheHeight,
-              gaplessPlayback: true,
-              errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
-            );
-          },
+          errorBuilder: (context, error, stackTrace) => _defaultPlaceholder(),
         );
       }
     }

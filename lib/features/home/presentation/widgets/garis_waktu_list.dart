@@ -135,7 +135,7 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
   Widget _buildEraCard(KategoriItem periode) {
     const double itemWidth = 340;
     final items = _grouped[periode.kode.toUpperCase()] ?? const <SejarahModel>[];
-    final coverImage = items.isNotEmpty ? items.first.gambarUtama : 'assets/images/170845history.png';
+    final coverImage = items.isNotEmpty ? items.first.gambarUtama : '';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

@@ -14,12 +14,6 @@ class AppImagePickerWidget extends StatelessWidget {
   final ValueChanged<String?> onImageSelected;
 
   static const List<String> defaultAssets = [
-    'assets/images/1308history.png',
-    'assets/images/170845history.png',
-    'assets/images/borobudurB.jpg',
-    'assets/images/kerisB.jpg',
-    'assets/images/rengasdengklok.jpg',
-    'assets/images/perumusan.jpg',
     'assets/images/onboardin1.jpg',
     'assets/images/onboardin2.jpg',
     'assets/images/onboardin3.jpg',

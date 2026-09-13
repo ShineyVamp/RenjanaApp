@@ -88,9 +88,9 @@ class BookmarkItemModel {
   String get imagePath {
     switch (itemType) {
       case 'sejarah':
-        return sejarah?.gambarUtama ?? 'assets/images/170845history.png';
+        return sejarah?.gambarUtama ?? '';
       case 'budaya':
-        return budaya?.gambarUtama ?? 'assets/images/borobudurB.jpg';
+        return budaya?.gambarUtama ?? '';
       case 'pulau':
         return pulau?.gambar ?? 'assets/images/onboardin1.jpg';
       case 'provinsi':
