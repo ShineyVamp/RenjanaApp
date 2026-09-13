@@ -39,8 +39,8 @@ class TimelineItemModel {
 
 class SejarahModel {
   final int? id;
-  final String kodeTag; // HIS-150845-1
-  final String tanggalKey; // ddMMyy, mis. 150845
+  final String kodeTag; // HIS-15081945-1
+  final String tanggalKey; // ddMMyyyy, mis. 15081945
   final int urutan; // 1 = sorotan harian utama
   final String judul;
   final String subtitle;
@@ -181,7 +181,7 @@ class SejarahModel {
           ? map['kodeTag'] as String
           : (docId ?? 'HIS-01'),
       kontributor: map['kontributor'] as String?,
-      tanggalKey: map['tanggalKey'] as String? ?? '170845',
+      tanggalKey: map['tanggalKey'] as String? ?? '17081945',
       urutan: (map['urutan'] as num?)?.toInt() ?? 1,
       judul: map['judul'] as String? ?? '',
       subtitle: map['subtitle'] as String? ?? '',

@@ -180,15 +180,15 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     super.dispose();
   }
 
-  // Penanda besar di halaman detail memakai format 15.11.46, jadi diturunkan
+  // Penanda besar di halaman detail memakai format 17.08.1945, jadi diturunkan
   // dari tanggal supaya pengusul tidak perlu menghitung sendiri.
   void _isiPenandaDariTanggal(String nilai) {
     final angka = nilai.trim();
-    if (angka.length != 6) return;
+    if (angka.length != 8) return;
 
     final penanda =
         '${angka.substring(0, 2)}.${angka.substring(2, 4)}'
-        '.${angka.substring(4, 6)}';
+        '.${angka.substring(4, 8)}';
     if (_subtitle.text.trim() == penanda) return;
     setState(() => _subtitle.text = penanda);
   }
@@ -628,15 +628,15 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
         controller: _tanggal,
         keyboard: TextInputType.number,
         hanyaAngka: true,
-        panjangMaksimum: 6,
-        petunjuk: 'Enam angka ddMMyy, mis. 151146. Boleh dikosongkan.',
+        panjangMaksimum: 8,
+        petunjuk: 'Delapan angka ddMMyyyy, mis. 17081945. Boleh dikosongkan.',
         onChanged: _isiPenandaDariTanggal,
       ),
       IsianTeks(
         label: 'Penanda Tanggal',
         controller: _subtitle,
         petunjuk:
-            'Angka besar di halaman detail, format 15.11.46. Terisi sendiri '
+            'Angka besar di halaman detail, format 17.08.1945. Terisi sendiri '
             'dari tanggal di atas.',
       ),
       IsianTeks(

@@ -66,16 +66,16 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
   void _showSejarahFormDialog({SejarahModel? sejarahToEdit}) {
     final isEditing = sejarahToEdit != null;
     final kodeTagController = TextEditingController(
-      text: isEditing ? sejarahToEdit.kodeTag : 'HIS-170845-1',
+      text: isEditing ? sejarahToEdit.kodeTag : '',
     );
     final judulController = TextEditingController(
       text: isEditing ? sejarahToEdit.judul : '',
     );
     final subtitleController = TextEditingController(
-      text: isEditing ? sejarahToEdit.subtitle : '17.08.45',
+      text: isEditing ? sejarahToEdit.subtitle : '',
     );
     final tanggalKeyController = TextEditingController(
-      text: isEditing ? sejarahToEdit.tanggalKey : '170845',
+      text: isEditing ? sejarahToEdit.tanggalKey : '',
     );
     final urutanController = TextEditingController(
       text: isEditing ? sejarahToEdit.urutan.toString() : '1',
@@ -218,16 +218,16 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                           const Divider(color: AppColors.primary),
                           const SizedBox(height: 12),
 
-                          // input kode tag, format HIS-ddMMyy-urutan
+                          // input kode tag, format HIS-ddMMyyyy-urutan
                           Text(
-                            'ID Tag (Format: HIS-<ddMMyy>-<urutan>)',
+                            'ID Tag (Format: HIS-<ddMMyyyy>-<urutan>)',
                             style: AppTypography.labelBold(fontSize: 13),
                           ),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: kodeTagController,
                             decoration: _inputDecoration(
-                              'Contoh: HIS-150845-1',
+                              'Contoh: HIS-15081945-1',
                             ),
                             validator: (val) =>
                                 val == null || val.trim().isEmpty
@@ -245,7 +245,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Tanggal Key (ddMMyy)',
+                                      'Tanggal Key (ddMMyyyy)',
                                       style: AppTypography.labelBold(
                                         fontSize: 13,
                                       ),
@@ -253,7 +253,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                                     const SizedBox(height: 6),
                                     TextFormField(
                                       controller: tanggalKeyController,
-                                      decoration: _inputDecoration('150845'),
+                                      decoration: _inputDecoration('15081945'),
                                       validator: (val) =>
                                           val == null || val.trim().isEmpty
                                           ? 'Wajib diisi'
@@ -317,7 +317,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: subtitleController,
-                            decoration: _inputDecoration('Contoh: 17.08.45'),
+                            decoration: _inputDecoration('Contoh: 17.08.1945'),
                           ),
                           const SizedBox(height: 12),
 

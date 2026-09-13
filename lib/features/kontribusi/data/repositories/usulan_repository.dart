@@ -981,11 +981,17 @@ class UsulanRepository {
   // tagnya tetap terbentuk.
   static String _tanggalAtauHariIni(Usulan usulan) {
     final tanggal = usulan.teks(KunciUsulan.tanggalKey);
-    if (tanggal.length == 6 && int.tryParse(tanggal) != null) return tanggal;
+    if (tanggal.length == 8 && int.tryParse(tanggal) != null) return tanggal;
+    // kompatibilitas usulan lama berformat 6 digit (ddMMyy)
+    if (tanggal.length == 6 && int.tryParse(tanggal) != null) {
+      final yy = int.parse(tanggal.substring(4, 6));
+      final yyyy = yy > 30 ? '19$yy' : '20$yy';
+      return '${tanggal.substring(0, 4)}$yyyy';
+    }
 
     final kini = DateTime.now();
     return '${_duaAngka(kini.day)}${_duaAngka(kini.month)}'
-        '${_duaAngka(kini.year % 100)}';
+        '${kini.year.toString().padLeft(4, '0')}';
   }
 
   // Arsip wajib punya gambar; usulan tanpa gambar memakai berkas bawaan yang

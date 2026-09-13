@@ -106,7 +106,9 @@ class FirestoreSeedService {
 
         // periksa gambar utama
         final existingGambar = existing?['gambarUtama'] as String?;
-        if (existingGambar != null && existingGambar.startsWith('http')) {
+        if (item.gambarUtama.startsWith('http')) {
+          data['gambarUtama'] = item.gambarUtama;
+        } else if (existingGambar != null && existingGambar.startsWith('http')) {
           data['gambarUtama'] = existingGambar;
         } else if (item.gambarUtama.startsWith('assets/')) {
           data['gambarUtama'] = await CloudinaryService().uploadAsset(
@@ -131,7 +133,10 @@ class FirestoreSeedService {
             existingImg = existingAlurRaw[i]['imgPath'] as String?;
           }
 
-          if (existingImg != null && existingImg.startsWith('http')) {
+          if (alur.imgPath != null && alur.imgPath!.startsWith('http')) {
+            alurMap['imgPath'] = alur.imgPath;
+            if (existingImg != alur.imgPath) adaAlurBaru = true;
+          } else if (existingImg != null && existingImg.startsWith('http')) {
             alurMap['imgPath'] = existingImg;
           } else if (alur.imgPath != null && alur.imgPath!.startsWith('assets/')) {
             final url = await CloudinaryService().uploadAsset(
