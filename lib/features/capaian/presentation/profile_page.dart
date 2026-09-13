@@ -222,7 +222,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
               )
             : Column(
                 children: [
-                  // header tetap, sejajar dengan Jelajah dan Peta
+                  // header profil
                   const HeaderHalaman(judul: 'Profil', garisBawah: false),
                   Expanded(
                     child: Center(
@@ -291,7 +291,6 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // nama lebih besar
                 Text(
                   nama,
                   maxLines: 2,
@@ -304,7 +303,6 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                 ),
                 const SizedBox(height: 2),
 
-                // username lebih kecil
                 Text(
                   '@$username',
                   style: GoogleFonts.plusJakartaSans(
@@ -356,7 +354,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
     );
   }
 
-  // Foto profil, atau kotak berisi huruf depan nama bila foto belum ada.
+  // avatar pengguna
   Widget _buildAvatar(UserSQLModel? user, String nama) {
     final foto = (user?.fotoProfil ?? '').trim();
     final inisial = nama.trim().isEmpty ? '?' : nama.trim()[0].toUpperCase();
@@ -416,7 +414,6 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
   }
 
   // section angka aktivitas
-  // Satu bingkai luar dengan garis pemisah di antara sel.
   Widget _buildStatistik() {
     return Container(
       decoration: BoxDecoration(
@@ -499,8 +496,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
     );
   }
 
-  // Arsip dan provinsi digabung dalam satu kotak karena keduanya menuju
-  // halaman yang sama. Bentuk tiap angkanya mengikuti kotak Runtun.
+  // section kotak jejak aktivitas
   Widget _buildKotakJejak() {
     return GestureDetector(
       onTap: () => _bukaJejak(0),

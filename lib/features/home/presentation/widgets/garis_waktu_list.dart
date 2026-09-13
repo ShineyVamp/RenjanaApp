@@ -11,8 +11,7 @@ import '../../../sejarah/data/models/sejarah_model.dart';
 import '../../../sejarah/data/repositories/sejarah_repository.dart';
 import '../../../sejarah/presentation/arsip_periode_page.dart';
 
-// Garis Waktu Nusantara: daftar sembilan era sejarah Indonesia,
-// gambar dan jumlah arsip diambil secara dinamis dari database.
+// section widget garis waktu nusantara
 class GarisWaktuList extends StatefulWidget {
   const GarisWaktuList({super.key});
 
@@ -69,7 +68,6 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // nomor watermark
         Text(
           '03',
           style: AppTypography.headingLarge(
@@ -83,7 +81,7 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
         ),
         const SizedBox(height: 20),
 
-        // kartu era periode, scroll horizontal
+        // section slider kartu era periode
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _isLoading

@@ -3,15 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/app_colors.dart';
 
-// Header seragam untuk halaman tab utama: judul besar, garis merah pendek,
-// dan opsional keterangan di kanan judul serta isian tambahan di bawahnya.
+// section header halaman
 class HeaderHalaman extends StatelessWidget {
   final String judul;
-  final Widget? aksi; // sederet dengan judul, rata kanan
-  final Widget? bawah; // di bawah garis, mis. kotak pencarian
+  final Widget? aksi;
+  final Widget? bawah;
   final bool garisBawah;
-
-  // Tepi header, diisi bila induknya sudah punya padding sendiri.
   final EdgeInsetsGeometry? padding;
 
   const HeaderHalaman({

@@ -15,8 +15,7 @@ import 'form_usulan_page.dart';
 import 'widgets/kartu_usulan.dart';
 import 'widgets/pratinjau_usulan.dart';
 
-// Satu usulan milik pengguna: statusnya, catatan admin bila ada, dan seluruh
-// isi yang diajukan.
+// section halaman detail usulan kontribusi
 class DetailUsulanPage extends StatefulWidget {
   final Usulan usulan;
 
@@ -58,7 +57,7 @@ class _DetailUsulanPageState extends State<DetailUsulanPage> {
     await _muatUlang();
   }
 
-  // Membuka arsip yang terbit dari usulan ini.
+  // navigasi arsip terbit
   Future<void> _bukaArsip() async {
     final kodeTag = _usulan.koreksi
         ? _usulan.targetKodeTag
@@ -251,8 +250,6 @@ class _DetailUsulanPageState extends State<DetailUsulanPage> {
   }
 
   List<Widget> _buildTindakan() {
-    // Arsip hasil usulan bisa dibuka begitu terbit, termasuk pada koreksi yang
-    // menunjuk arsip yang memang sudah ada.
     if (_usulan.status == StatusUsulan.disetujui) {
       return [
         SizedBox(

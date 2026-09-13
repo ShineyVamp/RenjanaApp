@@ -5,8 +5,7 @@ import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/widgets/app_image.dart';
 import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
 
-// Lambang satu lencana: logo yang disetel admin bila ada, ikon bawaan bila
-// belum. Dipakai panel profil, halaman lencana, dan halaman admin.
+// section widget keping lencana
 class KepingLencana extends StatelessWidget {
   final StatusLencana status;
   final double ukuran;

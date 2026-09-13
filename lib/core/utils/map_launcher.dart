@@ -3,11 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_colors.dart';
 
-// Membuka lokasi sebuah destinasi di aplikasi peta yang terpasang.
-//
-// Arsip tidak menyimpan koordinat, hanya nama tempat dan provinsi, jadi yang
-// dikirim adalah kata kunci pencarian. Hasilnya lebih tepat daripada titik
-// tengah provinsi, dan tetap benar meski lokasinya berpindah.
+// section peluncur peta
 Future<void> bukaLokasiDiPeta(
   BuildContext context, {
   required String namaTempat,
@@ -21,8 +17,7 @@ Future<void> bukaLokasiDiPeta(
 
   final messenger = ScaffoldMessenger.of(context);
 
-  // geo: dibuka oleh aplikasi peta apa pun yang terpasang. Bila tidak ada yang
-  // menanganinya, dicoba lewat peramban.
+  // skema uri peta dan peramban
   final tujuan = <Uri>[
     Uri.parse('geo:0,0?q=${Uri.encodeComponent(kunci)}'),
     Uri.parse(

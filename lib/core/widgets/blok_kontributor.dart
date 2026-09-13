@@ -4,8 +4,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dekorasi.dart';
 import '../constants/app_typography.dart';
 
-// Pengakuan bagi pengguna yang mengusulkan arsip ini. Tidak muncul pada arsip
-// bawaan aplikasi, yang kolom kontributornya memang kosong.
+// section blok kontributor
 class BlokKontributor extends StatelessWidget {
   final String? nama;
   final EdgeInsetsGeometry padding;

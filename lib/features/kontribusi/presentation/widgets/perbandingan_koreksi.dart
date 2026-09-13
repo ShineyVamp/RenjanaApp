@@ -6,10 +6,7 @@ import '../../../../core/constants/app_typography.dart';
 import 'package:renjana/features/kontribusi/data/models/usulan_model.dart';
 import 'package:renjana/features/kontribusi/data/repositories/usulan_repository.dart';
 
-// Menyandingkan arsip yang sekarang dengan yang diusulkan pengoreksi.
-//
-// Yang berubah ditampilkan lebih dulu dan diberi warna, sedangkan yang tidak
-// disentuh disembunyikan agar admin tidak perlu memindai ulang seluruh isi.
+// section komparasi usulan koreksi arsip
 class PerbandinganKoreksi extends StatefulWidget {
   final Usulan usulan;
   final UsulanRepository repository;

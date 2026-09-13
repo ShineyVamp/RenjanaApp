@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dekorasi.dart';
 
-// Kotak pencarian bergaris tunggal, dipakai pada daftar arsip daerah.
+// section kotak pencarian
 class KotakPencarian extends StatelessWidget {
   final TextEditingController controller;
   final String petunjuk;

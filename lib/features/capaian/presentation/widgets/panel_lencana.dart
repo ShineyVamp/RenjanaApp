@@ -11,8 +11,7 @@ import 'package:renjana/features/capaian/data/repositories/lencana_repository.da
 import '../lencana_page.dart';
 import 'keping_lencana.dart';
 
-// Gelar dan tiga lencana pilihan di halaman profil. Penyematannya sendiri
-// dilakukan di halaman Lencana, supaya panel ini tetap ringkas.
+// section panel lencana profil
 class PanelLencana extends StatefulWidget {
   final VoidCallback? onBerubah;
 
@@ -44,8 +43,7 @@ class _PanelLencanaState extends State<PanelLencana> {
     widget.onBerubah?.call();
   }
 
-  // Yang disemat pengguna didahulukan. Bila belum ada yang dipilih, sisanya
-  // diambil acak supaya panel tidak kosong tanpa alasan.
+  // filter lencana tersemat dan acak
   List<StatusLencana> _pilihan(List<StatusLencana> terbuka) {
     final disemat = terbuka.where((s) => s.disematkan).toList();
     if (disemat.length >= LencanaRepository.batasSematan) {

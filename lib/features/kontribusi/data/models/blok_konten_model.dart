@@ -3,10 +3,10 @@ import '../../../../core/widgets/detail_spec_block.dart';
 import '../../../sejarah/data/models/sejarah_model.dart';
 
 enum TipeBlokKonten {
-  teksPanjang, // Paragraf / Deskripsi bebas
-  daftar, // Daftar bernomor / list berurutan
-  timeline, // Urutan waktu / alur peristiwa
-  spesifikasi, // Data singkat / tabel spesifikasi (label & nilai)
+  teksPanjang,
+  daftar,
+  timeline,
+  spesifikasi,
 }
 
 extension RupaTipeBlokKonten on TipeBlokKonten {
@@ -41,7 +41,7 @@ class BlokKontenModel {
   String id;
   TipeBlokKonten tipe;
   String judul;
-  dynamic data; // String, List<String>, List<TimelineItemModel>, List<SpecItem>
+  dynamic data;
 
   BlokKontenModel({
     required this.id,
@@ -50,7 +50,7 @@ class BlokKontenModel {
     required this.data,
   });
 
-  // Helper getters
+  // getter pembantu tipe data
   String get teks => data is String ? data as String : '';
   
   List<String> get daftar {

@@ -11,12 +11,12 @@ class SejarahRepository {
   SejarahRepository({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // in-memory cache sejarah
+  // cache memori sejarah
   static void bersihkanCache() {
     _cacheSejarah = null;
   }
 
-  // ambil semua data
+  // section ambil semua data
   Future<List<SejarahModel>> getAllSejarah({bool forceRefresh = false}) async {
     if (!forceRefresh && _cacheSejarah != null && _cacheSejarah!.isNotEmpty) {
       return List<SejarahModel>.from(_cacheSejarah!);
@@ -41,7 +41,7 @@ class SejarahRepository {
     return List<SejarahModel>.from(_cacheSejarah!);
   }
 
-  // sejarah berdasarkan periode
+  // section ambil per periode
   Future<List<SejarahModel>> getSejarahByPeriode(String periode) async {
     final list = await getAllSejarah();
     final target = periode.trim().toUpperCase();
@@ -50,7 +50,7 @@ class SejarahRepository {
         .toList();
   }
 
-  // sejarah hari ini
+  // section arsip sejarah hari ini
   Future<SejarahModel> getSejarahHariIni() async {
     final list = await getAllSejarah();
     if (list.isEmpty) return defaultSejarahList.first;
@@ -68,13 +68,12 @@ class SejarahRepository {
 
     final pool = List<SejarahModel>.from(list)
       ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
-    // rotasi harian
     final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
     final index = (now.year * 365 + dayOfYear) % pool.length;
     return pool[index];
   }
 
-  // cari kode tag
+  // section cari kode tag
   Future<SejarahModel?> getSejarahByKodeTag(String kodeTag) async {
     final list = await getAllSejarah();
     try {
@@ -84,7 +83,7 @@ class SejarahRepository {
     }
   }
 
-  // acak sejarah
+  // section acak daftar sejarah
   Future<List<SejarahModel>> getRandomSejarahList({
     int count = 5,
     SejarahModel? exclude,
@@ -96,7 +95,7 @@ class SejarahRepository {
     return pool.take(count).toList();
   }
 
-  // tambah data
+  // section tambah data sejarah
   Future<int> tambahSejarah(SejarahModel model) async {
     try {
       await _firestore
@@ -140,7 +139,7 @@ class SejarahRepository {
     return list;
   }
 
-  // perbarui data
+  // section perbarui data sejarah
   Future<int> updateSejarah(
     SejarahModel model, {
     String? previousKodeTag,
@@ -173,7 +172,7 @@ class SejarahRepository {
     }
   }
 
-  // hapus data
+  // section hapus data sejarah
   Future<int> deleteSejarah(String kodeTag) async {
     try {
       final doc = await _firestore.collection('sejarah').doc(kodeTag).get();

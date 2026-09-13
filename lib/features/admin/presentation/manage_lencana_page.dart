@@ -8,8 +8,7 @@ import '../../../core/widgets/app_bar_halaman.dart';
 import '../../capaian/data/repositories/lencana_repository.dart';
 import '../../capaian/presentation/widgets/keping_lencana.dart';
 
-// Pengelolaan logo lencana. Syarat dan nama lencana ditetapkan di katalog
-// kode; yang bisa diatur dari sini hanya lambangnya.
+// section kelola lencana admin
 class AdminManageLencanaPage extends StatefulWidget {
   const AdminManageLencanaPage({super.key});
 

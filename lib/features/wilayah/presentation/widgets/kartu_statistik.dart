@@ -5,7 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 
-// Kartu angka pendek pada halaman pulau dan provinsi.
+// section kartu statistik wilayah
 class KartuStatistik extends StatelessWidget {
   final IconData ikon;
   final String label;

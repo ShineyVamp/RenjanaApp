@@ -35,16 +35,11 @@ class _PetaPageState extends State<PetaPage>
 
   Size _ukuran = Size.zero;
   GugusPulau? _pulauAktif;
-
-  // Pulau yang terakhir dibuka, tetap dipegang selama panel provinsi
-  // beranimasi turun.
   GugusPulau? _pulauPanel;
   String? _provinsiAktif;
 
   final ProgresWilayahRepository _progresRepository =
       ProgresWilayahRepository();
-
-  // Tingkat penuntasan tiap provinsi, kuncinya nama provinsi huruf kecil.
   Map<String, TingkatWilayah> _tingkat = const {};
 
   static const double _skalaMin = 1;
@@ -84,7 +79,6 @@ class _PetaPageState extends State<PetaPage>
     setState(() => _tingkat = tingkat);
   }
 
-  // Banyaknya provinsi yang sudah tuntas pada satu pulau.
   int _tuntasDiPulau(GugusPulau gugus) => gugus.provinsi
       .where(
         (p) => switch (_tingkat[p.nama.toLowerCase()]) {
@@ -103,9 +97,6 @@ class _PetaPageState extends State<PetaPage>
     return '$tuntas/${gugus.provinsi.length} TUNTAS';
   }
 
-  // Di level provinsi legenda menerangkan warna penanda; di level nasional ia
-  // menerangkan arti angka pada penanda pulau. Keduanya hanya muncul setelah
-  // ada capaian yang perlu dijelaskan.
   bool get _perluLegenda {
     final pulau = _pulauAktif;
     if (pulau == null) return _tuntasNasional > 0;
@@ -135,7 +126,6 @@ class _PetaPageState extends State<PetaPage>
     _siapkanProyeksi();
   }
 
-  // Path dibangun ulang hanya saat ukuran layar atau geometri berubah.
   void _siapkanProyeksi() {
     final geometri = _geometri;
     if (geometri == null || _ukuran.isEmpty) return;
@@ -263,7 +253,6 @@ class _PetaPageState extends State<PetaPage>
     final pusat = Offset(_ukuran.width / 2, _ukuran.height / 2);
     final rasio = target / sekarang;
 
-    // dikalikan dari kiri, dengan titik jangkar tengah layar
     final perbesaran = Matrix4.identity()
       ..translateByDouble(pusat.dx, pusat.dy, 0, 1)
       ..scaleByDouble(rasio, rasio, 1, 1)
@@ -357,7 +346,7 @@ class _PetaPageState extends State<PetaPage>
     );
   }
 
-  // penanda pulau saat tampilan nasional, penanda provinsi saat pulau dibuka
+  // section penanda peta
   List<Widget> _buildPenanda() {
     final proyeksi = _proyeksi;
     if (proyeksi == null) return const [];
@@ -574,7 +563,7 @@ class _PetaPageState extends State<PetaPage>
     );
   }
 
-  // Keterangan capaian, isinya menyesuaikan level yang sedang dibuka.
+  // section legenda capaian
   Widget _buildLegenda() {
     if (!_perluLegenda) return const SizedBox.shrink();
     if (_pulauAktif == null) return _buildKeteranganPulau();
@@ -629,7 +618,7 @@ class _PetaPageState extends State<PetaPage>
     );
   }
 
-  // Penjelasan angka pada penanda pulau, mis. "2/10 TUNTAS".
+  // section keterangan pulau
   Widget _buildKeteranganPulau() {
     return Positioned(
       left: 16,
@@ -682,7 +671,7 @@ class _PetaPageState extends State<PetaPage>
     );
   }
 
-  // panel daftar provinsi, muncul saat sebuah gugus pulau dibuka
+  // section panel daftar provinsi
   Widget _buildPanelProvinsi() {
     final pulau = _pulauPanel;
 
@@ -728,7 +717,6 @@ class _PetaPageState extends State<PetaPage>
                       ),
                       const SizedBox(height: 10),
 
-                      // pintasan ke halaman detail pulau
                       GestureDetector(
                         onTap: () => _bukaDetailPulau(pulau),
                         behavior: HitTestBehavior.opaque,
@@ -824,15 +812,13 @@ class _PetaPageState extends State<PetaPage>
   }
 }
 
-// penanda peta: chip label, batang, lalu titik yang menempel di koordinat
+// section penanda peta
 class _Penanda extends StatelessWidget {
   final String judul;
   final String sub;
   final bool modeProvinsi;
   final bool aktif;
   final VoidCallback onTap;
-
-  // Tingkat penuntasan provinsi; null pada penanda pulau.
   final TingkatWilayah? tingkat;
 
   const _Penanda({
@@ -846,8 +832,6 @@ class _Penanda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Warna capaian dipakai pada seluruh kartu penanda, bukan hanya titiknya,
-    // supaya perubahannya langsung terlihat.
     final capaian = (tingkat ?? TingkatWilayah.belum).adaCapaian
         ? tingkat!.warna
         : null;

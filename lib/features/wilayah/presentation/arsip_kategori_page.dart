@@ -12,10 +12,10 @@ import 'package:renjana/app/routes/navigasi_arsip.dart';
 import 'package:renjana/features/wilayah/data/repositories/wilayah_repository.dart';
 import 'kategori_arsip.dart';
 
-// Daftar penuh satu kategori arsip dalam satu provinsi.
+// section daftar kategori arsip
 class ArsipKategoriPage extends StatefulWidget {
   final Provinsi provinsi;
-  final String kunciKategori; // 'SEJARAH' atau kode kategori budaya
+  final String kunciKategori;
 
   const ArsipKategoriPage({
     super.key,

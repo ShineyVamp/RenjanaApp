@@ -71,7 +71,7 @@ class WilayahRepository {
     return map.values.toList();
   }
 
-  // cari satu provinsi
+  // section cari provinsi
   Future<Provinsi?> getProvinsi(String namaProvinsi) async {
     final semua = await getAllProvinsi();
     final target = namaProvinsi.trim().toLowerCase();
@@ -81,7 +81,7 @@ class WilayahRepository {
     return null;
   }
 
-  // perbarui gambar provinsi ke firestore
+  // section perbarui gambar provinsi
   Future<void> updateGambarProvinsi(String namaProvinsi, String gambarUrl) async {
     final targetDoc = namaProvinsi.trim();
     await _firestore.collection('wilayah_provinsi').doc(targetDoc).set({
@@ -111,8 +111,7 @@ class WilayahRepository {
     bersihkanCache();
   }
 
-  // Seluruh arsip dikelompokkan per provinsi, dibaca sekali lalu dibagi di
-  // memori.
+  // section arsip per provinsi
   Future<Map<String, List<HasilJelajah>>> _kelompokPerProvinsi() async {
     final hasil = <String, List<HasilJelajah>>{};
     for (final item in await _jelajahRepository.semuaArsip()) {
@@ -123,8 +122,6 @@ class WilayahRepository {
     return hasil;
   }
 
-  // Peta arsip per provinsi, kuncinya nama provinsi huruf kecil. Dipakai
-  // pemanggil yang butuh seluruh provinsi sekaligus.
   Future<Map<String, List<HasilJelajah>>> arsipPerProvinsi() =>
       _kelompokPerProvinsi();
 
@@ -161,7 +158,7 @@ class WilayahRepository {
     ];
   }
 
-  // Rekomendasi acak dari satu provinsi, untuk bagian bawah halaman detail.
+  // section acak arsip provinsi
   Future<List<HasilJelajah>> arsipAcakProvinsi(
     String namaProvinsi, {
     int jumlah = 5,

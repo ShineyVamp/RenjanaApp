@@ -1,8 +1,8 @@
-// Data awal untuk tabel `budaya`, dipakai sekali saat database dibuat.
+// section data seed budaya
 import 'package:renjana/features/budaya/data/models/budaya_model.dart';
 
 final List<BudayaModel> defaultBudayaList = [
-  //rumah
+  // kategori rumah adat
   BudayaModel(
     kodeTag: 'BUD-RMH-1',
     provinsi: 'Sumatera Barat',
@@ -211,7 +211,7 @@ final List<BudayaModel> defaultBudayaList = [
       'fungsiSosial': 'Istana tempat tinggal raja adat, balai peradilan musyawarah Fondrako, dan pusat komando pertahanan desa',
     },
   ),
-  //tarian
+  // kategori tarian adat
 BudayaModel(
     kodeTag: 'BUD-TRN-1',
     provinsi: 'Aceh',
@@ -420,7 +420,7 @@ BudayaModel(
       'waktuPementasan': 'Upacara adat penobatan raja, seremoni penyambutan tamu kehormatan kenegaraan, dan pesta syukuran pascapanen',
     },
   ),
-  //senjata
+  // kategori senjata tradisional
   BudayaModel(
     kodeTag: 'BUD-SNJT-1',
     provinsi: 'Jawa Tengah',
@@ -633,7 +633,7 @@ BudayaModel(
       'fungsi': 'Senjata bela diri silat maen pukulan, atribut tradisi seremonial palang pintu pernikahan, dan perkakas bantu domestik',
     },
   ),
-  //kuliner
+  // kategori kuliner tradisional
   BudayaModel(
     kodeTag: 'BUD-KLN-1',
     provinsi: 'Sumatera Barat',
@@ -991,7 +991,7 @@ BudayaModel(
       'penyajian': 'Disajikan panas di dalam mangkuk keramik bersama potongan kentang goreng, irisan tomat merah segar, emping melinjo goreng gurih, taburan daun bawang dan bawang goreng, acar mentimun cabai rawit, serta perasan jeruk limau wangi',
     },
   ),
-  //alat musik
+  // kategori alat musik
   BudayaModel(
     kodeTag: 'BUD-MSK-1',
     provinsi: 'Jawa Barat',
@@ -1200,7 +1200,7 @@ BudayaModel(
       ],
     },
   ),
-  //pakaian
+  // kategori pakaian adat
   BudayaModel(
     kodeTag: 'BUD-PKN-1',
     provinsi: 'Sulawesi Selatan',
@@ -1421,7 +1421,7 @@ BudayaModel(
       'pemakaian': 'Dikenakan oleh pria dan wanita suku Dani dalam ritual komunal bakar batu, perang adat simulasi di Festival Lembah Baliem, dan upacara keluarga',
     },
   ),
-  //upacara adat
+  // kategori upacara adat
   BudayaModel(
     kodeTag: 'BUD-UPC-1',
     provinsi: 'Sulawesi Selatan',
@@ -1684,7 +1684,7 @@ BudayaModel(
       ],
     },
   ),
-  //seni
+  // kategori seni rupa
   BudayaModel(
     kodeTag: 'BUD-SRK-1',
     provinsi: 'DI Yogyakarta',
@@ -1901,7 +1901,7 @@ BudayaModel(
       'maknaMotif': 'Ragi Hotang melambangkan ikatan perkawinan yang teguh dan lentur seperti rotan; Ragidup melambangkan doa kesuburan rezeki dan kelangsungan hidup anak cucu; Mangiring melambangkan harapan beriringan hadirnya keturunan berikutnya',
     },
   ),
-  //SITUS
+  // kategori situs bersejarah
   BudayaModel(
     kodeTag: 'BUD-SIT-1-D',
     provinsi: 'Jawa Tengah',

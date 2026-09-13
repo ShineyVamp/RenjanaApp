@@ -25,6 +25,7 @@ import 'package:renjana/core/utils/share_helper.dart';
 import 'package:renjana/core/utils/map_launcher.dart';
 import '../../capaian/services/pencatat_bacaan.dart';
 import '../../capaian/data/repositories/arsip_dibaca_repository.dart';
+import '../../capaian/data/repositories/riwayat_repository.dart';
 import 'package:renjana/features/sejarah/presentation/widgets/timeline_item_widget.dart';
 import 'package:renjana/features/budaya/data/models/budaya_model.dart';
 import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart';
@@ -42,6 +43,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
   final BudayaRepository _budayaRepository = BudayaRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
   final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
+  final RiwayatRepository _riwayatRepository = RiwayatRepository();
   final PencatatBacaan _pencatat = PencatatBacaan();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
@@ -58,6 +60,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
   @override
   void initState() {
     super.initState();
+    _riwayatRepository.catatDibuka('budaya', widget.budaya.kodeTag);
     _sectionKategoriWidgets = _buildSectionKategori(widget.budaya);
     _blokDinamisWidgets = _buildBlokDinamis(widget.budaya);
     final cached = _cacheRelatedBudaya[widget.budaya.kodeTag];
@@ -127,7 +130,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
   }
 
 
-  // Destinasi bisa dikunjungi langsung, jadi diberi pintasan ke aplikasi peta.
+  // section tombol rute peta destinasi
   Widget _buildTombolPeta(BudayaModel data) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
@@ -397,7 +400,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             ),
                           ),
 
-                          // Deskripsi
+                          // section deskripsi
                           DetailSectionBlock(
                             padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
                             title: 'Deskripsi',
@@ -616,7 +619,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                 ],
               ),
 
-              // tombol navigasi atas
+              // section navigasi atas
               Positioned(
                 top: 0,
                 left: 0,

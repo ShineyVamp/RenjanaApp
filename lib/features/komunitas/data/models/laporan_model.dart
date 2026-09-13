@@ -1,12 +1,12 @@
-// Model laporan moderasi konten pengguna/komunitas/arsip.
+// model laporan moderasi konten
 class LaporanModel {
   final int? id;
-  final String targetTipe; // 'diskusi', 'jawaban', 'budaya', 'sejarah', 'usulan'
-  final String targetId; // ID atau kodeTag target
-  final String? kontenTeks; // Cuplikan teks konten yang dilaporkan
-  final String pelapor; // Nama atau email pelapor
-  final String alasan; // 'Informasi Keliru', 'Ujaran Kebencian', 'Spam/Iklan', 'Lainnya'
-  final String status; // 'menunggu', 'disetujui', 'ditolak'
+  final String targetTipe;
+  final String targetId;
+  final String? kontenTeks;
+  final String pelapor;
+  final String alasan;
+  final String status;
   final DateTime dibuatPada;
 
   const LaporanModel({

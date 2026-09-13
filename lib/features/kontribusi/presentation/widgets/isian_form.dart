@@ -6,10 +6,7 @@ import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image.dart';
 
-// Potongan isian yang dipakai berulang di form usulan. Diletakkan di sini,
-// bukan di core/widgets, karena hanya alur kontribusi yang memakainya.
-
-// Judul satu bagian form beserta keterangan singkatnya.
+// section komponen input form kontribusi
 class JudulBagian extends StatelessWidget {
   final String teks;
   final String? keterangan;
@@ -47,8 +44,6 @@ class IsianTeks extends StatelessWidget {
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
 
-  // Menolak apa pun selain angka saat diketik, bukan sekadar mengubah papan
-  // tombol yang masih bisa diakali.
   final bool hanyaAngka;
 
   final int? panjangMaksimum;
@@ -220,7 +215,7 @@ class PilihanDropdown<T> extends StatelessWidget {
   }
 }
 
-// Pemilih gambar beserta pratinjaunya. Path yang dipilih milik perangkat ini.
+// section pemilih gambar formulir
 class PemilihGambarUsulan extends StatelessWidget {
   final String? path;
   final VoidCallback onPilih;
@@ -304,8 +299,7 @@ class PemilihGambarUsulan extends StatelessWidget {
   }
 }
 
-// Kotak satu entri berulang, mis. satu peristiwa atau satu soal, beserta
-// tombol hapusnya.
+// section wadah entri berulang
 class KotakEntri extends StatelessWidget {
   final String judul;
   final VoidCallback? onHapus;

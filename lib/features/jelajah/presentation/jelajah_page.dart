@@ -16,7 +16,6 @@ import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/jelajah/data/repositories/jelajah_repository.dart';
 
 class JelajahPage extends StatefulWidget {
-  // Membuka tab Peta dari kartu "Telusuri lewat peta".
   final VoidCallback? onBukaPeta;
   final ValueNotifier<int>? tabNotifier;
 
@@ -111,7 +110,7 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     } catch (_) {}
   }
 
-  // Dipanggil tiap ketikan; pencariannya sendiri baru jalan setelah jeda.
+  // debounce pencarian
   void _ketik(String kataKunci) {
     _penunda?.cancel();
 
@@ -136,7 +135,6 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
       batas: _batasHasil,
       saring: _saring,
     );
-    // buang hasil yang bukan milik kata kunci terakhir
     if (!mounted || kataKunci != _query) return;
     setState(() {
       _pencarian = hasil;
@@ -144,7 +142,6 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     });
   }
 
-  // Mengganti penyaring langsung mencari ulang, tanpa jeda ketikan.
   void _gantiSaring(SaringJenis? saring) {
     if (_saring == saring) return;
     setState(() {
@@ -154,7 +151,6 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     _jalankanPencarian(_query);
   }
 
-  // Mengirim pencarian dan mencatatnya ke riwayat.
   Future<void> _simpanKeRiwayat() async {
     final kunci = _query.trim();
     if (kunci.isEmpty) return;
@@ -335,7 +331,7 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     );
   }
 
-  // tampilan awal: riwayat pencarian, pintasan peta, arsip terakhir dibuka
+  // section beranda jelajah
   Widget _buildBerandaJelajah() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,7 +479,7 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     );
   }
 
-  // tampilan saat ada kata kunci
+  // section hasil pencarian
   Widget _buildHasilPencarian() {
     if (_sedangMencari) {
       return const Padding(
@@ -591,7 +587,6 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     );
   }
 
-  // [onHapus] diisi untuk seksi yang isinya riwayat dan bisa dikosongkan.
   Widget _buildLabelSeksi(String teks, {VoidCallback? onHapus}) {
     final label = Text(
       teks,
@@ -634,7 +629,6 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
     );
   }
 
-  // Konfirmasi sebelum satu jenis riwayat dikosongkan.
   Future<void> _konfirmasiHapus({
     required String judul,
     required String pesan,
@@ -685,7 +679,7 @@ class JelajahPageState extends State<JelajahPage> with RouteAware {
   }
 }
 
-// kotak pesan saat sebuah seksi masih kosong
+// widget pesan info kosong
 class _PesanInfo extends StatelessWidget {
   final IconData icon;
   final String pesan;

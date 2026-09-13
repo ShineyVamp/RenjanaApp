@@ -12,8 +12,7 @@ import 'detail_usulan_page.dart';
 import 'form_usulan_page.dart';
 import 'widgets/kartu_usulan.dart';
 
-// Daftar usulan milik pengguna beserta statusnya, dan pintu masuk untuk
-// mengajukan usulan baru.
+// section halaman kontribusi pengguna
 class KontribusiPage extends StatefulWidget {
   const KontribusiPage({super.key});
 
@@ -134,7 +133,7 @@ class _KontribusiPageState extends State<KontribusiPage> {
     );
   }
 
-  // Ajakan mengusulkan, sekaligus penanda bila ada yang perlu ditindaklanjuti.
+  // section kartu status usulan
   Widget _buildAjakan(int menunggu, int perluDiperbaiki) {
     final perluTindakan = perluDiperbaiki > 0;
 

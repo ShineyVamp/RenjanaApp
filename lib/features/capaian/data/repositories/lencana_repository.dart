@@ -12,20 +12,20 @@ import '../../../../core/services/cloudinary_service.dart';
 import 'arsip_dibaca_repository.dart';
 import 'runtun_repository.dart';
 
-// Satu lencana beserta kemajuan pemiliknya.
+// section model status lencana
 class StatusLencana {
   final Lencana lencana;
   final int tercapai;
   final int target;
   final bool terbuka;
 
-  // Terbuka pada pemeriksaan terakhir, dipakai menandai lencana baru.
+  // status terbuka
   final bool baru;
 
-  // Dipilih pengguna untuk dipajang di halaman profil.
+  // status sematan profil
   final bool disematkan;
 
-  // Logo yang disetel admin; kosong berarti memakai ikon bawaan.
+  // tautan logo kustom
   final String gambar;
 
   const StatusLencana({
@@ -232,8 +232,7 @@ class LencanaRepository {
   static DateTime? _terakhirEvaluasi;
   static String? _cachedStatusUser;
 
-  // Menghitung kemajuan seluruh lencana, membuka yang sudah memenuhi syarat,
-  // lalu mengembalikan status akhirnya.
+  // section evaluasi kemajuan lencana
   Future<List<StatusLencana>> evaluasi({bool forceRefresh = false}) async {
     final uid = _userUid;
     if (!forceRefresh &&
@@ -253,7 +252,7 @@ class LencanaRepository {
     final usulanTerbit = await _usulanRepository.jumlahDisetujui();
     final petaLogo = await logo();
 
-    // jumlah arsip tersedia dan yang sudah dibuka, per kategori, per periode, dan per pulau
+    // agregasi arsip per kategori, periode, dan pulau
     final totalKategori = <String, int>{};
     final totalPeriode = <String, int>{};
     final totalPulau = <String, int>{};
@@ -324,8 +323,7 @@ class LencanaRepository {
           break;
       }
 
-      // Kategori atau pulau yang belum punya arsip sama sekali tidak bisa
-      // dianggap tuntas hanya karena targetnya nol.
+      // validasi ketersediaan target
       final memenuhi = target > 0 && tercapai >= target;
       final sudah = sudahTerbuka.containsKey(lencana.kode);
       if (memenuhi && !sudah) baruTerbuka.add(lencana.kode);

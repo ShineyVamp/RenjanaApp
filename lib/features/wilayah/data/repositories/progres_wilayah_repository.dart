@@ -10,11 +10,10 @@ import 'package:renjana/features/jelajah/data/models/hasil_jelajah_model.dart';
 import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
 import 'wilayah_repository.dart';
 
-// Tingkat penuntasan satu provinsi.
+// enum tingkat penuntasan provinsi
 enum TingkatWilayah { belum, dikunjungi, tuntas, dikuasai }
 
 extension RupaTingkat on TingkatWilayah {
-  // Warna capaian, dipakai penanda peta dan kartu penuntasan.
   Color get warna {
     switch (this) {
       case TingkatWilayah.dikuasai:
@@ -43,7 +42,7 @@ extension RupaTingkat on TingkatWilayah {
   }
 }
 
-// Kemajuan satu provinsi beserta rincian apa saja yang belum diselesaikan.
+// model capaian penuntasan provinsi
 class ProgresProvinsi {
   final String provinsi;
   final TingkatWilayah tingkat;
@@ -89,7 +88,7 @@ class ProgresWilayahRepository {
         _arsipDibacaRepository =
             arsipDibacaRepository ?? ArsipDibacaRepository();
 
-  // identitas pengguna
+  // section identitas pengguna
   String get _userUid {
     final uid = PreferenceHandler.userUid;
     if (uid.isNotEmpty) return uid;
@@ -100,7 +99,7 @@ class ProgresWilayahRepository {
     return 'guest';
   }
 
-  // koleksi progres wilayah
+  // section koleksi progres wilayah
   CollectionReference<Map<String, dynamic>> _koleksi() {
     return _firestore
         .collection('users')
@@ -108,7 +107,7 @@ class ProgresWilayahRepository {
         .collection('progres_wilayah');
   }
 
-  // bersihkan cache progres wilayah
+  // section bersihkan cache
   static void bersihkanCache() {
     _cachedCatatan = null;
     _cachedUser = null;
@@ -164,7 +163,6 @@ class ProgresWilayahRepository {
     } catch (_) {}
   }
 
-  // Kunci referensi arsip yang pernah dibaca, mis. 'budaya|BUD-RMH-1-D'.
   Future<Set<String>> _refDibaca() => _arsipDibacaRepository.himpunan();
 
   Future<ProgresProvinsi> progresProvinsi(String namaProvinsi) async {
@@ -174,8 +172,7 @@ class ProgresWilayahRepository {
     return _hitung(namaProvinsi, arsip, dibaca, catatan, simpan: true);
   }
 
-  // Tingkat seluruh provinsi sekaligus, untuk pewarnaan penanda peta.
-  // Seluruh bahannya dibaca sekali lalu dibagi di memori.
+  // section pemetaan penuntasan seluruh provinsi
   Future<Map<String, TingkatWilayah>> tingkatSemuaProvinsi() async {
     final kelompok = await _wilayahRepository.arsipPerProvinsi();
     final dibaca = await _refDibaca();

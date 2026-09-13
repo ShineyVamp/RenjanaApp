@@ -24,6 +24,7 @@ import 'package:renjana/features/wilayah/presentation/detail_provinsi_page.dart'
 import 'package:renjana/core/utils/share_helper.dart';
 import '../../capaian/services/pencatat_bacaan.dart';
 import '../../capaian/data/repositories/arsip_dibaca_repository.dart';
+import '../../capaian/data/repositories/riwayat_repository.dart';
 import '../data/models/sejarah_model.dart';
 import '../data/repositories/sejarah_repository.dart';
 import 'widgets/timeline_item_widget.dart';
@@ -41,6 +42,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
   final SejarahRepository _sejarahRepository = SejarahRepository();
   final BookmarkRepository _bookmarkRepository = BookmarkRepository();
   final ArsipDibacaRepository _arsipDibacaRepository = ArsipDibacaRepository();
+  final RiwayatRepository _riwayatRepository = RiwayatRepository();
   final PencatatBacaan _pencatat = PencatatBacaan();
   bool _isBookmarked = false;
   final ScrollController _scrollRelated = ScrollController();
@@ -57,6 +59,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
   @override
   void initState() {
     super.initState();
+    _riwayatRepository.catatDibuka('sejarah', widget.sejarah.kodeTag);
     _sectionPeristiwaWidgets = _buildSectionPeristiwa(widget.sejarah);
     _blokDinamisWidgets = _buildBlokDinamis(widget.sejarah);
     final cached = _cacheRelatedSejarah[widget.sejarah.kodeTag];
@@ -144,7 +147,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
     context.push(DetailProvinsiPage(provinsi: provinsi));
   }
 
-  // Section khas jenis peristiwa, dibangkitkan dari daftar field di katalog.
+  // section bidang spesifik peristiwa
   List<Widget> _buildSectionPeristiwa(SejarahModel data) {
     if (data.jenisPeristiwa == null || data.jenisPeristiwa!.isEmpty) {
       return const [];
@@ -270,7 +273,6 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
 
                     return Stack(
                       children: [
-                        // gambar utama
                         SizedBox(
                           height: imageHeight,
                           width: imageWidth,
@@ -304,13 +306,10 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                             ],
                           ),
                         ),
-
-                        // konten halaman
                         Column(
                           children: [
                             SizedBox(height: imageHeight - overlap),
-                            // header arsip
-                        Padding(
+                            Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 22),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -406,8 +405,6 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                             ],
                           ),
                         ),
-
-                        // ringkasan
                         DetailSectionBlock(
                           padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
                           title: 'Ringkasan',
@@ -632,8 +629,6 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                         ),
                       ],
                     ),
-
-                    // tombol navigasi atas
                     Positioned(
                       top: 0,
                       left: 0,

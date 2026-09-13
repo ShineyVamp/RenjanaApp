@@ -5,14 +5,10 @@ import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 import 'package:renjana/features/kontribusi/data/models/usulan_model.dart';
 
-// Satu baris usulan pada daftar. Dipakai halaman Kontribusi Saya dan panel
-// admin, karena keduanya menampilkan ringkasan yang sama.
+// section kartu daftar usulan
 class KartuUsulan extends StatelessWidget {
   final Usulan usulan;
   final VoidCallback onTap;
-
-  // Diisi di panel admin; pada halaman pengguna tidak perlu, sebab semuanya
-  // milik dia sendiri.
   final String? namaPengusul;
 
   const KartuUsulan({

@@ -4,8 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 
-// Section detail berisi baris bernomor, mis. bahan masakan, langkah memasak,
-// atau tokoh cerita. Judul dan garisnya mengikuti DetailSectionBlock.
+// section daftar rincian detail
 class DetailListBlock extends StatelessWidget {
   final String title;
   final List<String> items;

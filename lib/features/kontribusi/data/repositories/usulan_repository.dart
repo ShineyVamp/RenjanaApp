@@ -12,7 +12,7 @@ import '../../../sejarah/data/repositories/sejarah_repository.dart';
 import '../models/blok_konten_model.dart';
 import '../models/usulan_model.dart';
 
-// Hasil penerbitan sebuah usulan.
+// model hasil terbit usulan
 class HasilTerap {
   final String kodeTag;
   final String? galat;
@@ -23,7 +23,7 @@ class HasilTerap {
   bool get sukses => galat == null;
 }
 
-// Satu field arsip yang disandingkan antara isi sekarang dan yang diusulkan.
+// model perbandingan bidang arsip
 class BedaKoreksi {
   final String label;
   final String sebelum;
@@ -31,17 +31,12 @@ class BedaKoreksi {
 
   const BedaKoreksi(this.label, this.sebelum, this.sesudah);
 
-  // Field yang dikosongkan pengusul berarti dibiarkan seperti semula, bukan
-  // permintaan menghapus isinya.
   bool get dibiarkan => sesudah.trim().isEmpty && sebelum.trim().isNotEmpty;
 
   bool get berubah => sebelum.trim() != sesudah.trim() && !dibiarkan;
 }
 
-// Usulan konten dari pengguna beserta keputusan admin atasnya.
-//
-// Pengguna hanya melihat usulannya sendiri; admin melihat milik semua akun,
-// jadi pembacaannya dipisah antara `milikSaya` dan `semua`.
+// repositori usulan kontribusi
 class UsulanRepository {
   final FirebaseFirestore _firestore;
   final SejarahRepository _sejarahRepository;
@@ -67,7 +62,6 @@ class UsulanRepository {
 
   // section pengiriman oleh pengguna
 
-  // Usulan yang dibuat hari ini
   Future<int> jumlahHariIni() async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return 0;
@@ -82,7 +76,7 @@ class UsulanRepository {
   Future<bool> masihBolehMengusulkan() async =>
       await jumlahHariIni() < batasUsulanHarian;
 
-  // kirim usulan
+  // section aksi kirim usulan
   Future<bool> kirim(Usulan usulan) async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return false;
@@ -106,7 +100,6 @@ class UsulanRepository {
     }
   }
 
-  // kumpulkan gambar dari usulan
   List<String> _kumpulkanGambarUsulan(Usulan usulan) {
     final list = <String>[];
     final gbr = usulan.teks(KunciUsulan.gambar);
@@ -200,14 +193,14 @@ class UsulanRepository {
     }
   }
 
-  // batalkan usulan
+  // section aksi batalkan usulan
   Future<bool> batalkan(int id) async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return false;
     return hapusUsulan(id);
   }
 
-  // hapus usulan
+  // section aksi hapus usulan
   Future<bool> hapusUsulan(int id) async {
     try {
       final snap = await _firestore
@@ -286,7 +279,6 @@ class UsulanRepository {
     return '';
   }
 
-  // ambil semua dari firestore
   Future<List<Usulan>> _ambilSemuaUsulan() async {
     if (_cachedUsulan != null) return _cachedUsulan!;
 
@@ -328,7 +320,6 @@ class UsulanRepository {
     return batas != null && sisa.length > batas ? sisa.sublist(0, batas) : sisa;
   }
 
-  // Banyaknya usulan per maksud pada satu status
   Future<Map<MaksudUsulan, int>> jumlahPerMaksud(StatusUsulan status) async {
     final daftar = await semua(status: status);
     final hasil = {for (final m in MaksudUsulan.values) m: 0};
@@ -338,7 +329,6 @@ class UsulanRepository {
     return hasil;
   }
 
-  // Banyaknya usulan per status
   Future<Map<StatusUsulan, int>> jumlahPerStatus() async {
     final daftar = await _ambilSemuaUsulan();
     final hasil = {for (final s in StatusUsulan.values) s: 0};
@@ -348,7 +338,7 @@ class UsulanRepository {
     return hasil;
   }
 
-  // keputusan admin
+  // section keputusan admin
   Future<bool> putuskan({
     required int id,
     required StatusUsulan status,
@@ -449,10 +439,6 @@ class UsulanRepository {
   }
 
   // section perbandingan koreksi
-
-  // Menyandingkan isi arsip yang sekarang dengan yang diusulkan, supaya admin
-  // langsung melihat bagian mana yang hendak diubah. Dibaca dari arsip yang
-  // hidup, bukan dari cadangan, sebab cadangan baru terisi setelah disetujui.
   Future<List<BedaKoreksi>> bandingkanKoreksi(Usulan usulan) async {
     if (!usulan.koreksi) return const [];
 
@@ -568,12 +554,6 @@ class UsulanRepository {
   }
 
   // section penerbitan
-
-  // Menerapkan usulan ke arsip sungguhan.
-  //
-  // Tiga jalan berbeda: koreksi menimpa arsip yang dikoreksi, usulan yang
-  // sudah pernah terbit diperbarui di tempat supaya ID tagnya tidak berubah,
-  // dan sisanya diterbitkan sebagai arsip baru.
   Future<HasilTerap> terapkan(Usulan usulan) async {
     final id = usulan.id;
     if (id == null) return const HasilTerap.gagal('Usulan tidak dikenali.');
@@ -605,9 +585,6 @@ class UsulanRepository {
     }
   }
 
-  // Membatalkan penerbitan saat admin mengubah keputusan dari disetujui ke
-  // status lain. Usulan baru dihapus arsipnya; koreksi dipulihkan dari
-  // cadangan yang disimpan sebelum ditimpa.
   Future<HasilTerap> tarikTerbitan(Usulan usulan) async {
     try {
       if (usulan.koreksi) return await _pulihkanCadangan(usulan);
@@ -748,10 +725,6 @@ class UsulanRepository {
   }
 
   // section pembaruan arsip yang sudah terbit
-
-  // Menimpa arsip yang sudah ada, dipakai koreksi maupun penyuntingan admin.
-  // ID tag, urutan, dan nama kontributor aslinya tidak ikut berubah: yang
-  // menyunting memperbaiki tulisan orang lain, bukan mengambil alihnya.
   Future<HasilTerap> _perbaruiArsip(
     Usulan usulan,
     String target, {
@@ -919,8 +892,6 @@ class UsulanRepository {
     });
   }
 
-  // Cadangan disisipkan ke muatan usulan, bukan tabel tersendiri, sebab hanya
-  // berguna selama usulan itu masih ada.
   Future<void> _simpanIsi(Usulan usulan, Map<String, dynamic> cadangan) async {
     final id = usulan.id;
     if (id == null) return;
@@ -952,8 +923,6 @@ class UsulanRepository {
       );
     }
 
-    // Cadangan diperlakukan sebagai muatan usulan, jadi jalur pembaruan yang
-    // sama bisa dipakai untuk mengembalikannya.
     final pemulih = usulan.salin(
       isi: Map<String, dynamic>.from(cadangan),
       provinsi: cadangan['provinsi']?.toString() ?? usulan.provinsi,
@@ -981,12 +950,9 @@ class UsulanRepository {
     return detail is Map ? Map<String, dynamic>.from(detail) : const {};
   }
 
-  // Tanggal yang tidak diisi pengusul memakai tanggal persetujuan, supaya ID
-  // tagnya tetap terbentuk.
   static String _tanggalAtauHariIni(Usulan usulan) {
     final tanggal = usulan.teks(KunciUsulan.tanggalKey);
     if (tanggal.length == 8 && int.tryParse(tanggal) != null) return tanggal;
-    // kompatibilitas usulan lama berformat 6 digit (ddMMyy)
     if (tanggal.length == 6 && int.tryParse(tanggal) != null) {
       final yy = int.parse(tanggal.substring(4, 6));
       final yyyy = yy > 30 ? '19$yy' : '20$yy';
@@ -998,14 +964,11 @@ class UsulanRepository {
         '${kini.year.toString().padLeft(4, '0')}';
   }
 
-  // Arsip wajib punya gambar; usulan tanpa gambar memakai berkas bawaan yang
-  // bisa diganti admin lewat form konten.
   static String _gambarAtauBawaan(Usulan usulan) {
     final gambar = usulan.teks(KunciUsulan.gambar);
     return gambar.isEmpty ? 'assets/images/onboardin1.jpg' : gambar;
   }
 
-  // Nilai usulan dipakai bila diisi; yang dikosongkan berarti tidak diubah.
   static String _pilih(String usulan, String asli) =>
       usulan.trim().isEmpty ? asli : usulan.trim();
 

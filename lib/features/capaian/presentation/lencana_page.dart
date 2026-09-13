@@ -9,8 +9,7 @@ import '../data/models/lencana_model.dart';
 import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
 import 'widgets/keping_lencana.dart';
 
-// Pajangan lencana. Yang belum terbuka tetap ditampilkan sebagai bingkai
-// kosong beserta kemajuannya, supaya syaratnya terlihat jelas.
+// section halaman lencana
 class LencanaPage extends StatefulWidget {
   const LencanaPage({super.key});
 
@@ -39,8 +38,7 @@ class _LencanaPageState extends State<LencanaPage> {
     });
   }
 
-  // Menyemat dibatasi tiga; bila penuh, pengguna diberi tahu daripada
-  // sematannya diam-diam tidak berubah.
+  // validasi batas semat lencana
   Future<void> _ubahSematan(StatusLencana status) async {
     final berhasil = await _repository.setSematan(
       status.lencana.kode,
@@ -97,7 +95,7 @@ class _LencanaPageState extends State<LencanaPage> {
     );
   }
 
-  // Gelar dan jumlah lencana, satu-satunya bagian yang diberi aksen emas penuh.
+  // section ringkasan gelar dan lencana
   Widget _buildRingkasan(int terbuka, GelarPengguna gelar) {
     GelarPengguna? berikutnya;
     for (final g in gelarList) {

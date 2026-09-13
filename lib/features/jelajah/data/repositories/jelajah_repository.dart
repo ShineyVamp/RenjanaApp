@@ -3,8 +3,7 @@ import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart
 import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 import '../models/hasil_jelajah_model.dart';
 
-// Bagian teks tempat sebuah kata kunci ditemukan. Urutannya dari yang paling
-// menentukan, dipakai juga untuk memilih alasan yang ditampilkan.
+// enum bagian kecocokan pencarian
 enum BagianCocok { judul, kodeTag, sub, meta, isi }
 
 extension LabelBagianCocok on BagianCocok {
@@ -24,8 +23,7 @@ extension LabelBagianCocok on BagianCocok {
   }
 }
 
-// Penyaring jenis pada hasil pencarian. Pulau dan provinsi disatukan jadi
-// wilayah, sebab bagi pencari keduanya sama-sama "tempat".
+// enum kategori filter pencarian
 enum SaringJenis { sejarah, budaya, wilayah }
 
 extension LabelSaringJenis on SaringJenis {
@@ -52,10 +50,7 @@ extension LabelSaringJenis on SaringJenis {
   }
 }
 
-// Sekumpulan hasil pencarian beserta hitungan tiap jenisnya.
-//
-// Hitungannya dihitung sebelum penyaringan dan sebelum pemotongan, sehingga
-// chip penyaring tetap menunjukkan berapa banyak yang sebenarnya ada.
+// model agregasi hasil pencarian
 class HasilPencarian {
   final List<HasilCari> hasil;
   final Map<SaringJenis, int> jumlah;
@@ -70,7 +65,7 @@ class HasilPencarian {
   });
 }
 
-// Satu baris hasil pencarian beserta nilai dan alasan kecocokannya.
+// model baris hasil pencarian
 class HasilCari {
   final HasilJelajah item;
   final int skor;
@@ -83,7 +78,7 @@ class HasilCari {
   });
 }
 
-// Pencarian gabungan sejarah, budaya, dan wilayah untuk halaman Jelajah.
+// repository pencarian jelajah
 class JelajahRepository {
   final SejarahRepository _sejarahRepository;
   final BudayaRepository _budayaRepository;
@@ -129,12 +124,7 @@ class JelajahRepository {
     return list;
   }
 
-  // Mencari dengan pemberian skor, bukan sekadar cocok atau tidak.
-  //
-  // Kata kunci dipecah per kata dan setiap kata dinilai terhadap tiap bagian
-  // teks secara terpisah. Bagian yang lebih menentukan diberi bobot lebih
-  // besar, sehingga judul yang persis sama selalu di atas judul yang hanya
-  // mengandung kata kunci di tengah kata.
+  // algoritma pemeringkatan pencarian
   Future<HasilPencarian> cari(
     String kataKunci, {
     int batas = 60,
@@ -154,12 +144,10 @@ class JelajahRepository {
     hasil.sort((a, b) {
       if (a.skor != b.skor) return b.skor.compareTo(a.skor);
 
-      // wilayah didahulukan atas arsip pada skor yang sama
       final aWilayah = a.item.isWilayah ? 0 : 1;
       final bWilayah = b.item.isWilayah ? 0 : 1;
       if (aWilayah != bWilayah) return aWilayah.compareTo(bWilayah);
 
-      // judul lebih pendek berarti kata kuncinya menempati porsi lebih besar
       final aPanjang = a.item.judul.length;
       final bPanjang = b.item.judul.length;
       if (aPanjang != bPanjang) return aPanjang.compareTo(bPanjang);
@@ -172,8 +160,6 @@ class JelajahRepository {
         j: hasil.where((h) => j.cocok(h.item)).length,
     };
 
-    // Penyaringan dilakukan sebelum pemotongan, jadi memilih satu jenis tidak
-    // kehilangan hasil yang tergeser keluar batas oleh jenis lain.
     final tersaring = saring == null
         ? hasil
         : hasil.where((h) => saring.cocok(h.item)).toList();
@@ -186,8 +172,6 @@ class JelajahRepository {
     );
   }
 
-  // Nilai satu item, atau null bila ada kata kunci yang tidak ketemu sama
-  // sekali. Seluruh kata harus cocok, bukan salah satunya saja.
   static HasilCari? _nilaiItem(HasilJelajah item, List<String> kata) {
     final judul = _normalkan(item.judul);
     final kode = _normalkan(item.kodeTag);
@@ -199,8 +183,6 @@ class JelajahRepository {
     BagianCocok? terbaik;
 
     for (final k in kata) {
-      // Kata pendek tidak menyentuh isi deskripsi; tanpa aturan ini mengetik
-      // satu huruf akan mencocokkan hampir semua arsip.
       final pendek = k.length < 3;
 
       final calon = <(int, BagianCocok)>[
@@ -227,16 +209,12 @@ class JelajahRepository {
       }
     }
 
-    // Seluruh kata kunci muncul berurutan di judul, bukan tersebar.
     final frasa = kata.join(' ');
     if (kata.length > 1 && judul.contains(frasa)) total += 400;
 
     return HasilCari(item: item, skor: total, bagian: terbaik!);
   }
 
-  // Empat tingkat kecocokan, dari yang paling meyakinkan ke yang paling
-  // longgar: sama persis, jadi awalan, jatuh di awal sebuah kata, dan muncul
-  // di tengah kata.
   static int _skor(String ladang, String kata, List<int> bobot) {
     if (ladang.isEmpty) return 0;
     if (ladang == kata) return bobot[0];
@@ -246,15 +224,12 @@ class JelajahRepository {
     return 0;
   }
 
-  // [persis, awalan, awal kata, tengah kata]
   static const List<int> _bobotJudul = [1000, 700, 500, 220];
   static const List<int> _bobotKode = [900, 600, 400, 180];
   static const List<int> _bobotSub = [200, 160, 130, 70];
   static const List<int> _bobotMeta = [180, 140, 110, 60];
   static const List<int> _bobotIsi = [60, 50, 40, 15];
 
-  // Huruf kecil, tanda baca jadi spasi, spasi ganda dirapatkan. Bentuk ini
-  // membuat "Rambu Solo" ketemu dengan "rambu-solo".
   static String _normalkan(String teks) => teks
       .toLowerCase()
       .replaceAll(RegExp('[^a-z0-9]+'), ' ')
@@ -264,8 +239,7 @@ class JelajahRepository {
   static List<String> _pecahKata(String kataKunci) =>
       _normalkan(kataKunci).split(' ').where((k) => k.isNotEmpty).toList();
 
-  // Mengubah daftar ref riwayat ('jenis|kodeTag') jadi arsip yang masih ada,
-  // urut sesuai urutan riwayat.
+  // parser referensi riwayat
   Future<List<HasilJelajah>> ambilDariRiwayat(
     List<String> refs, {
     int? batas,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 
-// Keterangan saat sebuah daftar tidak berisi apa pun.
+// section pesan kosong
 class PesanKosong extends StatelessWidget {
   final String pesan;
   final IconData ikon;

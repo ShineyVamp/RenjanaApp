@@ -13,7 +13,7 @@ import 'detail_diskusi_page.dart';
 import 'detail_jawaban_page.dart';
 import 'widgets/teks_dengan_mention.dart';
 
-// halaman notifikasi khusus komunitas (tag dan reply)
+// section halaman notifikasi komunitas
 class NotifikasiKomunitasPage extends StatefulWidget {
   const NotifikasiKomunitasPage({super.key});
 
@@ -73,7 +73,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     super.dispose();
   }
 
-  // muat data notifikasi
+  // section muat data notifikasi
   Future<void> _muatData() async {
     setState(() => _isLoading = true);
 
@@ -105,7 +105,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     });
   }
 
-  // tandai semua dibaca
+  // section tandai semua dibaca
   Future<void> _tandaiSemuaDibaca() async {
     final username = PreferenceHandler.userUsername;
     final userId = PreferenceHandler.userId;
@@ -132,7 +132,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     await _muatData();
   }
 
-  // buka target notifikasi
+  // section navigasi target notifikasi
   Future<void> _bukaNotifikasi(NotifikasiKomunitasModel notif) async {
     if (notif.id != null && !notif.sudahDibaca) {
       await _repository.tandaiNotifikasiDibaca(notif.id!);
@@ -160,7 +160,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     await _muatData();
   }
 
-  // hapus notifikasi
+  // section hapus notifikasi
   Future<void> _hapusNotifikasi(NotifikasiKomunitasModel notif) async {
     if (notif.id == null) return;
     await _repository.hapusNotifikasi(notif.id!);
@@ -170,7 +170,6 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     });
   }
 
-  // format waktu relatif
   String _formatWaktu(DateTime waktu) {
     final selisih = DateTime.now().difference(waktu);
     if (selisih.inDays > 30) {
@@ -224,10 +223,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
       ),
       body: Column(
         children: [
-          // baris tab filter efisien
           _buildFilterBar(),
-
-          // daftar notifikasi
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -255,7 +251,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     );
   }
 
-  // bilah filter kategori notifikasi
+  // section bilah filter notifikasi
   Widget _buildFilterBar() {
     final opsi = [
       {'key': 'semua', 'label': 'Semua'},
@@ -320,7 +316,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     );
   }
 
-  // kartu item notifikasi
+  // section kartu item notifikasi
   Widget _buildItemNotifikasi(NotifikasiKomunitasModel notif) {
     final isUnread = !notif.sudahDibaca;
 
@@ -354,7 +350,6 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ikon tipe notifikasi
               Container(
                 width: 36,
                 height: 36,
@@ -377,13 +372,10 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                 ),
               ),
               const SizedBox(width: 12),
-
-              // isi pesan notifikasi
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // pengirim dan aksi
                     Row(
                       children: [
                         Expanded(
@@ -428,8 +420,6 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                       ],
                     ),
                     const SizedBox(height: 4),
-
-                    // konteks topik diskusi
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 7,
@@ -455,8 +445,6 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                       ),
                     ),
                     const SizedBox(height: 6),
-
-                    // cuplikan isi tanggapan dengan highlight mention
                     TeksDenganMention(
                       teks: notif.cuplikanTeks,
                       style: GoogleFonts.plusJakartaSans(
@@ -466,8 +454,6 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                       ),
                     ),
                     const SizedBox(height: 6),
-
-                    // waktu
                     Text(
                       _formatWaktu(notif.dibuatPada),
                       style: GoogleFonts.plusJakartaSans(
@@ -485,7 +471,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
     );
   }
 
-  // tampilan kosong
+  // section tampilan kosong
   Widget _buildPesanKosong() {
     return Center(
       child: Padding(

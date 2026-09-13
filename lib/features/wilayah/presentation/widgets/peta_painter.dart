@@ -8,8 +8,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../../../../core/constants/app_colors.dart';
 import '../../data/static/data_wilayah_nusantara.dart';
 
-// Garis pantai hasil ekstraksi Natural Earth 110m. Titik disimpan sebagai
-// Offset(lon, lat)
+// section geometri garis pantai natural earth
 class PetaGeometri {
   final List<List<List<Offset>>> indonesia;
   final List<List<List<Offset>>> tetangga;

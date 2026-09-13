@@ -121,7 +121,7 @@ class FirestoreSeedService {
         for (final doc in existingDocs.docs) doc.id: doc.data(),
       };
 
-      // bersihkan dokumen lama berformat 6-digit (HIS-ddMMyy-urutan) jika masih ada di firestore
+      // section pembersihan dokumen lama
       final validTags = defaultSejarahList.map((e) => e.kodeTag).toSet();
       for (final doc in existingDocs.docs) {
         if (!validTags.contains(doc.id)) {

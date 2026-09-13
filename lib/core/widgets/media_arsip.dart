@@ -5,19 +5,19 @@ import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import 'app_image.dart';
 
-// Helper untuk mengekstrak Video ID dari berbagai format URL YouTube
+// section ekstraksi id youtube
 String? ekstrakYoutubeId(String? url) {
   if (url == null || url.trim().isEmpty) return null;
   final bersih = url.trim();
 
-  // Pola 1: youtu.be/ID
+  // pola url pendek
   final regexPendek = RegExp(r'youtu\.be\/([a-zA-Z0-9_\-]+)');
   final matchPendek = regexPendek.firstMatch(bersih);
   if (matchPendek != null && matchPendek.groupCount >= 1) {
     return matchPendek.group(1);
   }
 
-  // Pola 2: youtube.com/watch?v=ID atau youtube.com/embed/ID atau /shorts/ID
+  // pola url panjang
   final regexPanjang = RegExp(
     r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/))([a-zA-Z0-9_\-]+)',
   );
@@ -26,7 +26,7 @@ String? ekstrakYoutubeId(String? url) {
     return matchPanjang.group(1);
   }
 
-  // Bila input adalah ID langsung (panjang ~11 karakter tanpa garis miring)
+  // pola id langsung
   if (!bersih.contains('/') && bersih.length == 11) {
     return bersih;
   }
@@ -34,9 +34,7 @@ String? ekstrakYoutubeId(String? url) {
   return null;
 }
 
-// Widget tampilan media arsip (mendukung Foto, Video Berkas, dan Video YouTube).
-// Gambar cover/thumbnail selalu tampil di latar belakang dengan indikator pemutaran
-// saat arsip memiliki video atau tautan YouTube.
+// section tampilan media arsip
 class MediaArsipView extends StatefulWidget {
   final String gambarUtama;
   final String jenisMedia; // 'gambar' | 'video' | 'youtube'
@@ -112,7 +110,7 @@ class _MediaArsipViewState extends State<MediaArsipView> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Gambar utama / cover thumbnail
+          // gambar cover thumbnail
           Positioned.fill(
             child: AppImageView(
               imagePath: widget.gambarUtama,
@@ -120,7 +118,7 @@ class _MediaArsipViewState extends State<MediaArsipView> {
             ),
           ),
 
-          // Lapisan tombol putar dan penanda jenis media
+          // lapisan pemutar media
           if (_hasVideo) ...[
             Positioned.fill(
               child: Container(

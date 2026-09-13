@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:renjana/core/constants/app_colors.dart';
 
-// Kartu disusun beberapa baris ke bawah, kolom berikutnya diakses dengan
-// menggeser ke samping. Dipakai daftar arsip daerah dan penuntasan wilayah.
+// section grid horizontal
 class GridHorizontal extends StatefulWidget {
   final int jumlahItem;
   final Widget Function(int index) builder;
@@ -73,7 +72,7 @@ class _GridHorizontalState extends State<GridHorizontal> {
   Widget build(BuildContext context) {
     if (widget.jumlahItem == 0) return const SizedBox.shrink();
 
-    // Hitung apakah konten melebihi batas 1 kolom (perlu scroll horizontal atau tidak)
+    // validasi kebutuhan scroll horizontal
     final bool butuhScroll = widget.jumlahItem > widget.baris;
 
     return Column(
@@ -97,8 +96,7 @@ class _GridHorizontalState extends State<GridHorizontal> {
   }
 }
 
-// Indikator posisi gulir horizontal yang diletakkan terpisah di bawah konten,
-// sehingga tidak akan pernah menimpa kartu atau menyisakan ruang kosong besar.
+// section indikator scroll horizontal
 class _IndikatorScrollHorizontal extends StatelessWidget {
   final ScrollController controller;
 

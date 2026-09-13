@@ -8,9 +8,7 @@ import '../../../../core/widgets/app_image.dart';
 import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
 import 'package:renjana/features/kontribusi/data/models/usulan_model.dart';
 
-// Isi usulan dalam bentuk baca-saja. Dipakai halaman detail usulan milik
-// pengguna maupun lembar tinjauan admin, supaya keduanya melihat hal yang
-// sama persis.
+// section pratinjau usulan arsip
 class PratinjauUsulan extends StatelessWidget {
   final Usulan usulan;
 

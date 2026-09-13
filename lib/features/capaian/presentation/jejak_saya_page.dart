@@ -18,11 +18,8 @@ import '../../wilayah/data/static/data_wilayah_nusantara.dart';
 import '../../wilayah/presentation/detail_provinsi_page.dart';
 import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
 
-// Rincian dua angka di halaman profil: arsip yang pernah dibaca dan provinsi
-// yang sudah tersentuh. Keduanya di satu halaman karena sama-sama menjawab
-// pertanyaan "apa saja yang sudah saya kunjungi".
+// section jejak eksplorasi saya
 class JejakSayaPage extends StatefulWidget {
-  // 0 membuka tab arsip, 1 membuka tab provinsi.
   final int tabAwal;
 
   const JejakSayaPage({super.key, this.tabAwal = 0});
@@ -72,7 +69,7 @@ class _JejakSayaPageState extends State<JejakSayaPage>
     final tingkat = await _progresRepository.tingkatSemuaProvinsi();
     if (!mounted) return;
 
-    // hanya provinsi yang sudah tersentuh, urut dari tingkat tertinggi
+    // urut provinsi dari tingkat tertinggi
     final tersentuh =
         semuaProvinsi
             .map(
@@ -102,7 +99,7 @@ class _JejakSayaPageState extends State<JejakSayaPage>
         _arsip.where((a) => a.jenis == JenisArsip.budaya).length;
     final jumlahDestinasi = _arsip.where((a) => a.isDestinasi).length;
 
-    // Hitung per kategori budaya
+    // hitung per kategori budaya
     final Map<String, int> jumlahPerKategori = {};
     for (final item in _arsip) {
       if (item.jenis == JenisArsip.budaya && item.budaya != null) {
@@ -155,7 +152,7 @@ class _JejakSayaPageState extends State<JejakSayaPage>
 
   List<HasilJelajah> _dapatkanArsipTersaring() {
     return _arsip.where((item) {
-      // 1. Saring Kategori
+      // filter kategori arsip
       if (_kunciFilter == 'SEJARAH') {
         if (item.jenis != JenisArsip.sejarah) return false;
       } else if (_kunciFilter == 'BUDAYA') {
@@ -168,7 +165,7 @@ class _JejakSayaPageState extends State<JejakSayaPage>
         if (item.budaya?.jenis.trim().toUpperCase() != kode) return false;
       }
 
-      // 2. Saring Pencarian Teks
+      // filter pencarian teks
       final q = _query.trim().toLowerCase();
       if (q.isNotEmpty) {
         final sumber = [

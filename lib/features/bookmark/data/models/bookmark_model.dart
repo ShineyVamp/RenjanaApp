@@ -5,7 +5,7 @@ import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
 class BookmarkItemModel {
   final int? id;
 
-  // 'sejarah' | 'budaya' | 'pulau' | 'provinsi'
+  // jenis arsip: sejarah, budaya, pulau, provinsi
   final String itemType;
 
   final String kodeTag;
@@ -26,8 +26,7 @@ class BookmarkItemModel {
     this.wilayah,
   });
 
-  // Kunci bookmark untuk wilayah diberi awalan sendiri supaya tidak
-  // bertabrakan dengan ID tag arsip yang berbentuk HIS-… atau BUD-….
+  // section awalan kunci bookmark wilayah
   static const String awalanPulau = 'PLU-';
   static const String awalanProvinsi = 'PRV-';
 

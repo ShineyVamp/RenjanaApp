@@ -218,7 +218,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                           const Divider(color: AppColors.primary),
                           const SizedBox(height: 12),
 
-                          // input kode tag, format HIS-ddMMyyyy-urutan
+                          // section input kode tag
                           Text(
                             'ID Tag (Format: HIS-<ddMMyyyy>-<urutan>)',
                             style: AppTypography.labelBold(fontSize: 13),
@@ -1100,7 +1100,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     );
   }
 
-  // Section isian khas jenis peristiwa sejarah.
+  // section field khas peristiwa sejarah
   List<Widget> _buildFieldPeristiwa(
     String? jenis,
     Map<String, TextEditingController> controllers,
@@ -1172,8 +1172,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     return hasil;
   }
 
-  // Input field khas kategori, dibangkitkan dari katalog kategori. Field
-  // bertipe daftar memakai satu kotak multibaris, satu entri per baris.
+  // section input field khas kategori
   List<Widget> _buildFieldKategori(
     String jenis,
     Map<String, TextEditingController> controllers,
@@ -1245,8 +1244,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
     ];
   }
 
-  // Mengubah isi controller jadi peta detailKategori siap simpan. Field
-  // kosong tidak ikut disimpan.
+  // pemetaan detail kategori
   Map<String, dynamic> _rakitDetailKategori(
     String jenis,
     Map<String, TextEditingController> controllers,
@@ -1275,7 +1273,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
   void _showBudayaFormDialog({BudayaModel? budayaToEdit}) {
     final isEditing = budayaToEdit != null;
 
-    // kategori dibatasi daftar resmi di budayaKategoriList
+    // daftar resmi kategori budaya
     String selectedJenis =
         (isEditing ? kategoriByKode(budayaToEdit.jenis) : null)?.kode ??
         budayaKategoriList.first.kode;
@@ -1290,7 +1288,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
           : buatKodeTagBudaya(jenis: selectedJenis, urutan: 1),
     );
 
-    // ID tag diturunkan dari kategori + urutan + status destinasi
+    // pembentukan kode tag budaya
     void syncKodeTag() {
       kodeTagController.text = buatKodeTagBudaya(
         jenis: selectedJenis,
@@ -1333,9 +1331,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
       isEditing ? budayaToEdit.provinsi : null,
     )?.nama;
 
-    // Isi field khas kategori sebagai teks mentah per kunci, dipegang
-    // terpisah dari controller. Field bertipe daftar ditulis satu baris per
-    // entri.
+    // teks mentah field khas kategori
     final Map<String, String> nilaiDetail = {};
     if (isEditing) {
       for (final field in fieldKategori(budayaToEdit.jenis)) {
@@ -1538,7 +1534,7 @@ class _AdminManageContentPageState extends State<AdminManageContentPage>
                           ),
                           const SizedBox(height: 8),
 
-                          // pratinjau ID tag
+                          // pratinjau kode tag
                           Text(
                             'ID Tag (otomatis)',
                             style: AppTypography.labelBold(fontSize: 13),

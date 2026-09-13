@@ -1,9 +1,4 @@
-// Katalog lencana beserta syarat terbukanya, dan gelar yang mengikuti
-// jumlah lencana yang sudah dikumpulkan.
-//
-// Sebagian besar lencana diturunkan dari katalog yang sudah ada: satu lencana
-// untuk tiap kategori budaya dan satu untuk tiap gugus pulau. Menambah
-// kategori atau pulau otomatis menambah lencananya.
+// section katalog dan syarat lencana
 import '../../../../core/constants/budaya_kategori.dart';
 import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 
@@ -28,12 +23,10 @@ class Lencana {
   final String keterangan;
   final JenisSyarat syarat;
 
-  // Kode kategori budaya, periode sejarah, atau id pulau; kosong bila syaratnya tidak
-  // menunjuk wilayah maupun kategori tertentu.
+  // kode acuan kategori, periode, atau pulau
   final String acuan;
 
-  // Ambang yang harus dicapai; diabaikan pada syarat yang targetnya dihitung
-  // dari jumlah arsip yang tersedia.
+  // ambang batas target
   final int ambang;
 
   const Lencana({
@@ -46,8 +39,7 @@ class Lencana {
   });
 }
 
-// Lencana kategori budaya, satu untuk tiap kode kategori. Dibangun ulang tiap
-// kali dibaca karena katalog kategorinya bisa berubah saat aplikasi berjalan.
+// section lencana kategori budaya
 List<Lencana> get _lencanaKategori => [
   for (final k in budayaKategoriList)
     Lencana(
@@ -59,7 +51,7 @@ List<Lencana> get _lencanaKategori => [
     ),
 ];
 
-// Lencana periode sejarah, satu untuk tiap era zaman sejarah.
+// section lencana periode sejarah
 List<Lencana> get _lencanaPeriode => [
   for (final p in periodeSejarahList)
     Lencana(
@@ -71,7 +63,7 @@ List<Lencana> get _lencanaPeriode => [
     ),
 ];
 
-// Lencana gugus pulau, satu untuk tiap pulau.
+// section lencana gugus pulau
 final List<Lencana> _lencanaPulau = [
   for (final p in gugusPulauList)
     Lencana(
@@ -149,7 +141,7 @@ List<Lencana> get lencanaKatalog => [
   ..._lencanaPulau,
 ];
 
-// Gelar pada halaman profil, ditentukan oleh banyaknya lencana yang terbuka.
+// section gelar pengguna
 class GelarPengguna {
   final String nama;
   final int ambang;

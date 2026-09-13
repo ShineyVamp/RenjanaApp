@@ -29,7 +29,7 @@ class AppImagePickerWidget extends StatelessWidget {
 
   Future<bool> _requestGalleryPermission(BuildContext context) async {
     try {
-      // izin foto untuk Android 13+/iOS, storage untuk Android lama
+      // izin galeri foto perangkat
       PermissionStatus status = await Permission.photos.request();
       if (!status.isGranted && !status.isLimited) {
         status = await Permission.storage.request();
@@ -47,7 +47,7 @@ class AppImagePickerWidget extends StatelessWidget {
       }
       return true;
     } catch (_) {
-      // platform yang tidak butuh izin (mis. desktop) langsung diloloskan
+      // loloskan platform tanpa kebutuhan izin
       return true;
     }
   }
@@ -98,7 +98,7 @@ class AppImagePickerWidget extends StatelessWidget {
   }
 
   Future<void> _safePickFromDevice(BuildContext context) async {
-    // minta izin dulu
+    // periksa izin penyimpanan
     final hasPermission = await _requestGalleryPermission(context);
     if (!hasPermission) return;
 
@@ -180,7 +180,7 @@ class AppImagePickerWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      // tombol buka galeri perangkat
+                      // section tombol galeri perangkat
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -226,7 +226,7 @@ class AppImagePickerWidget extends StatelessWidget {
                       Expanded(
                         child: TabBarView(
                           children: [
-                            // tab galeri aset bawaan
+                            // section tab galeri aset
                             GridView.builder(
                               itemCount: defaultAssets.length,
                               gridDelegate:
@@ -297,7 +297,7 @@ class AppImagePickerWidget extends StatelessWidget {
                               },
                             ),
 
-                            // tab path kustom
+                            // section tab path kustom
                             SingleChildScrollView(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,7 +374,7 @@ class AppImagePickerWidget extends StatelessWidget {
     );
   }
 
-  // tampilan pemilih gambar
+  // section pemilih gambar
   @override
   Widget build(BuildContext context) {
     final hasImage =
@@ -409,7 +409,7 @@ class AppImagePickerWidget extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // kartu pratinjau gambar
+        // section kartu pratinjau gambar
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -422,7 +422,6 @@ class AppImagePickerWidget extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // thumbnail
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -445,7 +444,6 @@ class AppImagePickerWidget extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // keterangan & tombol pilih
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

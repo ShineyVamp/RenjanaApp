@@ -24,7 +24,7 @@ void main() async {
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
     cacheSizeBytes:
-        20 * 1024 * 1024, // batas 20 MB, data lama otomatis dibersihkan (LRU)
+        20 * 1024 * 1024, // batas cache lru 20 mb
   );
   await PreferenceHandler.init();
   PaintingBinding.instance.imageCache.maximumSize = 1500;

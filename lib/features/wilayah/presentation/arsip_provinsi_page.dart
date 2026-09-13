@@ -30,11 +30,8 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
   final WilayahRepository _wilayahRepository = WilayahRepository();
   final TextEditingController _controller = TextEditingController();
 
-  // banyaknya kartu yang tampil di grid sebelum dibuka lengkap
   static const int _batasGrid = 9;
   static const double _lebarKartu = 350;
-
-  // tinggi kartu, cukup untuk judul dan subjudul dua baris
   static const double _tinggiKartu = 170;
 
   static final Map<String, List<HasilJelajah>> _cacheArsipProvinsi = {};
@@ -92,7 +89,6 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
     final tersaring = saringArsip(_semua, _query);
     final kelompok = kelompokkanPerKategori(tersaring);
 
-    // chip hanya memuat kategori yang ada isinya di provinsi ini
     final kunciTersedia = urutkanKunciKategori(
       kelompokkanPerKategori(_semua).keys,
     );
@@ -211,7 +207,7 @@ class _ArsipProvinsiPageState extends State<ArsipProvinsiPage> {
     );
   }
 
-  // satu seksi kategori: judul, tombol lihat lainnya, lalu grid
+  // section seksi kategori
   Widget _buildSeksi(String kunci, List<HasilJelajah> items) {
     final tampil = items.take(_batasGrid).toList();
     final adaSisa = items.length > tampil.length;

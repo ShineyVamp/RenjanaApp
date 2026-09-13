@@ -372,7 +372,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Baris Blok
+          // section header baris blok
           Container(
             padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
             decoration: BoxDecoration(
@@ -436,7 +436,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Input Judul Seksi
+                // section input judul seksi
                 Text(
                   'Judul Seksi / Heading',
                   style: AppTypography.labelBold(fontSize: 12),
@@ -458,7 +458,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
                 ),
                 const SizedBox(height: 12),
 
-                // Editor Spesifik per Tipe
+                // section editor konten per tipe
                 _buildKontenEditor(),
               ],
             ),
@@ -481,7 +481,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
     }
   }
 
-  // 1. Editor Teks Panjang
+  // section editor teks panjang
   Widget _buildEditorTeksPanjang() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,7 +507,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
     );
   }
 
-  // 2. Editor Daftar Bernomor
+  // section editor daftar bernomor
   Widget _buildEditorDaftar() {
     final list = widget.blok.daftar;
     return Column(
@@ -598,7 +598,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
     );
   }
 
-  // 3. Editor Timeline (Urutan Waktu)
+  // section editor urutan peristiwa timeline
   Widget _buildEditorTimeline() {
     final timeline = widget.blok.timeline;
     return Column(
@@ -754,7 +754,7 @@ class _ItemEditorBlokState extends State<_ItemEditorBlok> {
     );
   }
 
-  // 4. Editor Spesifikasi (Data Singkat)
+  // section editor data spesifikasi
   Widget _buildEditorSpesifikasi() {
     final specs = widget.blok.spesifikasi;
     return Column(

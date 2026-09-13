@@ -4,8 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import 'package:renjana/features/wilayah/data/static/data_wilayah_nusantara.dart';
 
-// Penanda asal daerah pada halaman detail arsip. Tautan "Lihat provinsi"
-// hanya muncul bila [onLihatProvinsi] diisi.
+// section blok asal daerah
 class AsalDaerahBlock extends StatelessWidget {
   final String? namaProvinsi;
   final VoidCallback? onLihatProvinsi;

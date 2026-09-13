@@ -24,7 +24,6 @@ class TimelineItemWidget extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // garis vertikal timeline
         if (!isLast)
           Positioned(
             top: 8,
@@ -33,7 +32,6 @@ class TimelineItemWidget extends StatelessWidget {
             child: Container(width: 1.5, color: AppColors.border),
           ),
 
-        // penanda kotak
         Positioned(
           top: 4,
           left: 0,
@@ -44,7 +42,6 @@ class TimelineItemWidget extends StatelessWidget {
           ),
         ),
 
-        // isi peristiwa
         Padding(
           padding: const EdgeInsets.only(left: 22, bottom: 30),
           child: Column(

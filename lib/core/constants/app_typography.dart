@@ -6,7 +6,7 @@ import 'app_colors.dart';
 class AppTypography {
   AppTypography._();
 
-  // DM Serif Display: judul besar dan branding
+  // section heading dm serif
   static TextStyle headingLarge({Color color = AppColors.textPrimary}) =>
       GoogleFonts.dmSerifDisplay(
         fontSize: 42,
@@ -35,7 +35,7 @@ class AppTypography {
         color: color,
       );
 
-  // Playfair Display: judul section halaman detail
+  // section editorial playfair
   static TextStyle editorialHeading({Color color = AppColors.textPrimary}) =>
       GoogleFonts.playfairDisplay(
         fontSize: 22,
@@ -47,7 +47,7 @@ class AppTypography {
     Color color = AppColors.textSecondary,
   }) => GoogleFonts.playfairDisplay(fontSize: 14, height: 1.4, color: color);
 
-  // Plus Jakarta Sans: teks isi, tombol, label, dan keterangan
+  // section teks jakarta sans
   static TextStyle bodyLarge({Color color = AppColors.textSecondary}) =>
       GoogleFonts.plusJakartaSans(fontSize: 16, height: 1.5, color: color);
 
@@ -81,7 +81,7 @@ class AppTypography {
         color: color,
       );
 
-  // Label kecil huruf kapital di atas sebuah judul, mis. "PENUNTASAN".
+  // section aksen dan label
   static TextStyle eyebrow({
     double fontSize = 10,
     Color color = AppColors.primary,
@@ -93,7 +93,6 @@ class AppTypography {
     color: color,
   );
 
-  // Keterangan pendek di dalam kartu dan baris daftar.
   static TextStyle caption({
     double fontSize = 11.5,
     Color color = AppColors.textSecondary,
@@ -106,7 +105,6 @@ class AppTypography {
     color: color,
   );
 
-  // Angka besar sebagai penekanan utama sebuah kartu.
   static TextStyle angka({
     double fontSize = 24,
     Color color = AppColors.primary,

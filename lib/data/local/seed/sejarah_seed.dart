@@ -1,8 +1,8 @@
-﻿// Data awal untuk tabel `sejarah`, dipakai sekali saat database dibuat.
+﻿// section data seed sejarah
 import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
 
 final List<SejarahModel> defaultSejarahList = [
-// 1. PERANG PUPUTAN KLUNGKUNG (28 APRIL 1908)
+// arsip perang puputan klungkung
   SejarahModel(
     kodeTag: 'HIS-28041908-1',
     tanggalKey: '28041908',
@@ -62,7 +62,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 2. PENDIRIAN BOEDI OETOMO (20 MEI 1908)
+  // arsip pendirian boedi oetomo
   SejarahModel(
     kodeTag: 'HIS-20051908-1',
     tanggalKey: '20051908',
@@ -119,7 +119,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 3. TRANSFORMASI SAREKAT ISLAM (10 SEPTEMBER 1912)
+  // arsip transformasi sarekat islam
   SejarahModel(
     kodeTag: 'HIS-10091912-1',
     tanggalKey: '10091912',
@@ -175,7 +175,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 4. PENDIRIAN INDISCHE PARTIJ (25 DESEMBER 1912)
+  // arsip pendirian indische partij
   SejarahModel(
     kodeTag: 'HIS-25121912-1',
     tanggalKey: '25121912',
@@ -231,7 +231,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 5. PENERBITAN RISALAH "ALS IK EENS NEDERLANDER WAS" (13 JULI 1913)
+  // arsip penerbitan risalah als ik eens nederlander was
   SejarahModel(
     kodeTag: 'HIS-13071913-1',
     tanggalKey: '13071913',
@@ -280,7 +280,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 6. PENDIRIAN PERSERIKATAN NASIONAL INDONESIA (04 JULI 1927)
+  // arsip pendirian perserikatan nasional indonesia
   SejarahModel(
     kodeTag: 'HIS-04071927-1',
     tanggalKey: '04071927',
@@ -338,7 +338,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 7. IKRAR SUMPAH PEMUDA (28 OKTOBER 1928 - URUTAN 1)
+  // arsip ikrar sumpah pemuda
   SejarahModel(
     kodeTag: 'HIS-28101928-1',
     tanggalKey: '28101928',
@@ -387,7 +387,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 8. PERDENGARAN PERDANA INDONESIA RAYA OLEH W.R. SOEPRATMAN (28 OKTOBER 1928 - URUTAN 2)
+  // arsip perdengaran perdana indonesia raya
   SejarahModel(
     kodeTag: 'HIS-28101928-2',
     tanggalKey: '28101928',
@@ -434,7 +434,7 @@ final List<SejarahModel> defaultSejarahList = [
       ),
     ],
   ),
-  //anjay
+  // arsip penemuan fosil pithecanthropus erectus
   SejarahModel(
     kodeTag: 'HIS-01010000-1',
     tanggalKey: '01010000',
@@ -481,7 +481,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 2. PENETAPAN PRASASTI KEDUKAN BUKIT (PERIODE: HND / HINDU-BUDDHA)
+  // arsip penetapan prasasti kedukan bukit
   SejarahModel(
     kodeTag: 'HIS-16050682-1',
     tanggalKey: '16050682',
@@ -529,7 +529,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 3. PEMBEBASAN SUNDA KELAPA OLEH FATAHILLAH (PERIODE: ISL / ISLAM)
+  // arsip pembebasan sunda kelapa
   SejarahModel(
     kodeTag: 'HIS-22061527-1',
     tanggalKey: '22061527',
@@ -581,7 +581,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 4. PENANDATANGANAN PERJANJIAN GIYANTI (PERIODE: KLN / KOLONIAL - TAMBAHAN 1)
+  // arsip penandatanganan perjanjian giyanti
   SejarahModel(
     kodeTag: 'HIS-13021755-1',
     tanggalKey: '13021755',
@@ -632,7 +632,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 5. PELEPASAN PERANG DIPONEGORO DI TEGALREJO (PERIODE: KLN / KOLONIAL - TAMBAHAN 2)
+  // arsip pelepasan perang diponegoro
   SejarahModel(
     kodeTag: 'HIS-20071825-1',
     tanggalKey: '20071825',
@@ -684,7 +684,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 6. PROKLAMASI KEMERDEKAAN INDONESIA (PERIODE: NAS / PERGERAKAN NASIONAL)
+  // arsip proklamasi kemerdekaan indonesia
   SejarahModel(
     kodeTag: 'HIS-17081945-1',
     tanggalKey: '17081945',
@@ -734,7 +734,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 7. PERTEMPURAN SURABAYA (PERIODE: REV / REVOLUSI KEMERDEKAAN)
+  // arsip pertempuran surabaya
   SejarahModel(
     kodeTag: 'HIS-10111945-1',
     tanggalKey: '10111945',
@@ -786,7 +786,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 8. PEMBACAAN DEKRIT PRESIDEN 5 JULI 1959 (PERIODE: ORL / ORDE LAMA)
+  // arsip pembacaan dekrit presiden
   SejarahModel(
     kodeTag: 'HIS-05071959-1',
     tanggalKey: '05071959',
@@ -835,7 +835,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 9. PENERBITAN SUPERSEMAR (PERIODE: ORB / ORDE BARU)
+  // arsip penerbitan supersemar
   SejarahModel(
     kodeTag: 'HIS-11031966-1',
     tanggalKey: '11031966',
@@ -884,7 +884,7 @@ final List<SejarahModel> defaultSejarahList = [
     ],
   ),
 
-  // 10. PERNYATAAN BERHENTI PRESIDEN SOEHARTO (PERIODE: REF / REFORMASI)
+  // arsip pernyataan berhenti presiden soeharto
   SejarahModel(
     kodeTag: 'HIS-21051998-1',
     tanggalKey: '21051998',

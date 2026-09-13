@@ -7,7 +7,7 @@ class NotifikasiKomunitasModel {
   final int? pengirimId;
   final String pengirimNama;
   final String pengirimUsername;
-  final String tipe; // 'tag' atau 'balas'
+  final String tipe;
   final int diskusiId;
   final int? jawabanId;
   final int? indukJawabanId;

@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
 
-// Teks yang ukurannya mengecil sendiri sampai muat dalam lebar yang tersedia
-// dan sebanyak-banyaknya [maksBaris]. Dipakai judul kartu yang panjang isinya
-// tidak bisa diperkirakan, mis. nama kategori budaya dan nama destinasi.
+// section widget teks adaptif
 class TeksMuat extends StatelessWidget {
   final String teks;
   final TextStyle gaya;
   final int maksBaris;
-
-  // Bila diisi, teks pendek dipaksa satu baris dan hanya teks yang katanya
-  // lebih banyak dari ini yang boleh memakai [maksBaris].
   final int? ambangKata;
-
-  // Batas bawah pengecilan; di bawah ini teks dipotong dengan elipsis
-  // daripada mengecil sampai tak terbaca.
   final double ukuranMinimum;
-
   final TextAlign perataan;
 
   const TeksMuat({
@@ -43,7 +34,6 @@ class TeksMuat extends StatelessWidget {
         final baris = _baris;
         var ukuran = gaya.fontSize ?? 14;
 
-        // Dicoba dari ukuran asli, mengecil 0,5 poin tiap langkah sampai muat.
         while (ukuran > ukuranMinimum) {
           if (_muat(ukuran, lebar, baris)) break;
           ukuran -= 0.5;

@@ -10,9 +10,6 @@ import '../../features/kontribusi/data/repositories/usulan_repository.dart';
 import '../../features/wilayah/data/repositories/progres_wilayah_repository.dart';
 
 class SessionCleanupService {
-  // Membersihkan seluruh cache in-memory yang berkaitan dengan data pengguna aktif.
-  // Wajib dipanggil saat logout atau sebelum login akun baru untuk mencegah
-  // kebocoran data antar-akun (cross-account state leakage).
   static void bersihkanSemuaCachePengguna() {
     try {
       RiwayatRepository.bersihkanCache();

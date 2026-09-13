@@ -13,7 +13,7 @@ import 'package:renjana/features/sejarah/data/models/sejarah_model.dart';
 import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 import 'detail_sejarah_page.dart';
 
-// halaman arsip periode
+// section halaman arsip periode
 class ArsipPeriodePage extends StatefulWidget {
   final KategoriItem periode;
 
@@ -112,7 +112,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
           constraints: const BoxConstraints(maxWidth: 800),
           child: Column(
             children: [
-              // header era dan pencarian
+              // section header era dan pencarian
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Column(
@@ -150,7 +150,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
                 ),
               ),
 
-              // filter jenis peristiwa
+              // section filter jenis peristiwa
               if (_tersediaJenisPeristiwa.length > 1)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -211,7 +211,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
 
               const SizedBox(height: 8),
 
-              // daftar konten
+              // section daftar arsip periode
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -257,7 +257,7 @@ class _ArsipPeriodePageState extends State<ArsipPeriodePage> {
     );
   }
 
-  // status kosong
+  // section status kosong
   Widget _buildEmptyState() {
     return Padding(
       padding: const EdgeInsets.all(32),

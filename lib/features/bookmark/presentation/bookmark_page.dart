@@ -23,7 +23,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
   List<BookmarkItemModel> _bookmarks = [];
   bool _isLoading = true;
   String _searchQuery = '';
-  String _selectedTab = 'SEMUA'; // SEMUA | SEJARAH | BUDAYA | WILAYAH
+  String _selectedTab = 'SEMUA';
 
   // section siklus hidup
   @override
@@ -61,7 +61,7 @@ class _BookmarkPageState extends State<BookmarkPage> {
 
   List<BookmarkItemModel> get _filteredBookmarks {
     return _bookmarks.where((item) {
-      // Pulau dan provinsi disatukan di bawah satu chip Wilayah.
+      // pengelompokan filter wilayah
       final matchesTab =
           _selectedTab == 'SEMUA' ||
           (_selectedTab == 'WILAYAH'
@@ -293,7 +293,6 @@ class _BookmarkPageState extends State<BookmarkPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // header kartu
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -356,7 +355,6 @@ class _BookmarkPageState extends State<BookmarkPage> {
                 ),
               ),
 
-              // isi kartu
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(

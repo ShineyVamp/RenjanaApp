@@ -11,11 +11,7 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/pesan_kosong.dart';
 import '../../budaya/data/repositories/kategori_repository.dart';
 
-// Pengelolaan katalog kategori: menambah kategori baru, mengganti nama,
-// menyusun ulang urutannya, dan menyunting daftar rincian khasnya.
-//
-// Kategori bawaan boleh disunting tetapi tidak boleh dihapus, sebab arsip yang
-// sudah terbit menunjuk kodenya.
+// section kelola kategori admin
 class AdminManageKategoriPage extends StatefulWidget {
   final String ranah;
   final String judul;
@@ -286,7 +282,7 @@ class _AdminManageKategoriPageState extends State<AdminManageKategoriPage> {
   }
 }
 
-// Kolom isian satu rincian, dikumpulkan supaya controllernya mudah dibuang.
+// section kolom isian rincian
 class _BarisField {
   final TextEditingController kunci;
   final TextEditingController label;
@@ -316,8 +312,7 @@ class _BarisField {
   }
 }
 
-// Form tambah dan sunting satu kategori beserta rincian khasnya. Menutup
-// dengan hasil `true` bila ada yang tersimpan.
+// section form kategori
 class FormKategoriPage extends StatefulWidget {
   final String ranah;
   final KategoriItem? kategori;
@@ -368,7 +363,7 @@ class _FormKategoriPageState extends State<FormKategoriPage> {
     setState(() => _field.removeAt(index).buang());
   }
 
-  // Mengembalikan pesan kesalahan pertama, atau null bila isian sudah benar.
+  // validasi isian form
   Future<String?> _periksa() async {
     final kode = _kode.text.trim().toUpperCase();
     final nama = _nama.text.trim();

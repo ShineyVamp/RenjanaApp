@@ -3,10 +3,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../constants/app_colors.dart';
 
-// Membagikan sebuah arsip lewat aplikasi lain di perangkat.
-//
-// Yang dibagikan adalah ringkasan berbentuk teks, bukan tautan, sebab Renjana
-// belum punya alamat web yang bisa dibuka orang lain.
+// section bagikan arsip
 Future<void> bagikanArsip(
   BuildContext context, {
   required String judul,
@@ -42,8 +39,7 @@ Future<void> bagikanArsip(
   }
 }
 
-// Keterangan panjang dipotong supaya yang dibagikan tetap ringkas dan tidak
-// memindahkan seluruh isi arsip keluar aplikasi.
+// pemotongan teks ringkasan
 String _potong(String teks, {int batas = 220}) {
   if (teks.length <= batas) return teks;
 

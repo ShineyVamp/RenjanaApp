@@ -4,8 +4,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dekorasi.dart';
 import '../constants/app_typography.dart';
 
-// Ajakan melaporkan kekeliruan pada arsip yang sedang dibaca. Dipasang di
-// halaman detail sejarah dan budaya.
+// section tombol ajakan koreksi
 class TombolKoreksi extends StatelessWidget {
   final VoidCallback onTap;
   final EdgeInsetsGeometry padding;

@@ -13,8 +13,7 @@ import '../../kontribusi/presentation/widgets/kartu_usulan.dart';
 import '../../kontribusi/presentation/widgets/perbandingan_koreksi.dart';
 import '../../kontribusi/presentation/widgets/pratinjau_usulan.dart';
 
-// Tinjauan usulan konten dari seluruh pengguna. Menyetujui langsung
-// menerbitkan arsipnya, jadi admin tidak perlu mengetik ulang isinya.
+// section kelola usulan admin
 class AdminManageUsulanPage extends StatefulWidget {
   const AdminManageUsulanPage({super.key});
 
@@ -34,7 +33,7 @@ class _AdminManageUsulanPageState extends State<AdminManageUsulanPage>
   Map<int, String> _pengusul = const {};
   bool _isLoading = true;
 
-  // null berarti tidak disaring, jadi arsip baru dan koreksi tampil bersama.
+  // filter maksud usulan
   MaksudUsulan? _maksud;
 
   StatusUsulan get _statusAktif => StatusUsulan.values[_tab.index];
@@ -71,7 +70,7 @@ class _AdminManageUsulanPageState extends State<AdminManageUsulanPage>
       maksud: _maksud,
     );
 
-    // nama pengusul diambil sekali per baris, bukan di dalam builder
+    // nama pengusul per baris
     final nama = <int, String>{};
     for (final u in daftar) {
       final id = u.id;
@@ -118,8 +117,7 @@ class _AdminManageUsulanPageState extends State<AdminManageUsulanPage>
     }
   }
 
-  // Arsip baru dan koreksi ditinjau dengan cara berbeda, jadi keduanya bisa
-  // dipisah lewat penyaring ini.
+  // section penyaring maksud usulan
   Widget _buildPenyaring() {
     Widget chip(MaksudUsulan? maksud, String label, int jumlah) {
       final terpilih = _maksud == maksud;
@@ -243,7 +241,7 @@ class _AdminManageUsulanPageState extends State<AdminManageUsulanPage>
   }
 }
 
-// Lembar tinjauan satu usulan: isinya utuh, lalu tiga keputusan.
+// section lembar tinjauan usulan
 class _LembarTinjauan extends StatefulWidget {
   final Usulan usulan;
   final String pengusul;
@@ -275,16 +273,14 @@ class _LembarTinjauanState extends State<_LembarTinjauan> {
     super.dispose();
   }
 
-  // Menolak dan meminta revisi wajib beralasan; tanpa itu pengusul tidak tahu
-  // apa yang harus diperbaiki.
+  // validasi alasan keputusan
   Future<void> _putuskan(StatusUsulan status) async {
     final id = widget.usulan.id;
     if (id == null) return;
 
     final catatan = _catatan.text.trim();
 
-    // Persetujuan yang dicabut harus diikuti penarikan arsipnya, kalau tidak
-    // konten yang ditolak tetap terbaca pengguna.
+    // penarikan arsip saat pembatalan persetujuan
     final dicabut =
         status != StatusUsulan.disetujui &&
         widget.usulan.status == StatusUsulan.disetujui;
@@ -326,8 +322,6 @@ class _LembarTinjauanState extends State<_LembarTinjauan> {
     );
     if (!mounted) return;
 
-    // Messenger diambil sebelum lembar ditutup, sebab setelah pop context
-    // milik lembar ini sudah tidak berlaku.
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context, true);
 
@@ -349,8 +343,7 @@ class _LembarTinjauanState extends State<_LembarTinjauan> {
     );
   }
 
-  // Admin menyunting isi usulan. Lembar ini ditutup setelahnya supaya
-  // daftarnya memuat versi terbaru sebelum dibuka lagi.
+  // sunting usulan oleh admin
   Future<void> _sunting() async {
     final hasil = await context.push(
       FormUsulanPage(usulanAwal: widget.usulan, sebagaiAdmin: true),
@@ -376,8 +369,6 @@ class _LembarTinjauanState extends State<_LembarTinjauan> {
   Widget build(BuildContext context) {
     final usulan = widget.usulan;
 
-    // PembersihDialog tidak dipakai di sini: controllernya milik State ini dan
-    // sudah dibuang di dispose(), jadi membungkusnya justru membuang dua kali.
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.85,
@@ -535,8 +526,6 @@ class _LembarTinjauanState extends State<_LembarTinjauan> {
     required StatusUsulan status,
     bool utama = false,
   }) {
-    // Setujui tetap hidup pada usulan yang sudah disetujui, sebab dipakai
-    // menerbitkan ulang isi yang baru disunting.
     final aktif =
         !_memproses &&
         (status == StatusUsulan.disetujui || widget.usulan.status != status);

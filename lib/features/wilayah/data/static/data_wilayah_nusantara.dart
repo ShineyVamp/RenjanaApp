@@ -1,4 +1,4 @@
-﻿import '../models/wilayah_model.dart';
+import '../models/wilayah_model.dart';
 
 export '../models/wilayah_model.dart';
 
@@ -600,7 +600,6 @@ GugusPulau? pulauDariId(String id) {
   return null;
 }
 
-// gambar pulau bila belum diisi gambar.
 String gambarProvinsi(Provinsi provinsi) {
   if (provinsi.gambar != null && provinsi.gambar!.trim().isNotEmpty) {
     return provinsi.gambar!;

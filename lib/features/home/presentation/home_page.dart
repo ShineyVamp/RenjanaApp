@@ -21,7 +21,7 @@ import 'widgets/misi_harian_card.dart';
 import 'widgets/pilihan_destinasi_list.dart';
 import 'widgets/sejarah_highlight_card.dart';
 
-// Ruang kosong selagi sorotan harian dimuat.
+// section placeholder sorotan
 class _HighlightPlaceholder extends StatelessWidget {
   const _HighlightPlaceholder();
 
@@ -102,7 +102,6 @@ class _HomePageState extends State<HomePage> with RouteAware {
     final selisih = posisi - _gulirTerakhir;
     _gulirTerakhir = posisi;
 
-    // di puncak halaman header selalu tampil
     if (posisi <= _tinggiHeader) {
       _akumulasiNaik = 0;
       _akumulasiTurun = 0;
@@ -110,7 +109,6 @@ class _HomePageState extends State<HomePage> with RouteAware {
       return;
     }
 
-    // menggulir turun: header disembunyikan setelah gerakan cukup jauh
     if (selisih > 0) {
       _akumulasiNaik = 0;
       _akumulasiTurun += selisih;
@@ -120,7 +118,6 @@ class _HomePageState extends State<HomePage> with RouteAware {
       return;
     }
 
-    // menggulir naik: header kembali setelah naik sejauh ambangnya
     _akumulasiTurun = 0;
     _akumulasiNaik += -selisih;
     if (!_headerTampil && _akumulasiNaik >= _ambangMunculHeader) {
@@ -128,7 +125,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
     }
   }
 
-  // Dipakai tombol logo: kembali ke puncak halaman lalu memuat ulang isinya.
+  // section navigasi puncak
   Future<void> _keAtasDanSegarkan() async {
     if (_gulir.hasClients) {
       await _gulir.animateTo(
@@ -194,7 +191,6 @@ class _HomePageState extends State<HomePage> with RouteAware {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        // top: false,
         bottom: false,
         child: Stack(
           children: [
@@ -287,7 +283,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
               ),
             ),
 
-            // header mengambang, tersembunyi selagi pengguna membaca
+            // section header mengambang
             AnimatedSlide(
               offset: _headerTampil ? Offset.zero : const Offset(0, -2),
               duration: const Duration(milliseconds: 220),
@@ -300,7 +296,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
     );
   }
 
-  // section header: logo, penanda admin, dan pintasan koleksi
+  // section header utama
   Widget _buildHeader() {
     return Container(
       height: _tinggiHeader,
@@ -329,7 +325,6 @@ class _HomePageState extends State<HomePage> with RouteAware {
             const SizedBox(width: 8),
           ],
 
-          // logo: kembali ke puncak halaman sekaligus memuat ulang
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _keAtasDanSegarkan,

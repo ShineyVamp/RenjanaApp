@@ -37,36 +37,23 @@ class TimelineItemModel {
   }
 }
 
+// model data arsip sejarah
 class SejarahModel {
   final int? id;
-  final String kodeTag; // HIS-15081945-1
-  final String tanggalKey; // ddMMyyyy, mis. 15081945
-  final int urutan; // 1 = sorotan harian utama
+  final String kodeTag;
+  final String tanggalKey;
+  final int urutan;
   final String judul;
   final String subtitle;
   final String ringkasan;
   final String gambarUtama;
   final List<TimelineItemModel> alurPeristiwa;
-
-  // Nama provinsi asal, mengikuti penulisan di data_wilayah_nusantara.dart.
   final String? provinsi;
-
-  // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.
   final String? kontributor;
-
-  // Periode zaman sejarah (kode: PRS, HND, ISL, KLN, NAS, REV, ORL, ORB, REF)
   final String? periode;
-
-  // Jenis peristiwa sejarah (kode: PRG, PRJ, TKH, ORG, NSK, STS)
   final String? jenisPeristiwa;
-
-  // Detail data peristiwa dinamis
   final Map<String, dynamic> detailPeristiwa;
-
-  // Format media: 'gambar' (default), 'video', 'youtube'
   final String jenisMedia;
-
-  // URL / Path video atau link YouTube (bila jenisMedia != 'gambar')
   final String? mediaUrl;
 
   const SejarahModel({
@@ -92,13 +79,10 @@ class SejarahModel {
   bool get isYoutube => jenisMedia == 'youtube';
   bool get hasVideoMedia => isVideo || isYoutube;
 
-  // Nama periode untuk ditampilkan
   String get namaPeriodeLabel => namaPeriode(periode ?? '');
 
-  // Nama jenis peristiwa untuk ditampilkan
   String get namaPeristiwaLabel => namaPeristiwa(jenisPeristiwa ?? '');
 
-  // Helper pembacaan detailPeristiwa
   String teksDetail(String kunci) {
     final nilai = detailPeristiwa[kunci];
     if (nilai is String) return nilai.trim();

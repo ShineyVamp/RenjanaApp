@@ -1,18 +1,14 @@
 import 'dart:convert';
 
-// Kategori budaya, mis. Rumah Adat atau Kuliner Tradisional.
+// section konstanta ranah
 const String ranahBudaya = 'budaya';
-
-// Periode sejarah, mis. Kerajaan Hindu-Buddha atau Proklamasi & Revolusi.
 const String ranahPeriode = 'periode';
-
-// Jenis peristiwa sejarah dengan isian rincian khas, mis. Perang atau Tokoh.
 const String ranahPeristiwa = 'peristiwa';
 
 enum TipeField {
-  teks, // satu baris
-  teksPanjang, // paragraf
-  daftar, // beberapa baris bernomor, mis. bahan atau langkah
+  teks,
+  teksPanjang,
+  daftar,
 }
 
 TipeField tipeFieldDariNama(String? nama) {
@@ -35,10 +31,10 @@ String labelTipeField(TipeField tipe) {
 }
 
 class FieldKategori {
-  final String kunci; // kunci di dalam JSON detailKategori
-  final String label; // judul section di detail, label di form admin
+  final String kunci;
+  final String label;
   final TipeField tipe;
-  final String? petunjuk; // contoh isian di form admin
+  final String? petunjuk;
 
   const FieldKategori({
     required this.kunci,
@@ -65,7 +61,7 @@ class FieldKategori {
   }
 }
 
-// Satu kategori pada salah satu ranah.
+// section model kategori item
 class KategoriItem {
   final int? id;
   final String ranah;
@@ -73,9 +69,6 @@ class KategoriItem {
   final String nama;
   final int urutan;
   final List<FieldKategori> field;
-
-  // Kategori dari daftar bawaan. Namanya boleh diubah admin, tetapi barisnya
-  // tidak boleh dihapus karena arsip lama menunjuk kodenya.
   final bool bawaan;
 
   const KategoriItem({
@@ -117,7 +110,7 @@ class KategoriItem {
     'bawaan': bawaan ? 1 : 0,
   };
 
-  // serialisasi firestore
+  // section serialisasi firestore
   Map<String, dynamic> toFirestore() => {
     'ranah': ranah,
     'kode': kode,
@@ -164,7 +157,7 @@ class KategoriItem {
   );
 }
 
-// Membaca kolom `field` yang berisi JSON larik FieldKategori.
+// section konversi field kategori
 List<FieldKategori> bacaFieldKategori(String? mentah) {
   final teks = mentah?.trim() ?? '';
   if (teks.isEmpty) return const [];
@@ -182,19 +175,16 @@ List<FieldKategori> bacaFieldKategori(String? mentah) {
   }
 }
 
-// Wadah hasil hidrasi katalog dari database.
+// section katalog kategori
 class KatalogKategori {
   KatalogKategori._();
 
   static Map<String, List<KategoriItem>> _isi = const {};
 
-  // Dipasang KategoriRepository setiap kali isi tabel dibaca ulang.
   static void pasang(Map<String, List<KategoriItem>> isi) {
     _isi = isi;
   }
 
-  // Isi satu ranah, urut sesuai kolom urutan. Selama hidrasi belum jalan atau
-  // ranahnya kosong, daftar bawaan yang dipakai supaya halaman tetap terisi.
   static List<KategoriItem> ranah(String nama) {
     final tersimpan = _isi[nama];
     if (tersimpan != null && tersimpan.isNotEmpty) return tersimpan;
@@ -202,13 +192,11 @@ class KatalogKategori {
   }
 }
 
-// Daftar bawaan tiap ranah, dipakai menyemai tabel dan sebagai cadangan.
+// section daftar bawaan
 List<KategoriItem> kategoriBawaan(String ranah) => _bawaan[ranah] ?? const [];
 
 Iterable<String> get ranahKategori => _bawaan.keys;
 
-// Melengkapi daftar mentah dengan ranah, urutan sesuai posisi, dan penanda
-// bawaan, supaya ketiganya tidak perlu ditulis ulang di tiap baris.
 List<KategoriItem> _lengkapi(String ranah, List<KategoriItem> daftar) => [
   for (var i = 0; i < daftar.length; i++)
     daftar[i].salin(ranah: ranah, urutan: i + 1, bawaan: true),

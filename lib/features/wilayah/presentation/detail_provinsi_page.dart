@@ -143,7 +143,6 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
     }
   }
 
-  // Kartu penuntasan: tingkat sekarang, arsip yang belum dibaca, dan status
   // section kontainer penuntasan
   Widget _buildPenuntasan() {
     final progres = _progres;
@@ -241,7 +240,6 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
           ],
 
           const SizedBox(height: 12),
-          // tombol lihat rincian arsip
           GestureDetector(
             onTap: () async {
               await context.push(
@@ -350,7 +348,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                 ],
               ),
 
-              // judul & julukan
+              // section identitas wilayah
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
                 child: Column(
@@ -390,10 +388,9 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                 ),
               ),
 
-              // kartu total arsip & ibukota
+              // section statistik wilayah
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 20, 22, 4),
-                // IntrinsicHeight menyamakan tinggi kedua kartu
                 child: IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -433,7 +430,6 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                 child: _buildPenuntasan(),
               ),
 
-              // tombol menuju daftar arsip lengkap
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 0, 22, 28),
                 child: SizedBox(

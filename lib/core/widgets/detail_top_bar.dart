@@ -61,7 +61,7 @@ class DetailTopBar extends StatelessWidget {
                       color: Colors.white,
                       size: 18,
                     ),
-                    // tutup semua halaman detail, kembali ke MainPage
+                    // kembali ke halaman utama
                     onTap:
                         onHome ??
                         () => Navigator.of(

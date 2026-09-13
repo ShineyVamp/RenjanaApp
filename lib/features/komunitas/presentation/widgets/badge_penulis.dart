@@ -28,7 +28,6 @@ class BadgePenulis extends StatelessWidget {
       spacing: 6,
       runSpacing: 4,
       children: [
-        // label role atau gelar
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
           decoration: BoxDecoration(
@@ -51,8 +50,6 @@ class BadgePenulis extends StatelessWidget {
             ),
           ),
         ),
-
-        // pin lencana pilihan
         if (badgePilihan.isNotEmpty)
           ...badgePilihan.take(3).map((kode) {
             Lencana? lencana;
@@ -79,8 +76,6 @@ class BadgePenulis extends StatelessWidget {
               ),
             );
           }),
-
-        // waktu teks bila ada
         if (waktuTeks != null && waktuTeks!.isNotEmpty) ...[
           Text(
             '· $waktuTeks',

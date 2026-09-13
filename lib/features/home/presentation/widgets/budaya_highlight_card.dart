@@ -17,14 +17,13 @@ class BudayaHighlightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // label judul di sisi kanan
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: const [SectionBadgeTitle(title: 'Budaya Hari Ini')],
         ),
         const SizedBox(height: 16),
 
-        // kartu isi dengan nomor watermark
+        // section konten sorotan budaya
         Stack(
           clipBehavior: Clip.none,
           children: [

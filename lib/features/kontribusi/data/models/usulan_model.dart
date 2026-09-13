@@ -7,13 +7,13 @@ import '../../../budaya/data/models/budaya_model.dart';
 import '../../../sejarah/data/models/sejarah_model.dart';
 import 'blok_konten_model.dart';
 
-// Jenis arsip yang diusulkan. Nilainya ikut tersimpan di kolom `jenis`.
+// enum jenis arsip usulan
 enum JenisUsulan { sejarah, budaya }
 
-// Usulan bisa berupa arsip baru atau perbaikan arsip yang sudah terbit.
+// enum maksud usulan arsip
 enum MaksudUsulan { baru, koreksi }
 
-// Perjalanan sebuah usulan sampai diputuskan admin.
+// enum status moderasi usulan
 enum StatusUsulan { menunggu, revisi, disetujui, ditolak }
 
 extension RupaJenisUsulan on JenisUsulan {
@@ -76,41 +76,32 @@ extension RupaStatusUsulan on StatusUsulan {
     }
   }
 
-  // Usulan yang masih bisa disunting pengusulnya.
   bool get bisaDisunting =>
       this == StatusUsulan.menunggu || this == StatusUsulan.revisi;
 
-  // Usulan yang masih menunggu keputusan admin.
   bool get terbuka =>
       this == StatusUsulan.menunggu || this == StatusUsulan.revisi;
 }
 
-// Kunci di dalam muatan `isi`. Dikumpulkan di sini supaya form pengguna dan
-// panel admin membaca nama yang sama persis.
+// konstanta kunci muatan usulan
 class KunciUsulan {
   KunciUsulan._();
 
-  // dipakai semua jenis
   static const String gambar = 'gambar';
   static const String judul = 'judul';
   static const String jenisMedia = 'jenisMedia';
   static const String mediaUrl = 'mediaUrl';
 
-  // blok konten dinamis (fleksibel untuk sejarah & budaya)
   static const String blokKonten = 'blokKonten';
 
-  // sejarah
   static const String subtitle = 'subtitle';
   static const String tanggalKey = 'tanggalKey';
   static const String ringkasan = 'ringkasan';
   static const String periode = 'periode';
   static const String jenisPeristiwa = 'jenisPeristiwa';
   static const String detailPeristiwa = 'detailPeristiwa';
-
-  // daftar peristiwa: {tanggal, judul, keterangan}
   static const String alurPeristiwa = 'alurPeristiwa';
 
-  // budaya
   static const String kategori = 'kategori';
   static const String tagline = 'tagline';
   static const String deskripsi = 'deskripsi';
@@ -118,35 +109,21 @@ class KunciUsulan {
   static const String konteksBudaya = 'konteksBudaya';
   static const String detailKategori = 'detailKategori';
   static const String destinasi = 'destinasi';
-
-  // Salinan arsip sebelum dikoreksi, dipakai memulihkannya bila admin menarik
-  // kembali persetujuan.
   static const String cadangan = 'cadangan';
 }
 
-// Satu usulan konten, isi tabel `usulan`.
+// model usulan arsip kontribusi
 class Usulan {
   final int? id;
   final JenisUsulan jenis;
   final MaksudUsulan maksud;
-
-  // Arsip yang dikoreksi; kosong pada usulan arsip baru.
   final String targetKodeTag;
-
   final String provinsi;
-
-  // Ringkasan satu baris untuk daftar, diambil dari judul isian.
   final String judul;
-
-  // Muatan usulan, bentuknya berbeda tiap jenis.
   final Map<String, dynamic> isi;
-
   final StatusUsulan status;
   final String catatanAdmin;
-
-  // ID tag arsip yang terbit setelah usulan disetujui.
   final String kodeTagHasil;
-
   final DateTime dibuatPada;
   final DateTime diperbaruiPada;
 
@@ -172,7 +149,6 @@ class Usulan {
   List<BlokKontenModel> get daftarBlokKonten =>
       BlokKontenModel.listFromDynamic(isi[KunciUsulan.blokKonten]);
 
-  // Nilai daftar pada muatan, mis. pilihan jawaban atau alur peristiwa.
   List<Map<String, dynamic>> daftar(String kunci) {
     final nilai = isi[kunci];
     if (nilai is! List) return const [];
@@ -251,8 +227,7 @@ class Usulan {
     );
   }
 
-  // Kerangka usulan koreksi untuk arsip sejarah yang sudah terbit. Isinya
-  // disalin apa adanya supaya pengusul tinggal mengubah yang keliru saja.
+  // factory usulan koreksi sejarah
   factory Usulan.koreksiSejarah(SejarahModel arsip) {
     final kini = DateTime.now();
     return Usulan(
@@ -288,7 +263,7 @@ class Usulan {
     );
   }
 
-  // Kerangka usulan koreksi untuk arsip budaya yang sudah terbit.
+  // factory usulan koreksi budaya
   factory Usulan.koreksiBudaya(BudayaModel arsip) {
     final kini = DateTime.now();
     return Usulan(
@@ -315,7 +290,6 @@ class Usulan {
     );
   }
 
-  // Membaca kolom `isi`; nilai null, kosong, atau rusak jadi {}.
   static Map<String, dynamic> muatanDariJson(Object? mentah) {
     if (mentah == null) return const {};
     final teks = mentah.toString().trim();

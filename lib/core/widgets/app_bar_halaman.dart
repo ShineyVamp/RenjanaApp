@@ -4,16 +4,11 @@ import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 import '../extensions/navigation.dart';
 
-// AppBar seragam untuk halaman yang dibuka di atas halaman lain: panah kembali
-// di kiri, judul di tengah, dan garis merah tipis di bawahnya.
+// section appbar halaman
 class AppBarHalaman extends StatelessWidget implements PreferredSizeWidget {
   final String judul;
   final List<Widget>? aksi;
-
-  // Diisi bila AppBar perlu membawa tab atau penyaring di bawah judul.
   final PreferredSizeWidget? bawah;
-
-  // Dilewatkan bila halaman perlu memutuskan sendiri cara menutup dirinya.
   final VoidCallback? onKembali;
 
   const AppBarHalaman({

@@ -4,11 +4,11 @@ import '../../../../core/constants/budaya_kategori.dart';
 
 class BudayaModel {
   final int? id;
-  final String kodeTag; // BUD-SNJT-1
-  final String jenis; // kode kategori: SNJT, TRN, RMH, dst.
+  final String kodeTag;
+  final String jenis;
   final int urutan;
   final String judul;
-  final String kategoriLabel; // 'SENJATA TRADISIONAL'
+  final String kategoriLabel;
   final String tagline;
   final String deskripsi;
   final String gambarUtama;
@@ -17,20 +17,19 @@ class BudayaModel {
   final String? konteksBudaya;
   final String? gambarKonteksBudaya;
 
-  // Nama provinsi asal, mengikuti penulisan di data_wilayah_nusantara.dart.
+  // provinsi asal
   final String? provinsi;
 
-  // Username pengusul, terisi bila arsip ini berasal dari usulan pengguna.
+  // kontributor pengusul
   final String? kontributor;
 
-  // Isi field khas kategori. Kuncinya mengikuti FieldKategori.kunci pada
-  // kategori item ini; nilainya String untuk teks, List<String> untuk daftar.
+  // rincian field khas kategori
   final Map<String, dynamic> detailKategori;
 
-  // Format media: 'gambar' (default), 'video', 'youtube'
+  // format media
   final String jenisMedia;
 
-  // URL / Path video atau link YouTube (bila jenisMedia != 'gambar')
+  // url atau path media
   final String? mediaUrl;
 
   const BudayaModel({
@@ -58,14 +57,14 @@ class BudayaModel {
   bool get isYoutube => jenisMedia == 'youtube';
   bool get hasVideoMedia => isVideo || isYoutube;
 
-  // Item juga tempat wisata, ditandai suffix -D (mis. BUD-RMH-1-D).
+  // penanda destinasi wisata
   bool get isDestinasi =>
       kodeTag.trim().toUpperCase().endsWith(kodeDestinasiSuffix);
 
-  // Nama kategori untuk ditampilkan.
+  // label nama kategori
   String get namaKategoriBudaya => namaKategori(jenis);
 
-  // section pembacaan detailKategori
+  // section pembacaan detail kategori
 
   String teksDetail(String kunci) {
     final nilai = detailKategori[kunci];
@@ -90,13 +89,12 @@ class BudayaModel {
       ? daftarDetail(kunci).isNotEmpty
       : teksDetail(kunci).isNotEmpty;
 
-  // section serialisasi kolom detailKategori
+  // section serialisasi kolom detail kategori
 
   String get detailKategoriJson =>
       detailKategori.isEmpty ? '' : jsonEncode(detailKategori);
 
-  // Peta kolom tabel budaya, dipakai seed, migrasi, dan repository.
-  // Kolom `id` tidak ikut, diatur otomatis.
+  // peta kolom sqlite
   Map<String, Object?> toKolom() => {
     'kodeTag': kodeTag,
     'jenis': jenis,

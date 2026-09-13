@@ -98,7 +98,6 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // penanda tarik
               Center(
                 child: Container(
                   width: 40,
@@ -110,8 +109,6 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
                   ),
                 ),
               ),
-
-              // judul
               Row(
                 children: [
                   Container(
@@ -154,7 +151,7 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
               ),
               const SizedBox(height: 22),
 
-              // password lama
+              // section input password
               AppTextField(
                 controller: _lamaController,
                 labelText: 'Password Lama',
@@ -175,8 +172,6 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
                 },
               ),
               const SizedBox(height: 6),
-
-              // opsi lupa password lama
               Align(
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
@@ -196,8 +191,6 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // password baru
               AppTextField(
                 controller: _baruController,
                 labelText: 'Password Baru',
@@ -225,8 +218,6 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // konfirmasi password baru
               AppTextField(
                 controller: _konfirmasiController,
                 labelText: 'Konfirmasi Password Baru',
@@ -289,7 +280,7 @@ class _BottomSheetGantiPasswordState extends State<BottomSheetGantiPassword> {
 
               const SizedBox(height: 26),
 
-              // tombol simpan
+              // section aksi simpan
               AppButton(
                 text: _isLoading ? 'Menyimpan...' : 'Simpan Password Baru',
                 borderRadius: 10,

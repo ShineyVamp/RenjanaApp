@@ -93,7 +93,7 @@ class _AdminManageLaporanPageState extends State<AdminManageLaporanPage> {
 
       if (konfirmasi != true) return;
 
-      // Hapus konten bila target diskusi
+      // hapus konten target diskusi
       if (laporan.targetTipe == 'diskusi') {
         final id = int.tryParse(laporan.targetId);
         if (id != null) {
@@ -127,7 +127,7 @@ class _AdminManageLaporanPageState extends State<AdminManageLaporanPage> {
         bottom: false,
         child: Column(
           children: [
-            // Filter status
+            // section filter status
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
               child: SizedBox(

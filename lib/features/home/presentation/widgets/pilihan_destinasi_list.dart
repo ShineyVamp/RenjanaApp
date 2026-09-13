@@ -11,7 +11,7 @@ import '../../../budaya/data/models/budaya_model.dart';
 import '../../../budaya/data/repositories/budaya_repository.dart';
 import '../../../budaya/presentation/detail_budaya_page.dart';
 
-// Budaya yang juga tempat wisata, ditandai suffix -D pada ID tag.
+// section widget daftar pilihan destinasi
 class PilihanDestinasiList extends StatefulWidget {
   const PilihanDestinasiList({super.key});
 
@@ -23,7 +23,6 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
   final ScrollController _scrollController = ScrollController();
   final BudayaRepository _budayaRepository = BudayaRepository();
 
-  // jumlah destinasi yang tampil sekaligus
   static const int _jumlahTampil = 5;
   static List<BudayaModel>? _cachedItems;
   static int? _cachedTotal;
@@ -97,7 +96,6 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // nomor watermark
         Text(
           '05',
           style: AppTypography.headingLarge(
@@ -110,8 +108,6 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
           isCenter: true,
         ),
         const SizedBox(height: 8),
-
-        // tombol acak ulang daftar
         TextButton.icon(
           onPressed: _isLoading || _isRefreshing ? null : _refreshDestinasi,
           style: TextButton.styleFrom(
@@ -138,7 +134,7 @@ class _PilihanDestinasiListState extends State<PilihanDestinasiList> {
         ),
         const SizedBox(height: 12),
 
-        // kartu destinasi, scroll horizontal
+        // section slider kartu destinasi
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _isLoading

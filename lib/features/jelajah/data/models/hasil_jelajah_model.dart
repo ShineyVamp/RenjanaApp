@@ -4,8 +4,7 @@ import '../../../sejarah/data/models/sejarah_model.dart';
 
 enum JenisArsip { sejarah, budaya, pulau, provinsi }
 
-// Satu baris hasil di halaman Jelajah, mewakili arsip (sejarah, budaya)
-// maupun wilayah (pulau, provinsi).
+// model hasil pencarian jelajah
 class HasilJelajah {
   final JenisArsip jenis;
   final String kodeTag;
@@ -14,12 +13,7 @@ class HasilJelajah {
   final String meta;
   final String gambar;
   final bool isDestinasi;
-
-  // Provinsi asal, hanya terisi untuk arsip sejarah dan budaya.
   final String? asalProvinsi;
-
-  // Sumber aslinya, dipakai saat membuka halaman tujuan. Hanya satu yang
-  // terisi, sesuai [jenis].
   final SejarahModel? sejarah;
   final BudayaModel? budaya;
   final GugusPulau? pulau;
@@ -86,7 +80,6 @@ class HasilJelajah {
   bool get isWilayah =>
       jenis == JenisArsip.pulau || jenis == JenisArsip.provinsi;
 
-  // Teks tambahan yang ikut dicari, berbeda tiap jenis.
   String get isiPencarian {
     switch (jenis) {
       case JenisArsip.sejarah:
@@ -102,7 +95,6 @@ class HasilJelajah {
     }
   }
 
-  // Kunci penyimpanan riwayat, mis. 'budaya|BUD-RMH-1-D'. Hanya dipakai
-  // arsip; wilayah tidak dicatat ke riwayat.
+  // referensi kunci riwayat pencarian
   String get refRiwayat => '${jenis.name}|$kodeTag';
 }

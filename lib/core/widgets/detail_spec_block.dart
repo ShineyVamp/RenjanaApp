@@ -12,8 +12,7 @@ class SpecItem {
   const SpecItem(this.label, this.nilai);
 }
 
-// Kotak data singkat di bawah deskripsi, berisi keterangan pendek seperti
-// tahun berdiri atau jumlah pemain.
+// section blok spesifikasi detail
 class DetailSpecBlock extends StatelessWidget {
   final List<SpecItem> items;
   final EdgeInsetsGeometry padding;

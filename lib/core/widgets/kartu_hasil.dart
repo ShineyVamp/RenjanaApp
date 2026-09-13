@@ -6,7 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dekorasi.dart';
 import 'app_image.dart';
 
-// kartu hasil
+// section kartu hasil
 class KartuHasil extends StatelessWidget {
   final HasilJelajah item;
   final VoidCallback onTap;
@@ -58,7 +58,6 @@ class KartuHasil extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // lencana
                         Row(
                           children: [
                             LencanaKecil(
@@ -85,7 +84,6 @@ class KartuHasil extends StatelessWidget {
                         ),
                         if (subTag != null && subTag!.isNotEmpty) ...[
                           const SizedBox(height: 4),
-                          // kategori di bawah id
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.surface,
@@ -107,7 +105,6 @@ class KartuHasil extends StatelessWidget {
                           ),
                         ],
                         const SizedBox(height: 6),
-                        // judul
                         Text(
                           item.judul,
                           maxLines: 2,
@@ -119,7 +116,6 @@ class KartuHasil extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 3),
-                        // sub judul
                         Text(
                           item.sub,
                           maxLines: 2,
@@ -131,7 +127,6 @@ class KartuHasil extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        // meta atau lokasi
                         if (lokasi != null && lokasi!.isNotEmpty)
                           Row(
                             children: [
@@ -179,6 +174,7 @@ class KartuHasil extends StatelessWidget {
   }
 }
 
+// section widget lencana kecil
 class LencanaKecil extends StatelessWidget {
   final String teks;
   final Color warna;

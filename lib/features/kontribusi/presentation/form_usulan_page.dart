@@ -57,13 +57,8 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   bool _destinasi = false;
   List<BlokKontenModel> _blokKontenBudaya = [];
 
-  // Isian khas kategori budaya, dibuat sekali untuk seluruh kategori supaya
-  // isian yang sudah diketik tidak hilang saat kategorinya diganti.
   final Map<String, TextEditingController> _detail = {};
 
-
-  // Menyunting usulan yang sudah tersimpan, berbeda dari usulan koreksi yang
-  // isinya baru disalin dari arsip dan belum punya id.
   bool get _memperbaiki => widget.usulanAwal?.id != null;
 
   bool get _koreksi => widget.usulanAwal?.koreksi ?? false;
@@ -180,8 +175,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     super.dispose();
   }
 
-  // Penanda besar di halaman detail memakai format 17.08.1945, jadi diturunkan
-  // dari tanggal supaya pengusul tidak perlu menghitung sendiri.
   void _isiPenandaDariTanggal(String nilai) {
     final angka = nilai.trim();
     if (angka.length != 8) return;
@@ -199,8 +192,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     setState(() => _gambar = path);
   }
 
-  // Muatan disusun sesuai jenisnya; kunci-kuncinya dari KunciUsulan supaya
-  // panel admin membaca nama yang sama.
+  // section perakitan muatan usulan
   Map<String, dynamic> _rakitMuatan() {
     final isi = <String, dynamic>{};
     if ((_gambar ?? '').trim().isNotEmpty) {
@@ -243,7 +235,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     return isi;
   }
 
-  // Hanya field milik jenis peristiwa terpilih yang ikut, dan yang kosong dibuang.
   Map<String, dynamic> _rakitDetailPeristiwa() {
     final hasil = <String, dynamic>{};
     for (final field in fieldPeristiwa(_jenisPeristiwa)) {
@@ -264,7 +255,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     return hasil;
   }
 
-  // Hanya field milik kategori terpilih yang ikut, dan yang kosong dibuang.
   Map<String, dynamic> _rakitDetail() {
     final hasil = <String, dynamic>{};
     for (final field in fieldKategori(_kategoriBudaya)) {
@@ -300,8 +290,6 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       return;
     }
 
-    // Batas harian hanya berlaku untuk usulan baru dari pengguna; memperbaiki
-    // usulan lama maupun suntingan admin tidak memakan jatah.
     if (!_memperbaiki &&
         !widget.sebagaiAdmin &&
         !await _repository.masihBolehMengusulkan()) {
@@ -317,7 +305,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
 
     setState(() => _menyimpan = true);
 
-    // upload gambar utama ke cloudinary
+    // unggah gambar utama
     if (_gambar != null && _gambar!.trim().isNotEmpty && !_gambar!.startsWith('http')) {
       final berkas = File(_gambar!.trim());
       if (berkas.existsSync()) {
@@ -328,7 +316,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
       }
     }
 
-    // upload gambar peristiwa ke cloudinary
+    // unggah gambar peristiwa
     for (final p in _peristiwa) {
       if (p.gambar != null && p.gambar!.trim().isNotEmpty && !p.gambar!.startsWith('http')) {
         final berkas = File(p.gambar!.trim());
@@ -490,8 +478,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
     );
   }
 
-  // Penanda bahwa yang sedang diisi adalah perbaikan arsip yang sudah terbit,
-  // bukan arsip baru.
+  // section keterangan koreksi
   Widget _buildKeteranganKoreksi() {
     return Container(
       width: double.infinity,
@@ -856,7 +843,7 @@ class _FormUsulanPageState extends State<FormUsulanPage> {
   }
 }
 
-// Satu baris alur peristiwa selagi diisi di form.
+// model entri alur peristiwa form
 class _EntriPeristiwa {
   final TextEditingController tanggal = TextEditingController();
   final TextEditingController judul = TextEditingController();

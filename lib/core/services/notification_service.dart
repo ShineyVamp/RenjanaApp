@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-// Layanan notifikasi lokal untuk pengingat harian retensi & gamifikasi.
+// section layanan notifikasi
 class LayananNotifikasi {
   static final LayananNotifikasi _instance = LayananNotifikasi._internal();
   factory LayananNotifikasi() => _instance;
@@ -21,7 +21,7 @@ class LayananNotifikasi {
     if (_terinisialisasi) return;
 
     tz.initializeTimeZones();
-    // Default WIB (UTC+7) / Asia/Jakarta
+    // zona waktu lokal (wib)
     try {
       tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
     } catch (_) {
@@ -56,7 +56,7 @@ class LayananNotifikasi {
   Future<bool> isPengingatAktif() async {
     try {
       final pref = await SharedPreferences.getInstance();
-      return pref.getBool(_kunciPengingatAktif) ?? true; // Default aktif
+      return pref.getBool(_kunciPengingatAktif) ?? true;
     } catch (_) {
       return true;
     }

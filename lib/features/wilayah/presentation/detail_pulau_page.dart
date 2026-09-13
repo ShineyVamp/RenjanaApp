@@ -155,7 +155,6 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                 ],
               ),
 
-              // judul
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
                 child: Column(
@@ -183,10 +182,9 @@ class _DetailPulauPageState extends State<DetailPulauPage> {
                 ),
               ),
 
-              // kartu jumlah provinsi & total arsip
+              // section statistik pulau
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 20, 22, 4),
-                // IntrinsicHeight menyamakan tinggi kedua kartu
                 child: IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

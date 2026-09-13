@@ -11,8 +11,7 @@ import '../../../core/widgets/app_image.dart';
 import '../../auth/data/models/user_model.dart';
 import '../../auth/data/repositories/user_repository.dart';
 
-// Penyuntingan data diri. Username dan email boleh diganti karena seluruh
-// data akun disimpan dengan kunci id, bukan email.
+// section halaman sunting profil
 class EditProfilPage extends StatefulWidget {
   final UserSQLModel user;
 
@@ -139,7 +138,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
       return;
     }
 
-    // Sesi ikut diperbarui agar nama dan email baru langsung terpakai.
+    // perbarui sesi akun
     await PreferenceHandler.saveUser(hasil.user!);
     if (!mounted) return;
 

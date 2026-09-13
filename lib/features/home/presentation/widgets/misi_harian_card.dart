@@ -6,8 +6,7 @@ import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../capaian/data/repositories/runtun_repository.dart';
 
-// Runtun kunjungan dan misi kecil hari ini. Memuat datanya sendiri agar
-// beranda tidak perlu ikut menunggu.
+// section kartu misi dan runtun harian
 class MisiHarianCard extends StatefulWidget {
   const MisiHarianCard({super.key});
 
@@ -63,7 +62,7 @@ class _MisiHarianCardState extends State<MisiHarianCard> {
     );
   }
 
-  // Angka runtun dibuat besar sebagai satu-satunya penekanan pada kartu ini.
+  // section header ringkasan runtun
   Widget _buildKepala(int selesai, bool tuntas) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
