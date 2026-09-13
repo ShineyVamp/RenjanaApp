@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/services/cloudinary_service.dart';
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import '../../../../data/local/seed/quiz_seed.dart';
@@ -178,10 +179,18 @@ class QuizRepository {
   Future<bool> updateQuiz(QuizSQLModel quiz) async {
     try {
       if (quiz.id != null) {
-        await _firestore
-            .collection('quiz')
-            .doc(quiz.id.toString())
-            .set(quiz.toMap(), SetOptions(merge: true));
+        final docRef = _firestore.collection('quiz').doc(quiz.id.toString());
+        final oldSnap = await docRef.get();
+        if (oldSnap.exists && oldSnap.data() != null) {
+          final oldGambar = oldSnap.data()!['gambar'] as String?;
+          if (oldGambar != null &&
+              oldGambar.isNotEmpty &&
+              oldGambar != quiz.gambar) {
+            await CloudinaryService().deleteImageByUrl(oldGambar);
+          }
+        }
+
+        await docRef.set(quiz.toMap(), SetOptions(merge: true));
 
         if (_cachedQuizzes != null) {
           final idx = _cachedQuizzes!.indexWhere((q) => q.id == quiz.id);
@@ -198,7 +207,15 @@ class QuizRepository {
   // hapus kuis
   Future<bool> deleteQuiz(int id) async {
     try {
-      await _firestore.collection('quiz').doc(id.toString()).delete();
+      final docRef = _firestore.collection('quiz').doc(id.toString());
+      final snap = await docRef.get();
+      if (snap.exists && snap.data() != null) {
+        final gambar = snap.data()!['gambar'] as String?;
+        if (gambar != null && gambar.isNotEmpty) {
+          await CloudinaryService().deleteImageByUrl(gambar);
+        }
+      }
+      await docRef.delete();
       _cachedQuizzes?.removeWhere((q) => q.id == id);
       return true;
     } catch (_) {
@@ -213,9 +230,17 @@ class QuizRepository {
           .collection('quiz')
           .where('tema', isEqualTo: tema)
           .get();
+      final images = <String>[];
       final batch = _firestore.batch();
       for (final doc in snap.docs) {
+        final gambar = doc.data()['gambar'] as String?;
+        if (gambar != null && gambar.isNotEmpty) {
+          images.add(gambar);
+        }
         batch.delete(doc.reference);
+      }
+      if (images.isNotEmpty) {
+        await CloudinaryService().deleteImagesByUrls(images);
       }
       await batch.commit();
       _cachedQuizzes?.removeWhere((q) => q.tema == tema);
@@ -246,6 +271,16 @@ class QuizRepository {
       };
       if (newCoverImage != null) {
         values['gambar'] = newCoverImage;
+        final oldImages = <String>[];
+        for (final doc in snap.docs) {
+          final oldGbr = doc.data()['gambar'] as String?;
+          if (oldGbr != null && oldGbr.isNotEmpty && oldGbr != newCoverImage) {
+            oldImages.add(oldGbr);
+          }
+        }
+        if (oldImages.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(oldImages);
+        }
       }
       for (final doc in snap.docs) {
         batch.update(doc.reference, values);

@@ -5,6 +5,7 @@ import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/navigation.dart';
 import '../../../core/storage/preference_handler.dart';
 import '../../onboarding/presentation/onboarding_page.dart';
+import 'package:renjana/features/auth/data/repositories/user_repository.dart';
 import 'package:renjana/features/shell/presentation/main_page.dart';
 
 class SplashPage extends StatefulWidget {
@@ -21,12 +22,24 @@ class _SplashPageState extends State<SplashPage> {
     _checkLoginAndNavigate();
   }
 
+  // section validasi sesi dan navigasi
   Future<void> _checkLoginAndNavigate() async {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
     if (PreferenceHandler.isLogin) {
-      final user = PreferenceHandler.user;
-      final isAdmin = PreferenceHandler.isAdmin;
+      var user = PreferenceHandler.user;
+      final uid = PreferenceHandler.userUid;
+      if (uid.isNotEmpty) {
+        try {
+          final fresh = await UserRepository().getUserByUid(uid);
+          if (fresh != null) {
+            user = fresh;
+            await PreferenceHandler.saveUser(fresh);
+          }
+        } catch (_) {}
+      }
+      final isAdmin = user?.isAdminAccount ?? PreferenceHandler.isAdmin;
+      if (!mounted) return;
       context.pushAndRemoveAll(MainPage(currentUser: user, isAdmin: isAdmin));
     } else {
       context.pushAndRemoveAll(const OnboardingPage());

@@ -31,6 +31,7 @@ class UserSQLModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       if (id != null) 'id': id,
+      if (uid != null) 'uid': uid,
       'nama': nama,
       'username': username,
       'email': email,

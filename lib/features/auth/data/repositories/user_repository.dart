@@ -122,6 +122,7 @@ class UserRepository {
       final query = await _usersCol.where('email', isEqualTo: email.trim()).limit(1).get();
       if (query.docs.isEmpty) return 0;
       final docId = query.docs.first.id;
+      final oldFoto = query.docs.first.data()['fotoProfil'] as String?;
 
       String? finalUrl = path;
       if (path != null && !path.startsWith('http')) {
@@ -134,10 +135,16 @@ class UserRepository {
         }
       }
 
+      if (oldFoto != null && oldFoto.isNotEmpty && oldFoto != finalUrl) {
+        await _cloudinaryService.deleteImageByUrl(oldFoto);
+      }
+
       await _usersCol.doc(docId).update({
         'fotoProfil': finalUrl,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      await _sinkronkanFotoKeKomunitas(docId, finalUrl);
       return 1;
     } catch (_) {
       return 0;
@@ -182,6 +189,9 @@ class UserRepository {
       return const HasilSuntingProfil.gagal('Email itu sudah terdaftar pada akun lain.');
     }
 
+    final currentUser = await getUserByUid(userUid);
+    final oldFoto = currentUser?.fotoProfil;
+
     String? fotoFinal = fotoProfil;
 
     // upload cloudinary
@@ -196,6 +206,13 @@ class UserRepository {
           fotoFinal = uploadRes.secureUrl;
         }
       }
+    }
+
+    // hapus foto lama dari cloudinary bila diganti atau dihapus
+    if (hapusFoto && oldFoto != null && oldFoto.isNotEmpty) {
+      await _cloudinaryService.deleteImageByUrl(oldFoto);
+    } else if (!hapusFoto && fotoFinal != null && fotoFinal != oldFoto && oldFoto != null && oldFoto.isNotEmpty) {
+      await _cloudinaryService.deleteImageByUrl(oldFoto);
     }
 
     // update firestore
@@ -217,12 +234,39 @@ class UserRepository {
       return const HasilSuntingProfil.gagal('Gagal menyimpan ke cloud.');
     }
 
+    final targetFoto = hapusFoto ? null : (fotoFinal ?? oldFoto);
+    await _sinkronkanFotoKeKomunitas(userUid, targetFoto);
+
     final terbaru = await getUserByUid(userUid);
     if (terbaru != null) {
       return HasilSuntingProfil.berhasil(terbaru);
     }
 
     return const HasilSuntingProfil.gagal('Gagal memuat profil terbaru.');
+  }
+
+  // section sinkronisasi foto ke komunitas
+  Future<void> _sinkronkanFotoKeKomunitas(String userUid, String? fotoUrl) async {
+    try {
+      final batch = _firestore.batch();
+      final disDocs = await _firestore
+          .collection('diskusi')
+          .where('userUid', isEqualTo: userUid)
+          .get();
+      for (final doc in disDocs.docs) {
+        batch.update(doc.reference, {'fotoProfil': fotoUrl ?? ''});
+      }
+
+      final jwbDocs = await _firestore
+          .collection('jawaban')
+          .where('userUid', isEqualTo: userUid)
+          .get();
+      for (final doc in jwbDocs.docs) {
+        batch.update(doc.reference, {'fotoProfil': fotoUrl ?? ''});
+      }
+
+      await batch.commit();
+    } catch (_) {}
   }
 
   // admin

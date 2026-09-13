@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/services/cloudinary_service.dart';
 import '../../../../data/local/seed/budaya_seed.dart';
 import '../models/budaya_model.dart';
 
@@ -153,11 +154,53 @@ class BudayaRepository {
     }
   }
 
+  // kumpulkan gambar budaya
+  List<String> _kumpulkanGambar(BudayaModel model) {
+    final list = <String>[];
+    if (model.gambarUtama.isNotEmpty) list.add(model.gambarUtama);
+    if (model.gambarMaknaSpiritual != null &&
+        model.gambarMaknaSpiritual!.isNotEmpty) {
+      list.add(model.gambarMaknaSpiritual!);
+    }
+    if (model.gambarKonteksBudaya != null &&
+        model.gambarKonteksBudaya!.isNotEmpty) {
+      list.add(model.gambarKonteksBudaya!);
+    }
+    if (model.mediaUrl != null && model.mediaUrl!.isNotEmpty) {
+      list.add(model.mediaUrl!);
+    }
+    for (final val in model.detailKategori.values) {
+      if (val is String && val.contains('cloudinary.com')) {
+        list.add(val);
+      } else if (val is List) {
+        for (final item in val) {
+          if (item is String && item.contains('cloudinary.com')) {
+            list.add(item);
+          }
+        }
+      }
+    }
+    return list;
+  }
+
   // perbarui data
   Future<int> updateBudaya(BudayaModel model, {String? previousKodeTag}) async {
     final oldKodeTag = previousKodeTag ?? model.kodeTag;
 
     try {
+      final oldDoc =
+          await _firestore.collection('budaya').doc(oldKodeTag).get();
+      if (oldDoc.exists && oldDoc.data() != null) {
+        final oldModel =
+            BudayaModel.fromFirestore(oldDoc.data()!, oldDoc.id);
+        final oldImages = _kumpulkanGambar(oldModel).toSet();
+        final newImages = _kumpulkanGambar(model).toSet();
+        final unusedImages = oldImages.difference(newImages).toList();
+        if (unusedImages.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(unusedImages);
+        }
+      }
+
       await _firestore
           .collection('budaya')
           .doc(model.kodeTag)
@@ -175,6 +218,15 @@ class BudayaRepository {
   // hapus data
   Future<int> deleteBudaya(String kodeTag) async {
     try {
+      final doc = await _firestore.collection('budaya').doc(kodeTag).get();
+      if (doc.exists && doc.data() != null) {
+        final oldModel = BudayaModel.fromFirestore(doc.data()!, doc.id);
+        final images = _kumpulkanGambar(oldModel);
+        if (images.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(images);
+        }
+      }
+
       await _firestore.collection('budaya').doc(kodeTag).delete();
       bersihkanCache();
       return 1;

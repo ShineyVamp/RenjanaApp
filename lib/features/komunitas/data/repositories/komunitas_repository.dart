@@ -29,6 +29,65 @@ class KomunitasRepository {
     return intId > 0 ? 'user_$intId' : 'guest';
   }
 
+  // section cache foto pengguna
+  static final Map<String, String?> _userPhotoCache = {};
+
+  Future<void> _isiCacheFoto(List<Map<String, dynamic>> items) async {
+    final uidsToFetch = <String>{};
+    for (final item in items) {
+      final uid = item['userUid'] as String?;
+      final foto = item['fotoProfil'] as String?;
+      if (uid != null && uid.isNotEmpty) {
+        if (foto != null && foto.isNotEmpty) {
+          _userPhotoCache[uid] = foto;
+        } else if (!_userPhotoCache.containsKey(uid)) {
+          uidsToFetch.add(uid);
+        }
+      }
+    }
+
+    if (uidsToFetch.isEmpty) return;
+
+    try {
+      final list = uidsToFetch.toList();
+      for (var i = 0; i < list.length; i += 10) {
+        final chunk = list.sublist(i, i + 10 > list.length ? list.length : i + 10);
+        final snap = await _firestore
+            .collection('users')
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
+        for (final doc in snap.docs) {
+          final foto = doc.data()['fotoProfil'] as String?;
+          _userPhotoCache[doc.id] = foto;
+          final uname = doc.data()['username'] as String?;
+          if (uname != null && uname.isNotEmpty) {
+            _userPhotoCache[uname.toLowerCase()] = foto;
+          }
+        }
+        for (final uid in chunk) {
+          _userPhotoCache.putIfAbsent(uid, () => null);
+        }
+      }
+    } catch (_) {}
+  }
+
+  String? _ambilFotoProfil(Map<String, dynamic> d) {
+    final uid = d['userUid'] as String?;
+    final uname = (d['username'] as String?)?.toLowerCase();
+    if (uid != null && _userPhotoCache[uid] != null && _userPhotoCache[uid]!.isNotEmpty) {
+      return _userPhotoCache[uid];
+    }
+    if (uname != null && _userPhotoCache[uname] != null && _userPhotoCache[uname]!.isNotEmpty) {
+      return _userPhotoCache[uname];
+    }
+    final docFoto = d['fotoProfil'] as String?;
+    if (docFoto != null && docFoto.isNotEmpty) {
+      if (uid != null) _userPhotoCache[uid] = docFoto;
+      return docFoto;
+    }
+    return null;
+  }
+
   // section ambil id suara pengguna aktif
   Future<Set<int>> getDaftarIdSuaraSaya(String targetTipe) async {
     final uid = _userUid;
@@ -77,12 +136,19 @@ class KomunitasRepository {
             .limit(60)
             .get();
 
-        daftar = snapshot.docs.map((doc) {
+        final maps = snapshot.docs.map((doc) {
           final d = doc.data();
           d['id'] = (d['id'] as num?)?.toInt() ?? int.tryParse(doc.id) ?? doc.id.hashCode.abs();
+          return d;
+        }).toList();
+
+        await _isiCacheFoto(maps);
+
+        daftar = maps.map((d) {
           final disId = d['id'] as int;
           return DiskusiModel.fromMap(
             d,
+            fotoProfil: _ambilFotoProfil(d),
             suaraSaya: votedDiskusi.contains(disId) ? 1 : 0,
           );
         }).toList();
@@ -128,14 +194,22 @@ class KomunitasRepository {
         .limit(60)
         .snapshots()
         .map((snapshot) {
-      final daftar = snapshot.docs.map((doc) {
+      final maps = snapshot.docs.map((doc) {
         final d = doc.data();
         final id = (d['id'] as num?)?.toInt() ??
             int.tryParse(doc.id) ??
             doc.id.hashCode.abs();
         d['id'] = id;
+        return d;
+      }).toList();
+
+      _isiCacheFoto(maps);
+
+      final daftar = maps.map((d) {
+        final id = d['id'] as int;
         return DiskusiModel.fromMap(
           d,
+          fotoProfil: _ambilFotoProfil(d),
           suaraSaya: _cachedIdSuaraSayaDiskusi.contains(id) ? 1 : 0,
         );
       }).toList();
@@ -185,8 +259,10 @@ class KomunitasRepository {
       if (snap.docs.isNotEmpty) {
         final d = snap.docs.first.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? id;
+        await _isiCacheFoto([d]);
         return DiskusiModel.fromMap(
           d,
+          fotoProfil: _ambilFotoProfil(d),
           suaraSaya: _cachedIdSuaraSayaDiskusi.contains(id) ? 1 : 0,
         );
       }
@@ -204,12 +280,17 @@ class KomunitasRepository {
       doc['userUid'] = PreferenceHandler.userUid;
       doc['username'] = PreferenceHandler.userUsername;
       doc['penulis'] = PreferenceHandler.userName;
-      doc['fotoProfil'] = PreferenceHandler.user?.fotoProfil ?? '';
+
+      var foto = PreferenceHandler.user?.fotoProfil ?? '';
+      if (foto.isEmpty && PreferenceHandler.userUid.isNotEmpty) {
+        foto = _userPhotoCache[PreferenceHandler.userUid] ?? '';
+      }
+      doc['fotoProfil'] = foto;
       doc['dibuatPada'] = DateTime.now().millisecondsSinceEpoch;
       doc['createdAt'] = FieldValue.serverTimestamp();
       await docRef.set(doc);
 
-      final baru = DiskusiModel.fromMap(doc);
+      final baru = DiskusiModel.fromMap(doc, fotoProfil: foto.isNotEmpty ? foto : null);
       _cachedDiskusi?.insert(0, baru);
       return id;
     } catch (_) {
@@ -240,6 +321,33 @@ class KomunitasRepository {
     }
   }
 
+  // section sinkronkan foto pengguna ke komunitas
+  Future<void> sinkronkanFotoPengguna(String userUid, String? fotoUrl) async {
+    _userPhotoCache[userUid] = fotoUrl;
+    try {
+      final batch = _firestore.batch();
+      final disDocs = await _firestore
+          .collection('diskusi')
+          .where('userUid', isEqualTo: userUid)
+          .get();
+      for (final doc in disDocs.docs) {
+        batch.update(doc.reference, {'fotoProfil': fotoUrl ?? ''});
+      }
+
+      final jwbDocs = await _firestore
+          .collection('jawaban')
+          .where('userUid', isEqualTo: userUid)
+          .get();
+      for (final doc in jwbDocs.docs) {
+        batch.update(doc.reference, {'fotoProfil': fotoUrl ?? ''});
+      }
+
+      await batch.commit();
+      _cachedDiskusi = null;
+      _cachedJawaban.clear();
+    } catch (_) {}
+  }
+
   // section daftar jawaban
   Future<List<JawabanModel>> getDaftarJawaban(int diskusiId, {bool forceRefresh = false}) async {
     if (!forceRefresh && _cachedJawaban.containsKey(diskusiId)) {
@@ -264,13 +372,20 @@ class KomunitasRepository {
         }
       }
 
-      final list = snapshot.docs.map((doc) {
+      final maps = snapshot.docs.map((doc) {
         final d = doc.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? int.tryParse(doc.id) ?? doc.id.hashCode.abs();
+        return d;
+      }).toList();
+
+      await _isiCacheFoto(maps);
+
+      final list = maps.map((d) {
         final jId = d['id'] as int;
         final jumlahBalas = balasanCount[jId] ?? ((d['jumlahBalasan'] as num?)?.toInt() ?? 0);
         return JawabanModel.fromMap(
           d,
+          fotoProfil: _ambilFotoProfil(d),
           suaraSaya: votedJawaban.contains(jId) ? 1 : 0,
           jumlahBalasan: jumlahBalas,
         );
@@ -336,15 +451,23 @@ class KomunitasRepository {
         }
       }
 
-      final list = snapshot.docs.map((doc) {
+      final maps = snapshot.docs.map((doc) {
         final d = doc.data();
         final id = (d['id'] as num?)?.toInt() ??
             int.tryParse(doc.id) ??
             doc.id.hashCode.abs();
         d['id'] = id;
+        return d;
+      }).toList();
+
+      _isiCacheFoto(maps);
+
+      final list = maps.map((d) {
+        final id = d['id'] as int;
         final jumlahBalas = balasanCount[id] ?? ((d['jumlahBalasan'] as num?)?.toInt() ?? 0);
         return JawabanModel.fromMap(
           d,
+          fotoProfil: _ambilFotoProfil(d),
           suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
           jumlahBalasan: jumlahBalas,
         );
@@ -366,14 +489,22 @@ class KomunitasRepository {
         .where('indukId', isEqualTo: indukId)
         .snapshots()
         .map((snapshot) {
-      final list = snapshot.docs.map((doc) {
+      final maps = snapshot.docs.map((doc) {
         final d = doc.data();
         final id = (d['id'] as num?)?.toInt() ??
             int.tryParse(doc.id) ??
             doc.id.hashCode.abs();
         d['id'] = id;
+        return d;
+      }).toList();
+
+      _isiCacheFoto(maps);
+
+      final list = maps.map((d) {
+        final id = d['id'] as int;
         return JawabanModel.fromMap(
           d,
+          fotoProfil: _ambilFotoProfil(d),
           suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
           jumlahBalasan: (d['jumlahBalasan'] as num?)?.toInt() ?? 0,
         );
@@ -411,8 +542,10 @@ class KomunitasRepository {
       if (snap.docs.isNotEmpty) {
         final d = snap.docs.first.data();
         d['id'] = (d['id'] as num?)?.toInt() ?? id;
+        await _isiCacheFoto([d]);
         return JawabanModel.fromMap(
           d,
+          fotoProfil: _ambilFotoProfil(d),
           suaraSaya: _cachedIdSuaraSayaJawaban.contains(id) ? 1 : 0,
           jumlahBalasan: (d['jumlahBalasan'] as num?)?.toInt() ?? 0,
         );
@@ -431,12 +564,17 @@ class KomunitasRepository {
       doc['userUid'] = PreferenceHandler.userUid;
       doc['username'] = PreferenceHandler.userUsername;
       doc['penulis'] = PreferenceHandler.userName;
-      doc['fotoProfil'] = PreferenceHandler.user?.fotoProfil ?? '';
+
+      var foto = PreferenceHandler.user?.fotoProfil ?? '';
+      if (foto.isEmpty && PreferenceHandler.userUid.isNotEmpty) {
+        foto = _userPhotoCache[PreferenceHandler.userUid] ?? '';
+      }
+      doc['fotoProfil'] = foto;
       doc['dibuatPada'] = DateTime.now().millisecondsSinceEpoch;
       doc['createdAt'] = FieldValue.serverTimestamp();
       await docRef.set(doc);
 
-      final baru = JawabanModel.fromMap(doc);
+      final baru = JawabanModel.fromMap(doc, fotoProfil: foto.isNotEmpty ? foto : null);
       _cachedJawaban.putIfAbsent(model.diskusiId, () => []).add(baru);
 
       _firestore.collection('diskusi').doc('${model.diskusiId}').update({

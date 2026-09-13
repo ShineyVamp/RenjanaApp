@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/budaya_kategori.dart';
+import '../../../../core/services/cloudinary_service.dart';
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 import '../../../budaya/data/models/budaya_model.dart';
@@ -10,6 +11,7 @@ import '../../../quiz/data/models/quiz_model.dart';
 import '../../../quiz/data/repositories/quiz_repository.dart';
 import '../../../sejarah/data/models/sejarah_model.dart';
 import '../../../sejarah/data/repositories/sejarah_repository.dart';
+import '../models/blok_konten_model.dart';
 import '../models/usulan_model.dart';
 
 // Hasil penerbitan sebuah usulan.
@@ -105,6 +107,44 @@ class UsulanRepository {
     }
   }
 
+  // kumpulkan gambar dari usulan
+  List<String> _kumpulkanGambarUsulan(Usulan usulan) {
+    final list = <String>[];
+    final gbr = usulan.teks(KunciUsulan.gambar);
+    if (gbr.isNotEmpty) list.add(gbr);
+    final media = usulan.teks(KunciUsulan.mediaUrl);
+    if (media.isNotEmpty) list.add(media);
+
+    for (final blok in usulan.daftarBlokKonten) {
+      if (blok.tipe == TipeBlokKonten.timeline) {
+        for (final item in blok.timeline) {
+          if (item.imgPath != null && item.imgPath!.isNotEmpty) {
+            list.add(item.imgPath!);
+          }
+        }
+      }
+    }
+
+    void telusuri(dynamic item) {
+      if (item is String) {
+        if (item.contains('cloudinary.com') || item.contains('res.cloudinary')) {
+          list.add(item);
+        }
+      } else if (item is List) {
+        for (final sub in item) {
+          telusuri(sub);
+        }
+      } else if (item is Map) {
+        for (final sub in item.values) {
+          telusuri(sub);
+        }
+      }
+    }
+
+    telusuri(usulan.isi);
+    return list.toSet().toList();
+  }
+
   // perbarui usulan
   Future<bool> perbarui(Usulan usulan) async {
     final pemilik = _pemilik;
@@ -124,6 +164,21 @@ class UsulanRepository {
           .limit(1)
           .get();
 
+      final docRef = snap.docs.isNotEmpty
+          ? snap.docs.first.reference
+          : _firestore.collection('usulan').doc('$id');
+
+      final oldSnap = await docRef.get();
+      if (oldSnap.exists && oldSnap.data() != null) {
+        final oldUsulan = Usulan.dariKolom(oldSnap.data()!);
+        final oldImages = _kumpulkanGambarUsulan(oldUsulan).toSet();
+        final newImages = _kumpulkanGambarUsulan(usulan).toSet();
+        final removed = oldImages.difference(newImages).toList();
+        if (removed.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(removed);
+        }
+      }
+
       final updateData = {
         'status': StatusUsulan.menunggu.name,
         'catatanAdmin': '',
@@ -134,11 +189,7 @@ class UsulanRepository {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      if (snap.docs.isNotEmpty) {
-        await snap.docs.first.reference.update(updateData);
-      } else {
-        await _firestore.collection('usulan').doc('$id').update(updateData);
-      }
+      await docRef.update(updateData);
 
       if (_cachedUsulan != null) {
         final idx = _cachedUsulan!.indexWhere((u) => u.id == id);
@@ -154,7 +205,11 @@ class UsulanRepository {
   Future<bool> batalkan(int id) async {
     final pemilik = _pemilik;
     if (pemilik <= 0) return false;
+    return hapusUsulan(id);
+  }
 
+  // hapus usulan
+  Future<bool> hapusUsulan(int id) async {
     try {
       final snap = await _firestore
           .collection('usulan')
@@ -163,9 +218,24 @@ class UsulanRepository {
           .get();
 
       if (snap.docs.isNotEmpty) {
-        await snap.docs.first.reference.delete();
+        final doc = snap.docs.first;
+        final usulan = Usulan.dariKolom(doc.data());
+        final images = _kumpulkanGambarUsulan(usulan);
+        if (images.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(images);
+        }
+        await doc.reference.delete();
       } else {
-        await _firestore.collection('usulan').doc('$id').delete();
+        final docRef = _firestore.collection('usulan').doc('$id');
+        final doc = await docRef.get();
+        if (doc.exists && doc.data() != null) {
+          final usulan = Usulan.dariKolom(doc.data()!);
+          final images = _kumpulkanGambarUsulan(usulan);
+          if (images.isNotEmpty) {
+            await CloudinaryService().deleteImagesByUrls(images);
+          }
+        }
+        await docRef.delete();
       }
 
       _cachedUsulan?.removeWhere((u) => u.id == id);

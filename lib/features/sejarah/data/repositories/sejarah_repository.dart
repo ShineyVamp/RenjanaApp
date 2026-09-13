@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/services/cloudinary_service.dart';
 import '../../../../data/local/seed/sejarah_seed.dart';
 import '../models/sejarah_model.dart';
 
@@ -106,6 +107,36 @@ class SejarahRepository {
     }
   }
 
+  // section kumpulkan gambar sejarah
+  List<String> _kumpulkanGambar(SejarahModel model) {
+    final list = <String>[];
+    if (model.gambarUtama.isNotEmpty) {
+      list.add(model.gambarUtama);
+    }
+    for (final a in model.alurPeristiwa) {
+      if (a.imgPath != null && a.imgPath!.isNotEmpty) {
+        list.add(a.imgPath!);
+      }
+    }
+    final rawBlok = model.detailPeristiwa['blokKonten'];
+    if (rawBlok is List) {
+      for (final b in rawBlok) {
+        if (b is Map && b['data'] is List) {
+          for (final item in b['data']) {
+            if (item is Map) {
+              final img =
+                  item['imgPath'] ?? item['gambarUrl'] ?? item['gambar'];
+              if (img is String && img.isNotEmpty) {
+                list.add(img);
+              }
+            }
+          }
+        }
+      }
+    }
+    return list;
+  }
+
   // perbarui data
   Future<int> updateSejarah(
     SejarahModel model, {
@@ -114,6 +145,17 @@ class SejarahRepository {
     final oldKodeTag = previousKodeTag ?? model.kodeTag;
 
     try {
+      final oldDoc = await _firestore.collection('sejarah').doc(oldKodeTag).get();
+      if (oldDoc.exists && oldDoc.data() != null) {
+        final oldModel = SejarahModel.fromFirestore(oldDoc.data()!);
+        final oldImages = _kumpulkanGambar(oldModel).toSet();
+        final newImages = _kumpulkanGambar(model).toSet();
+        final unusedImages = oldImages.difference(newImages).toList();
+        if (unusedImages.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(unusedImages);
+        }
+      }
+
       await _firestore
           .collection('sejarah')
           .doc(model.kodeTag)
@@ -131,6 +173,15 @@ class SejarahRepository {
   // hapus data
   Future<int> deleteSejarah(String kodeTag) async {
     try {
+      final doc = await _firestore.collection('sejarah').doc(kodeTag).get();
+      if (doc.exists && doc.data() != null) {
+        final oldModel = SejarahModel.fromFirestore(doc.data()!);
+        final images = _kumpulkanGambar(oldModel);
+        if (images.isNotEmpty) {
+          await CloudinaryService().deleteImagesByUrls(images);
+        }
+      }
+
       await _firestore.collection('sejarah').doc(kodeTag).delete();
       bersihkanCache();
       return 1;
