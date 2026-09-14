@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
+import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
+import 'package:renjana/features/capaian/data/repositories/runtun_repository.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
@@ -12,19 +15,16 @@ import '../../../core/widgets/header_halaman.dart';
 import '../../auth/data/models/user_model.dart';
 import '../../auth/data/repositories/user_repository.dart';
 import '../../auth/presentation/login_page.dart';
+import '../../auth/presentation/widgets/dialog_lupa_password.dart';
 import '../../jelajah/data/repositories/jelajah_repository.dart';
 import '../../kontribusi/data/models/usulan_model.dart';
 import '../../kontribusi/data/repositories/usulan_repository.dart';
 import '../../kontribusi/presentation/kontribusi_page.dart';
 import '../data/models/lencana_model.dart';
-import 'package:renjana/features/capaian/data/repositories/arsip_dibaca_repository.dart';
-import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
-import 'package:renjana/features/capaian/data/repositories/runtun_repository.dart';
 import 'edit_profil_page.dart';
 import 'jejak_saya_page.dart';
-import 'widgets/panel_lencana.dart';
-import '../../auth/presentation/widgets/dialog_lupa_password.dart';
 import 'widgets/bottom_sheet_ganti_password.dart';
+import 'widgets/panel_lencana.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -102,7 +102,9 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
     super.initState();
     final sesi = PreferenceHandler.user;
     final currentUserId = PreferenceHandler.userId;
-    if (_hasCachedProfile && _cachedUser?.id == currentUserId && currentUserId > 0) {
+    if (_hasCachedProfile &&
+        _cachedUser?.id == currentUserId &&
+        currentUserId > 0) {
       _user = _cachedUser ?? sesi;
       _jumlahDibuka = _cachedJumlahDibuka;
       _jumlahProvinsi = _cachedJumlahProvinsi;

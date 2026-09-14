@@ -85,6 +85,8 @@ class BudayaHighlightCard extends StatelessWidget {
                     data.deskripsi,
                     style: AppTypography.bodyMedium(),
                     textAlign: TextAlign.justify,
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 16),
                   GestureDetector(

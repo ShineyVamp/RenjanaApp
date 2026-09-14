@@ -15,7 +15,9 @@ import '../../../core/widgets/detail_spec_block.dart';
 import '../../../core/widgets/detail_top_bar.dart';
 import '../../../core/widgets/indikator_baca_arsip.dart';
 import '../../../core/widgets/media_arsip.dart';
+import '../../../core/widgets/tombol_diskusikan.dart';
 import '../../../core/widgets/tombol_koreksi.dart';
+import 'package:renjana/features/komunitas/presentation/form_diskusi_page.dart';
 import 'package:renjana/features/kontribusi/data/models/blok_konten_model.dart';
 import 'package:renjana/features/kontribusi/data/models/usulan_model.dart';
 import 'package:renjana/features/bookmark/data/repositories/bookmark_repository.dart';
@@ -163,6 +165,10 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _bukaDiskusi(BudayaModel data) async {
+    await context.push(FormDiskusiPage(refArsipAwal: data.kodeTag));
   }
 
   Future<void> _usulkanKoreksi(BudayaModel data) async {
@@ -477,6 +483,11 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                   if (data.isDestinasi) _buildTombolPeta(data),
 
                   const SizedBox(height: 14),
+
+                  // section diskusikan di komunitas
+                  TombolDiskusikan(onTap: () => _bukaDiskusi(data)),
+
+                  const SizedBox(height: 10),
 
                   // section usulan koreksi
                   TombolKoreksi(onTap: () => _usulkanKoreksi(data)),

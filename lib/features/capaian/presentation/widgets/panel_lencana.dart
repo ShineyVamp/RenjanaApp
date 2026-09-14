@@ -1,13 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dekorasi.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/extensions/navigation.dart';
 import '../../data/models/lencana_model.dart';
-import 'package:renjana/features/capaian/data/repositories/lencana_repository.dart';
 import '../lencana_page.dart';
 import 'keping_lencana.dart';
 
@@ -69,7 +69,7 @@ class _PanelLencanaState extends State<PanelLencana> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: AppDekorasi.panelCapaian(
-        terbuka.isEmpty ? AppColors.border : AppColors.gold,
+        terbuka.isEmpty ? AppColors.borderPrimary : AppColors.gold,
         menonjol: terbuka.isNotEmpty,
       ),
       child: Column(

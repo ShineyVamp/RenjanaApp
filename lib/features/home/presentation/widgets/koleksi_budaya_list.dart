@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:renjana/core/widgets/app_image.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/budaya_kategori.dart';
 import '../../../../core/extensions/navigation.dart';
-import '../../../../core/widgets/app_image.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../../core/widgets/teks_muat.dart';
 import '../../../budaya/data/models/budaya_model.dart';
@@ -147,28 +147,41 @@ class _KoleksiBudayaListState extends State<KoleksiBudayaList> {
               ),
               child: AspectRatio(
                 aspectRatio: 4 / 3,
-                child: AppImageView(
-                  imagePath: coverImage,
-                  fit: BoxFit.cover,
-                  cacheWidth: 720,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AppImageView(
+                      imagePath: coverImage,
+                      fit: BoxFit.cover,
+                      cacheWidth: 720,
+                    ),
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withAlpha(50),
+                              Colors.black.withAlpha(200),
+                            ],
+                            stops: const [0.4, 0.7, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withAlpha(50),
-                      Colors.black.withAlpha(200),
-                    ],
-                    stops: const [0.4, 0.7, 1.0],
-                  ),
-                ),
-              ),
+              // child: AspectRatio(
+              //   aspectRatio: 4 / 3,
+              //   child: AppImageView(
+              //     imagePath: coverImage,
+              //     fit: BoxFit.cover,
+              //     cacheWidth: 720,
+              //   ),
+              // ),
             ),
             Positioned(
               bottom: 20,

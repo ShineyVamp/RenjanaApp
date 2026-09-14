@@ -132,7 +132,8 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
 
   Widget _buildEraCard(KategoriItem periode) {
     const double itemWidth = 340;
-    final items = _grouped[periode.kode.toUpperCase()] ?? const <SejarahModel>[];
+    final items =
+        _grouped[periode.kode.toUpperCase()] ?? const <SejarahModel>[];
     final coverImage = items.isNotEmpty ? items.first.gambarUtama : '';
 
     return GestureDetector(
@@ -154,28 +155,41 @@ class _GarisWaktuListState extends State<GarisWaktuList> {
               ),
               child: AspectRatio(
                 aspectRatio: 4 / 3,
-                child: AppImageView(
-                  imagePath: coverImage,
-                  fit: BoxFit.cover,
-                  cacheWidth: 720,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AppImageView(
+                      imagePath: coverImage,
+                      fit: BoxFit.cover,
+                      cacheWidth: 720,
+                    ),
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withAlpha(50),
+                              Colors.black.withAlpha(200),
+                            ],
+                            stops: const [0.4, 0.7, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withAlpha(60),
-                      Colors.black.withAlpha(220),
-                    ],
-                    stops: const [0.35, 0.65, 1.0],
-                  ),
-                ),
-              ),
+              // child: AspectRatio(
+              //   aspectRatio: 4 / 3,
+              //   child: AppImageView(
+              //     imagePath: coverImage,
+              //     fit: BoxFit.cover,
+              //     cacheWidth: 720,
+              //   ),
+              // ),
             ),
             Positioned(
               bottom: 20,

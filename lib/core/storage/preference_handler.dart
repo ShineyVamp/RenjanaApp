@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:renjana/features/auth/data/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../services/session_cleanup_service.dart';
 
 class PreferenceHandler {

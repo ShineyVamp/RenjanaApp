@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../core/storage/preference_handler.dart';
 import '../../../../core/storage/user_session.dart';
 
@@ -11,7 +12,7 @@ class RiwayatRepository {
   static String? _cachedUser;
 
   RiwayatRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const String jenisPencarian = 'pencarian';
   static const String jenisArsip = 'arsip';
@@ -35,10 +36,7 @@ class RiwayatRepository {
 
   // koleksi riwayat
   CollectionReference<Map<String, dynamic>> _koleksi() {
-    return _firestore
-        .collection('users')
-        .doc(_userUid)
-        .collection('riwayat');
+    return _firestore.collection('users').doc(_userUid).collection('riwayat');
   }
 
   // ambil riwayat
@@ -72,8 +70,12 @@ class RiwayatRepository {
         return waktuB.compareTo(waktuA);
       });
 
-      final maxSimpan = jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip;
-      final docsLimited = docs.length > maxSimpan ? docs.sublist(0, maxSimpan) : docs;
+      final maxSimpan = jenis == jenisPencarian
+          ? _simpanMaksPencarian
+          : _simpanMaksArsip;
+      final docsLimited = docs.length > maxSimpan
+          ? docs.sublist(0, maxSimpan)
+          : docs;
 
       final list = docsLimited
           .map((d) => d.data()['nilai'] as String? ?? '')
@@ -87,10 +89,14 @@ class RiwayatRepository {
         _cachedDibuka = list;
       }
 
-      return batas != null && list.length > batas ? list.sublist(0, batas) : list;
+      return batas != null && list.length > batas
+          ? list.sublist(0, batas)
+          : list;
     } catch (_) {
       if (_cachedUser != uid) return const [];
-      final fallback = jenis == jenisPencarian ? _cachedPencarian : _cachedDibuka;
+      final fallback = jenis == jenisPencarian
+          ? _cachedPencarian
+          : _cachedDibuka;
       return fallback ?? const [];
     }
   }
@@ -110,16 +116,21 @@ class RiwayatRepository {
     final targetCache = jenis == jenisPencarian
         ? (_cachedPencarian ??= [])
         : (_cachedDibuka ??= []);
-    targetCache.removeWhere((item) => item.toLowerCase() == bersih.toLowerCase());
+    targetCache.removeWhere(
+      (item) => item.toLowerCase() == bersih.toLowerCase(),
+    );
     targetCache.insert(0, bersih);
-    final maxSimpan = jenis == jenisPencarian ? _simpanMaksPencarian : _simpanMaksArsip;
+    final maxSimpan = jenis == jenisPencarian
+        ? _simpanMaksPencarian
+        : _simpanMaksArsip;
     if (targetCache.length > maxSimpan) {
       targetCache.removeRange(maxSimpan, targetCache.length);
     }
 
     // simpan ke firestore
     try {
-      final docId = '${jenis}_${bersih.replaceAll('/', '_').replaceAll('|', '_').replaceAll(' ', '_')}';
+      final docId =
+          '${jenis}_${bersih.replaceAll('/', '_').replaceAll('|', '_').replaceAll(' ', '_')}';
       await _koleksi().doc(docId).set({
         'jenis': jenis,
         'nilai': bersih,
@@ -151,7 +162,8 @@ class RiwayatRepository {
 
   // riwayat pencarian
   Future<List<String>> pencarian({int? batas}) => _ambil(jenisPencarian, batas);
-  Future<void> catatPencarian(String kataKunci) => _catat(jenisPencarian, kataKunci);
+  Future<void> catatPencarian(String kataKunci) =>
+      _catat(jenisPencarian, kataKunci);
   Future<void> hapusPencarian() => _hapus(jenisPencarian);
 
   // arsip dibuka
@@ -166,7 +178,11 @@ class RiwayatRepository {
     if (uid == 'guest') return 0;
 
     final sekarang = DateTime.now();
-    final awalHari = DateTime(sekarang.year, sekarang.month, sekarang.day).millisecondsSinceEpoch;
+    final awalHari = DateTime(
+      sekarang.year,
+      sekarang.month,
+      sekarang.day,
+    ).millisecondsSinceEpoch;
 
     try {
       final snapshot = await _koleksi()

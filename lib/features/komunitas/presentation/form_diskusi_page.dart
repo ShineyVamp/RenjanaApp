@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart';
+import 'package:renjana/features/komunitas/data/models/komunitas_model.dart';
+import 'package:renjana/features/komunitas/data/repositories/komunitas_repository.dart';
+import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/storage/preference_handler.dart';
 import '../../../core/storage/user_session.dart';
-import 'package:renjana/features/budaya/data/repositories/budaya_repository.dart';
-import 'package:renjana/features/komunitas/data/models/komunitas_model.dart';
-import 'package:renjana/features/komunitas/data/repositories/komunitas_repository.dart';
-import 'package:renjana/features/sejarah/data/repositories/sejarah_repository.dart';
 
 // section model item pilihan arsip
 class _ItemPilihanArsip {
@@ -383,7 +383,7 @@ class _FormDiskusiPageState extends State<FormDiskusiPage> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$_selectedArsipKode • ${_selectedArsipKategori ?? 'Arsip'}',
+                              '$_selectedArsipKode , ${_selectedArsipKategori ?? 'Arsip'}',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -543,209 +543,219 @@ class _ModalPilihArsipState extends State<_ModalPilihArsip> {
   Widget build(BuildContext context) {
     final list = _arsipTerfilter;
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 10),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
+    return Material(
+      color: AppColors.background,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.75,
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 16, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Pilih Arsip Basis Data',
-                    style: GoogleFonts.dmSerifDisplay(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 16, 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Pilih Arsip Basis Data',
+                      style: GoogleFonts.dmSerifDisplay(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
-              controller: _cariController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Cari judul, kode tag, atau wilayah...',
-                hintStyle: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: AppColors.textMuted,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-                suffixIcon: _cariController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _cariController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.surface,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _cariController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Cari judul, kode tag, atau wilayah...',
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: AppColors.textMuted,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
                     color: AppColors.primary,
-                    width: 1.5,
+                    size: 20,
+                  ),
+                  suffixIcon: _cariController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _cariController.clear();
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: ['Semua', 'Budaya', 'Sejarah'].map((kat) {
-                final isSelected = _filterKategori == kat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(kat),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      if (val) setState(() => _filterKategori = kat);
-                    },
-                    selectedColor: AppColors.primary,
-                    backgroundColor: AppColors.surface,
-                    labelStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: ['Semua', 'Budaya', 'Sejarah'].map((kat) {
+                  final isSelected = _filterKategori == kat;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(kat),
+                      selected: isSelected,
+                      onSelected: (val) {
+                        if (val) setState(() => _filterKategori = kat);
+                      },
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.surface,
+                      labelStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                      ),
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.border,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      showCheckmark: false,
                     ),
-                    side: BorderSide(
-                      color: isSelected ? AppColors.primary : AppColors.border,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    showCheckmark: false,
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          const Divider(height: 1, color: AppColors.borderLight),
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  )
-                : list.isEmpty
-                    ? Center(
-                        child: Text(
-                          'Arsip tidak ditemukan.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: AppColors.borderLight),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : list.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Arsip tidak ditemukan.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      itemCount: list.length,
+                      separatorBuilder: (context, index) => const Divider(
+                        height: 1,
+                        color: AppColors.borderLight,
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = list[index];
+                        final isBudaya = item.kategori == 'Budaya';
+
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isBudaya
+                                  ? AppColors.primary.withAlpha(20)
+                                  : Colors.brown.withAlpha(20),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              isBudaya
+                                  ? Icons.palette_outlined
+                                  : Icons.history_edu_rounded,
+                              size: 20,
+                              color: isBudaya
+                                  ? AppColors.primary
+                                  : AppColors.primaryDark,
+                            ),
+                          ),
+                          title: Text(
+                            item.judul,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            '${item.kodeTag} • ${item.kategori}${item.provinsi != null ? ' • ${item.provinsi}' : ''}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: const Icon(
+                            Icons.chevron_right_rounded,
+                            size: 20,
                             color: AppColors.textMuted,
                           ),
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        itemCount: list.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1, color: AppColors.borderLight),
-                        itemBuilder: (context, index) {
-                          final item = list[index];
-                          final isBudaya = item.kategori == 'Budaya';
-
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 4,
-                            ),
-                            leading: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: isBudaya
-                                    ? AppColors.primary.withAlpha(20)
-                                    : Colors.brown.withAlpha(20),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                isBudaya
-                                    ? Icons.palette_outlined
-                                    : Icons.history_edu_rounded,
-                                size: 20,
-                                color: isBudaya
-                                    ? AppColors.primary
-                                    : AppColors.primaryDark,
-                              ),
-                            ),
-                            title: Text(
-                              item.judul,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              '${item.kodeTag} • ${item.kategori}${item.provinsi != null ? ' • ${item.provinsi}' : ''}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              size: 20,
-                              color: AppColors.textMuted,
-                            ),
-                            onTap: () => Navigator.pop(context, item),
-                          );
-                        },
-                      ),
-          ),
-        ],
+                          onTap: () => Navigator.pop(context, item),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

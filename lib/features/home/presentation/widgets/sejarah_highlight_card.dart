@@ -100,6 +100,8 @@ class SejarahHighlightCard extends StatelessWidget {
               data.ringkasan,
               style: AppTypography.bodyMedium(),
               textAlign: TextAlign.justify,
+              maxLines: 10,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 20),
             AppButton(
