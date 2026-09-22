@@ -14,8 +14,13 @@ class BudayaModel {
   final String gambarUtama;
   final String? maknaSpiritual;
   final String? gambarMaknaSpiritual;
+  final String? sumberMaknaSpiritual;
   final String? konteksBudaya;
   final String? gambarKonteksBudaya;
+  final String? sumberKonteksBudaya;
+
+  // sumber foto utama
+  final String? sumberGambar;
 
   // provinsi asal
   final String? provinsi;
@@ -42,10 +47,13 @@ class BudayaModel {
     required this.tagline,
     required this.deskripsi,
     required this.gambarUtama,
+    this.sumberGambar,
     this.maknaSpiritual,
     this.gambarMaknaSpiritual,
+    this.sumberMaknaSpiritual,
     this.konteksBudaya,
     this.gambarKonteksBudaya,
+    this.sumberKonteksBudaya,
     this.provinsi,
     this.detailKategori = const {},
     this.kontributor,
@@ -104,10 +112,13 @@ class BudayaModel {
     'tagline': tagline,
     'deskripsi': deskripsi,
     'gambarUtama': gambarUtama,
+    'sumberGambar': sumberGambar,
     'maknaSpiritual': maknaSpiritual,
     'gambarMaknaSpiritual': gambarMaknaSpiritual,
+    'sumberMaknaSpiritual': sumberMaknaSpiritual,
     'konteksBudaya': konteksBudaya,
     'gambarKonteksBudaya': gambarKonteksBudaya,
+    'sumberKonteksBudaya': sumberKonteksBudaya,
     'provinsi': provinsi,
     'detailKategori': detailKategoriJson,
     'kontributor': kontributor,
@@ -125,10 +136,16 @@ class BudayaModel {
     'tagline': tagline,
     'deskripsi': deskripsi,
     'gambarUtama': gambarUtama,
+    if (sumberGambar != null && sumberGambar!.trim().isNotEmpty)
+      'sumberGambar': sumberGambar!.trim(),
     'maknaSpiritual': maknaSpiritual,
     'gambarMaknaSpiritual': gambarMaknaSpiritual,
+    if (sumberMaknaSpiritual != null && sumberMaknaSpiritual!.trim().isNotEmpty)
+      'sumberMaknaSpiritual': sumberMaknaSpiritual!.trim(),
     'konteksBudaya': konteksBudaya,
     'gambarKonteksBudaya': gambarKonteksBudaya,
+    if (sumberKonteksBudaya != null && sumberKonteksBudaya!.trim().isNotEmpty)
+      'sumberKonteksBudaya': sumberKonteksBudaya!.trim(),
     'provinsi': provinsi,
     'detailKategori': detailKategori,
     'kontributor': kontributor,
@@ -158,10 +175,13 @@ class BudayaModel {
       tagline: map['tagline'] as String? ?? '',
       deskripsi: map['deskripsi'] as String? ?? '',
       gambarUtama: map['gambarUtama'] as String? ?? '',
+      sumberGambar: map['sumberGambar'] as String?,
       maknaSpiritual: map['maknaSpiritual'] as String?,
       gambarMaknaSpiritual: map['gambarMaknaSpiritual'] as String?,
+      sumberMaknaSpiritual: map['sumberMaknaSpiritual'] as String?,
       konteksBudaya: map['konteksBudaya'] as String?,
       gambarKonteksBudaya: map['gambarKonteksBudaya'] as String?,
+      sumberKonteksBudaya: map['sumberKonteksBudaya'] as String?,
       provinsi: map['provinsi'] as String?,
       detailKategori: parsedDetail,
       kontributor: map['kontributor'] as String?,

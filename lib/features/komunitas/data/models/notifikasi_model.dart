@@ -36,6 +36,7 @@ class NotifikasiKomunitasModel {
 
   bool get isTag => tipe == 'tag';
   bool get isBalas => tipe == 'balas';
+  bool get isUsulan => tipe == 'usulan';
   bool get isThreadBalasan => indukJawabanId != null && indukJawabanId! > 0;
 
   NotifikasiKomunitasModel copyWith({

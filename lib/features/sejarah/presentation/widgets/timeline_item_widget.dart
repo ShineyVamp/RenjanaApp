@@ -8,6 +8,7 @@ class TimelineItemWidget extends StatelessWidget {
   final String title;
   final String description;
   final String? imagePath;
+  final String? sumberFoto;
   final bool isLast;
 
   const TimelineItemWidget({
@@ -16,6 +17,7 @@ class TimelineItemWidget extends StatelessWidget {
     required this.title,
     required this.description,
     this.imagePath,
+    this.sumberFoto,
     this.isLast = false,
   });
 
@@ -71,6 +73,7 @@ class TimelineItemWidget extends StatelessWidget {
                     aspectRatio: 16 / 10,
                     child: AppImageView(
                       imagePath: imagePath!,
+                      sumberFoto: sumberFoto,
                       fit: BoxFit.cover,
                     ),
                   ),

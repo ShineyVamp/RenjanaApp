@@ -288,6 +288,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                               Positioned.fill(
                                 child: MediaArsipView(
                                   gambarUtama: data.gambarUtama,
+                                  sumberFoto: data.sumberGambar,
                                   jenisMedia: data.jenisMedia,
                                   mediaUrl: data.mediaUrl,
                                   judul: data.judul,
@@ -456,6 +457,7 @@ class _DetailSejarahPageState extends State<DetailSejarahPage> {
                                     imagePath: item.hasImage
                                         ? item.imgPath
                                         : null,
+                                    sumberFoto: item.sumberImg,
                                     isLast: isLast,
                                   );
                                 }),

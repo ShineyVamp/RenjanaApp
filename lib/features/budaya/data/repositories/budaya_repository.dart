@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/cloudinary_service.dart';
-import '../../../../data/local/seed/budaya_seed.dart';
 import '../models/budaya_model.dart';
 
 class BudayaRepository {
@@ -38,14 +37,13 @@ class BudayaRepository {
       }
     } catch (_) {}
 
-    _cacheBudaya = defaultBudayaList;
-    return defaultBudayaList;
+    return _cacheBudaya ?? const [];
   }
 
   // budaya hari ini
-  Future<BudayaModel> getBudayaHariIni() async {
+  Future<BudayaModel?> getBudayaHariIni() async {
     final list = await getAllBudaya();
-    if (list.isEmpty) return defaultBudayaList.first;
+    if (list.isEmpty) return null;
 
     final pool = List<BudayaModel>.from(list)
       ..sort((a, b) => a.kodeTag.compareTo(b.kodeTag));
@@ -137,7 +135,7 @@ class BudayaRepository {
       } else if (list.isNotEmpty) {
         result.add(list.first);
       } else {
-        result.add(defaultBudayaList.first);
+        break;
       }
     }
     return result;

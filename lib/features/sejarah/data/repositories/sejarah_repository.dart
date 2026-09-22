@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/cloudinary_service.dart';
-import '../../../../data/local/seed/sejarah_seed.dart';
 import '../models/sejarah_model.dart';
 
 class SejarahRepository {
@@ -37,8 +36,7 @@ class SejarahRepository {
       }
     } catch (_) {}
 
-    _cacheSejarah = List<SejarahModel>.from(defaultSejarahList);
-    return List<SejarahModel>.from(_cacheSejarah!);
+    return _cacheSejarah != null ? List<SejarahModel>.from(_cacheSejarah!) : const [];
   }
 
   // section ambil per periode
@@ -51,9 +49,9 @@ class SejarahRepository {
   }
 
   // section arsip sejarah hari ini
-  Future<SejarahModel> getSejarahHariIni() async {
+  Future<SejarahModel?> getSejarahHariIni() async {
     final list = await getAllSejarah();
-    if (list.isEmpty) return defaultSejarahList.first;
+    if (list.isEmpty) return null;
 
     final now = DateTime.now();
     final dayStr = now.day.toString().padLeft(2, '0');

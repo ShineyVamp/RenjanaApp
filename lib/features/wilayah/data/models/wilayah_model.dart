@@ -8,6 +8,7 @@ class Provinsi {
   final String julukan;
   final String deskripsi;
   final String? gambar;
+  final String? sumberGambar;
 
   const Provinsi(
     this.nama,
@@ -17,6 +18,7 @@ class Provinsi {
     this.julukan = '',
     this.deskripsi = '',
     this.gambar,
+    this.sumberGambar,
   });
 
   // section serialisasi provinsi
@@ -29,6 +31,8 @@ class Provinsi {
       'julukan': julukan,
       'deskripsi': deskripsi,
       'gambar': gambar,
+      if (sumberGambar != null && sumberGambar!.trim().isNotEmpty)
+        'sumberGambar': sumberGambar!.trim(),
     };
   }
 
@@ -41,6 +45,7 @@ class Provinsi {
       julukan: map['julukan'] as String? ?? '',
       deskripsi: map['deskripsi'] as String? ?? '',
       gambar: map['gambar'] as String?,
+      sumberGambar: map['sumberGambar'] as String?,
     );
   }
 }
@@ -56,6 +61,7 @@ class GugusPulau {
   final double latMin;
   final String deskripsi;
   final String gambar;
+  final String? sumberGambar;
   final List<Provinsi> provinsi;
 
   const GugusPulau({
@@ -70,6 +76,7 @@ class GugusPulau {
     required this.provinsi,
     this.deskripsi = '',
     this.gambar = '',
+    this.sumberGambar,
   });
 
   // section serialisasi gugus pulau
@@ -85,6 +92,8 @@ class GugusPulau {
       'latMin': latMin,
       'deskripsi': deskripsi,
       'gambar': gambar,
+      if (sumberGambar != null && sumberGambar!.trim().isNotEmpty)
+        'sumberGambar': sumberGambar!.trim(),
       'provinsi': provinsi.map((p) => p.toMap()).toList(),
     };
   }
@@ -109,6 +118,7 @@ class GugusPulau {
       latMin: (map['latMin'] as num?)?.toDouble() ?? 0.0,
       deskripsi: map['deskripsi'] as String? ?? '',
       gambar: map['gambar'] as String? ?? '',
+      sumberGambar: map['sumberGambar'] as String?,
       provinsi: provList,
     );
   }

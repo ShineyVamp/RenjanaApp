@@ -37,6 +37,7 @@ String? ekstrakYoutubeId(String? url) {
 // section tampilan media arsip
 class MediaArsipView extends StatefulWidget {
   final String gambarUtama;
+  final String? sumberFoto;
   final String jenisMedia; // 'gambar' | 'video' | 'youtube'
   final String? mediaUrl;
   final String judul;
@@ -46,6 +47,7 @@ class MediaArsipView extends StatefulWidget {
   const MediaArsipView({
     super.key,
     required this.gambarUtama,
+    this.sumberFoto,
     this.jenisMedia = 'gambar',
     this.mediaUrl,
     this.judul = '',
@@ -114,6 +116,7 @@ class _MediaArsipViewState extends State<MediaArsipView> {
           Positioned.fill(
             child: AppImageView(
               imagePath: widget.gambarUtama,
+              sumberFoto: widget.sumberFoto,
               fit: widget.fit,
             ),
           ),

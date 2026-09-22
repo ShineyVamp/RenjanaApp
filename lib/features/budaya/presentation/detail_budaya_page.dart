@@ -322,6 +322,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             Positioned.fill(
                               child: MediaArsipView(
                                 gambarUtama: data.gambarUtama,
+                                sumberFoto: data.sumberGambar,
                                 jenisMedia: data.jenisMedia,
                                 mediaUrl: data.mediaUrl,
                                 judul: data.judul,
@@ -433,6 +434,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             aspectRatio: 16 / 9,
                             child: AppImageView(
                               imagePath: data.gambarMaknaSpiritual!,
+                              sumberFoto: data.sumberMaknaSpiritual,
                               fit: BoxFit.cover,
                               cacheWidth: 720,
                             ),
@@ -459,6 +461,7 @@ class _DetailBudayaPageState extends State<DetailBudayaPage> {
                             aspectRatio: 16 / 9,
                             child: AppImageView(
                               imagePath: data.gambarKonteksBudaya!,
+                              sumberFoto: data.sumberKonteksBudaya,
                               fit: BoxFit.cover,
                               cacheWidth: 720,
                             ),

@@ -316,6 +316,7 @@ class _DetailProvinsiPageState extends State<DetailProvinsiPage> {
                     child: gambarProvinsi(provinsi).isNotEmpty
                         ? AppImageView(
                             imagePath: gambarProvinsi(provinsi),
+                            sumberFoto: provinsi.sumberGambar,
                             fit: BoxFit.cover,
                           )
                         : _buildFallbackHeader(provinsi.nama, pulau?.nama),

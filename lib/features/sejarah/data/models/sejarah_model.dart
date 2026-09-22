@@ -6,6 +6,7 @@ class TimelineItemModel {
   final String title;
   final String desc;
   final String? imgPath;
+  final String? sumberImg;
   final bool hasImage;
 
   const TimelineItemModel({
@@ -13,6 +14,7 @@ class TimelineItemModel {
     required this.title,
     required this.desc,
     this.imgPath,
+    this.sumberImg,
     this.hasImage = false,
   });
 
@@ -22,6 +24,8 @@ class TimelineItemModel {
       'title': title,
       'desc': desc,
       'imgPath': imgPath,
+      if (sumberImg != null && sumberImg!.trim().isNotEmpty)
+        'sumberImg': sumberImg!.trim(),
       'hasImage': hasImage,
     };
   }
@@ -32,6 +36,7 @@ class TimelineItemModel {
       title: map['title'] as String? ?? '',
       desc: map['desc'] as String? ?? '',
       imgPath: map['imgPath'] as String?,
+      sumberImg: map['sumberImg'] as String?,
       hasImage: map['hasImage'] == true,
     );
   }
@@ -47,6 +52,7 @@ class SejarahModel {
   final String subtitle;
   final String ringkasan;
   final String gambarUtama;
+  final String? sumberGambar;
   final List<TimelineItemModel> alurPeristiwa;
   final String? provinsi;
   final String? kontributor;
@@ -65,6 +71,7 @@ class SejarahModel {
     required this.subtitle,
     required this.ringkasan,
     required this.gambarUtama,
+    this.sumberGambar,
     this.alurPeristiwa = const [],
     this.provinsi,
     this.kontributor,
@@ -118,6 +125,8 @@ class SejarahModel {
     'subtitle': subtitle,
     'ringkasan': ringkasan,
     'gambarUtama': gambarUtama,
+    if (sumberGambar != null && sumberGambar!.trim().isNotEmpty)
+      'sumberGambar': sumberGambar!.trim(),
     'alurPeristiwa': alurPeristiwa.map((i) => i.toMap()).toList(),
     'provinsi': provinsi,
     'kontributor': kontributor,
@@ -172,6 +181,7 @@ class SejarahModel {
       ringkasan: map['ringkasan'] as String? ?? '',
       gambarUtama:
           map['gambarUtama'] as String? ?? '',
+      sumberGambar: map['sumberGambar'] as String?,
       alurPeristiwa: alur,
       provinsi: map['provinsi'] as String?,
       periode: map['periode'] as String?,

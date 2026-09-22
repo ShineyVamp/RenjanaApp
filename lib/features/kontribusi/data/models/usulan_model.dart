@@ -88,6 +88,7 @@ class KunciUsulan {
   KunciUsulan._();
 
   static const String gambar = 'gambar';
+  static const String sumberGambar = 'sumberGambar';
   static const String judul = 'judul';
   static const String jenisMedia = 'jenisMedia';
   static const String mediaUrl = 'mediaUrl';

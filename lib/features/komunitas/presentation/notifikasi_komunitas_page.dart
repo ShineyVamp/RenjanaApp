@@ -144,6 +144,17 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
       final usulan = await UsulanRepository().ambil(notif.jawabanId!);
       if (usulan != null && mounted) {
         await context.push(DetailUsulanPage(usulan: usulan));
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Data usulan tidak ditemukan atau telah dihapus',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
+            backgroundColor: AppColors.textSecondary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } else if (notif.isThreadBalasan && notif.indukJawabanId != null) {
       final diskusi = await _repository.getDiskusiById(notif.diskusiId);
@@ -261,6 +272,7 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
             ? 'Belum Dibaca ($_jumlahBelumDibaca)'
             : 'Belum Dibaca',
       },
+      {'key': 'usulan', 'label': 'Usulan'},
       {'key': 'tag', 'label': 'Tag (@)'},
       {'key': 'balas', 'label': 'Balasan'},
     ];
@@ -355,20 +367,26 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                 height: 36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: notif.isTag
-                      ? AppColors.primary.withValues(alpha: 0.15)
-                      : AppColors.primaryDark.withValues(alpha: 0.12),
+                  color: notif.isUsulan
+                      ? AppColors.primary.withValues(alpha: 0.16)
+                      : (notif.isTag
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : AppColors.primaryDark.withValues(alpha: 0.12)),
                 ),
                 child: Icon(
-                  notif.isTag
-                      ? Icons.alternate_email_rounded
-                      : (notif.isThreadBalasan
-                            ? Icons.reply_rounded
-                            : Icons.chat_bubble_outline_rounded),
+                  notif.isUsulan
+                      ? Icons.assignment_turned_in_rounded
+                      : (notif.isTag
+                          ? Icons.alternate_email_rounded
+                          : (notif.isThreadBalasan
+                                ? Icons.reply_rounded
+                                : Icons.chat_bubble_outline_rounded)),
                   size: 18,
-                  color: notif.isTag
+                  color: notif.isUsulan
                       ? AppColors.primary
-                      : AppColors.primaryDark,
+                      : (notif.isTag
+                          ? AppColors.primary
+                          : AppColors.primaryDark),
                 ),
               ),
               const SizedBox(width: 12),
@@ -393,11 +411,13 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: notif.isTag
-                                      ? ' menyebut Anda di komentar'
-                                      : (notif.isThreadBalasan
-                                            ? ' membalas komentar Anda'
-                                            : ' menanggapi diskusi Anda'),
+                                  text: notif.isUsulan
+                                      ? ' memperbarui status usulan Anda'
+                                      : (notif.isTag
+                                          ? ' menyebut Anda di komentar'
+                                          : (notif.isThreadBalasan
+                                                ? ' membalas komentar Anda'
+                                                : ' menanggapi diskusi Anda')),
                                   style: const TextStyle(
                                     color: AppColors.textSecondary,
                                   ),
@@ -422,37 +442,71 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
                     const SizedBox(height: 4),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
+                        horizontal: 8,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.background,
+                        color: notif.isUsulan
+                            ? AppColors.primaryLight.withValues(alpha: 0.25)
+                            : AppColors.background,
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: AppColors.borderLight,
+                          color: notif.isUsulan
+                              ? AppColors.primary.withValues(alpha: 0.3)
+                              : AppColors.borderLight,
                           width: 0.7,
                         ),
                       ),
-                      child: Text(
-                        'Diskusi: ${notif.judulDiskusi}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textMuted,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (notif.isUsulan) ...[
+                            const Icon(
+                              Icons.article_outlined,
+                              size: 11,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Flexible(
+                            child: Text(
+                              notif.isUsulan
+                                  ? notif.judulDiskusi
+                                  : 'Diskusi: ${notif.judulDiskusi}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: notif.isUsulan
+                                    ? AppColors.primaryDark
+                                    : AppColors.textMuted,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 6),
-                    TeksDenganMention(
-                      teks: notif.cuplikanTeks,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        height: 1.4,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
+                    notif.isUsulan
+                        ? Text(
+                            notif.cuplikanTeks,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              height: 1.4,
+                              color: AppColors.textPrimary,
+                            ),
+                          )
+                        : TeksDenganMention(
+                            teks: notif.cuplikanTeks,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              height: 1.4,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                     const SizedBox(height: 6),
                     Text(
                       _formatWaktu(notif.dibuatPada),
@@ -504,7 +558,9 @@ class _NotifikasiKomunitasPageState extends State<NotifikasiKomunitasPage> {
             Text(
               _filterTerpilih == 'belum_dibaca'
                   ? 'Semua notifikasi sudah Anda baca.'
-                  : 'Notifikasi akan muncul saat seseorang membalas atau me-mention Anda di komunitas.',
+                  : _filterTerpilih == 'usulan'
+                      ? 'Belum ada notifikasi terkait status usulan kontribusi Anda.'
+                      : 'Notifikasi akan muncul saat seseorang membalas atau me-mention Anda di komunitas.',
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,

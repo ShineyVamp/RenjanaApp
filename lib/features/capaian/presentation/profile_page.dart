@@ -246,6 +246,8 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                               _buildPanelKontribusi(),
                               const SizedBox(height: 14),
                               _buildPanelKeamanan(user),
+                              const SizedBox(height: 14),
+                              _buildPanelHakCipta(),
                               const SizedBox(height: 26),
                               _buildTombolLogout(),
                               const SizedBox(height: 18),
@@ -762,6 +764,180 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
             color: AppColors.primary,
           ),
         ),
+      ),
+    );
+  }
+
+  // section panel hak cipta dan lisensi
+  Widget _buildPanelHakCipta() {
+    return Container(
+      decoration: AppDekorasi.panel(),
+      padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('INFORMASI & LISENSI', style: AppTypography.eyebrow()),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: _tampilkanDialogHakCipta,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.copyright_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Penafian Hak Cipta',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Ketentuan materi foto & pemberitahuan hak cipta',
+                          style: AppTypography.caption(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _tampilkanDialogHakCipta() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.copyright_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Penafian Hak Cipta',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Tujuan Non-Komersial & Edukasi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Aplikasi Renjana dikembangkan semata-mata untuk tujuan edukasi, literasi sejarah, dan pelestarian warisan budaya Indonesia secara non-komersial.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  height: 1.4,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Kepemilikan Hak Cipta Gambar',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Seluruh materi foto dan gambar yang ditampilkan bersumber dari domain publik di internet untuk keperluan referensi dan pengenalan budaya. Hak cipta sepenuhnya tetap menjadi milik fotografer, kreator, dan pemegang hak cipta aslinya.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  height: 1.4,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Pemberitahuan & Penghapusan (Notice & Takedown)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Jika Anda adalah pemilik sah atas materi gambar di aplikasi ini dan berkeberatan atas penayangannya, silakan hubungi pengembang agar kami dapat segera memperbarui kredit atribusi atau menghapus gambar tersebut.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  height: 1.4,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Tutup',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
