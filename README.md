@@ -1,7 +1,6 @@
 <div align="center">
 
   <img src="assets/images/Rlogos.png" alt="Renjana Logo" width="120" />
-
   # RENJANA
   ### *Indonesia Dalam Genggaman*
 
