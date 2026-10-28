@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
@@ -27,81 +26,7 @@ class AppImagePickerWidget extends StatelessWidget {
     required this.onImageSelected,
   });
 
-  Future<bool> _requestGalleryPermission(BuildContext context) async {
-    try {
-      // izin galeri foto perangkat
-      PermissionStatus status = await Permission.photos.request();
-      if (!status.isGranted && !status.isLimited) {
-        status = await Permission.storage.request();
-      }
-
-      if (status.isPermanentlyDenied) {
-        if (context.mounted) {
-          _showPermissionDialog(
-            context,
-            'Izin Akses Galeri Diperlukan',
-            'Aplikasi membutuhkan izin akses galeri/foto untuk memilih gambar dari memori perangkat. Silakan aktifkan di Pengaturan.',
-          );
-        }
-        return false;
-      }
-      return true;
-    } catch (_) {
-      // loloskan platform tanpa kebutuhan izin
-      return true;
-    }
-  }
-
-  void _showPermissionDialog(
-    BuildContext context,
-    String title,
-    String message,
-  ) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text(
-          title,
-          style: GoogleFonts.dmSerifDisplay(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        content: Text(
-          message,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () {
-              Navigator.pop(ctx);
-              openAppSettings();
-            },
-            child: const Text(
-              'Buka Pengaturan',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _safePickFromDevice(BuildContext context) async {
-    // periksa izin penyimpanan
-    final hasPermission = await _requestGalleryPermission(context);
-    if (!hasPermission) return;
-
     try {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -119,7 +44,7 @@ class AppImagePickerWidget extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Gagal membuka galeri. Silakan pastikan izin aktif atau gunakan Galeri Aset / Path File.',
+              'Gagal membuka galeri. Silakan coba lagi atau gunakan Galeri Aset / Path File.',
             ),
             backgroundColor: AppColors.primaryDark,
             duration: Duration(seconds: 4),
